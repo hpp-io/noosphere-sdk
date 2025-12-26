@@ -1,0 +1,108 @@
+{
+  "containers": {
+    "0x0000000000000000000000000000000000000000000000000000000000000001": {
+      "id": "0x0000000000000000000000000000000000000000000000000000000000000001",
+      "name": "echo-service",
+      "imageName": "busybox",
+      "command": "sh -c \"cat /workspace/input.json > /workspace/output.json\"",
+      "statusCode": "ACTIVE",
+      "description": "Simple echo service for testing - returns input as output",
+      "tags": ["test", "example", "simple"]
+    },
+    "0x0000000000000000000000000000000000000000000000000000000000000002": {
+      "id": "0x0000000000000000000000000000000000000000000000000000000000000002",
+      "name": "stable-diffusion-xl",
+      "imageName": "runpod/stable-diffusion",
+      "port": 8000,
+      "requirements": {
+        "gpu": true,
+        "memory": "16GB",
+        "cpu": 4
+      },
+      "payments": {
+        "basePrice": "0.01",
+        "token": "ETH",
+        "per": "inference"
+      },
+      "statusCode": "ACTIVE",
+      "verified": true,
+      "description": "Stable Diffusion XL for high-quality image generation",
+      "tags": ["ai", "image-generation", "gpu"],
+      "createdAt": "2024-12-26T00:00:00.000Z"
+    },
+    "0x0000000000000000000000000000000000000000000000000000000000000003": {
+      "id": "0x0000000000000000000000000000000000000000000000000000000000000003",
+      "name": "llama-3-8b",
+      "imageName": "ollama/llama3",
+      "port": 11434,
+      "requirements": {
+        "gpu": true,
+        "memory": "8GB",
+        "cpu": 4
+      },
+      "payments": {
+        "basePrice": "0.005",
+        "token": "ETH",
+        "per": "1000-tokens"
+      },
+      "statusCode": "ACTIVE",
+      "verified": true,
+      "description": "Llama 3 8B parameter model for text generation",
+      "tags": ["ai", "llm", "text-generation", "gpu"],
+      "createdAt": "2024-12-26T00:00:00.000Z"
+    },
+    "0x0000000000000000000000000000000000000000000000000000000000000004": {
+      "id": "0x0000000000000000000000000000000000000000000000000000000000000004",
+      "name": "whisper-large-v3",
+      "imageName": "onerahmet/openai-whisper-asr-webservice",
+      "port": 9000,
+      "env": {
+        "ASR_MODEL": "large-v3",
+        "ASR_ENGINE": "faster_whisper"
+      },
+      "requirements": {
+        "gpu": true,
+        "memory": "8GB",
+        "cpu": 2
+      },
+      "payments": {
+        "basePrice": "0.002",
+        "token": "ETH",
+        "per": "minute"
+      },
+      "statusCode": "ACTIVE",
+      "verified": true,
+      "description": "OpenAI Whisper Large V3 for speech-to-text transcription",
+      "tags": ["ai", "speech-to-text", "transcription", "gpu"],
+      "createdAt": "2024-12-26T00:00:00.000Z"
+    }
+  },
+  "verifiers": {
+    "0x0000000000000000000000000000000000000000": {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "name": "No Verification",
+      "verifierAddress": "0x0000000000000000000000000000000000000000",
+      "imageName": "",
+      "statusCode": "ACTIVE",
+      "description": "No verification required - simple delivery without proof validation"
+    },
+    "0x1111111111111111111111111111111111111111": {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "ZK-SNARK Groth16 Verifier",
+      "verifierAddress": "0x1111111111111111111111111111111111111111",
+      "imageName": "hpp/groth16-verifier",
+      "port": 8080,
+      "payments": {
+        "basePrice": "0.001",
+        "token": "ETH",
+        "per": "verification"
+      },
+      "statusCode": "ACTIVE",
+      "verified": true,
+      "description": "ZK-SNARK Groth16 proof verification for privacy-preserving computation",
+      "createdAt": "2024-12-26T00:00:00.000Z"
+    }
+  },
+  "version": "1.0.0",
+  "updatedAt": "2024-12-26T00:00:00.000Z"
+}

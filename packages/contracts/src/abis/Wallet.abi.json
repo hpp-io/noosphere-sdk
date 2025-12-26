@@ -1,0 +1,842 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "router",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "initialOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "allowance",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "approve",
+    "inputs": [
+      {
+        "name": "spender",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "disburseForFulfillment",
+    "inputs": [
+      {
+        "name": "requestId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "payments",
+        "type": "tuple[]",
+        "internalType": "struct Payment[]",
+        "components": [
+          {
+            "name": "recipient",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "feeToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "feeAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "disburseForRequest",
+    "inputs": [
+      {
+        "name": "requestId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "isLocked",
+    "inputs": [
+      {
+        "name": "spender",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "isValidSignature",
+    "inputs": [
+      {
+        "name": "hash_",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "signature_",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lockEscrow",
+    "inputs": [
+      {
+        "name": "spender",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "lockForRequest",
+    "inputs": [
+      {
+        "name": "spender",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "totalAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "requestId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "redundancy",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "lockedOf",
+    "inputs": [
+      {
+        "name": "spender",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lockedOfRequest",
+    "inputs": [
+      {
+        "name": "requestId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "paidCountOfRequest",
+    "inputs": [
+      {
+        "name": "requestId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "releaseEscrow",
+    "inputs": [
+      {
+        "name": "spender",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "releaseForRequest",
+    "inputs": [
+      {
+        "name": "requestId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "renounceOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "totalLockedFor",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "transferByRouter",
+    "inputs": [
+      {
+        "name": "spender",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "payments",
+        "type": "tuple[]",
+        "internalType": "struct Payment[]",
+        "components": [
+          {
+            "name": "recipient",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "feeToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "feeAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
+      {
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "typeAndVersion",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "withdraw",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "Approval",
+    "inputs": [
+      {
+        "name": "spender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Deposit",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Escrow",
+    "inputs": [
+      {
+        "name": "spender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "locked",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RequestDisbursed",
+    "inputs": [
+      {
+        "name": "requestId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "paidCount",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RequestLocked",
+    "inputs": [
+      {
+        "name": "requestId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "spender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "totalAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "redundancy",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RequestReleased",
+    "inputs": [
+      {
+        "name": "requestId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "spender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amountRefunded",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Transfer",
+    "inputs": [
+      {
+        "name": "spender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Withdraw",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "ECDSAInvalidSignature",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ECDSAInvalidSignatureLength",
+    "inputs": [
+      {
+        "name": "length",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ECDSAInvalidSignatureS",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ExceedsRemaining",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "FailedCall",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InconsistentLockedBalance",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InsufficientAllowance",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InsufficientBalance",
+    "inputs": [
+      {
+        "name": "balance",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "needed",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InsufficientFunds",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MismatchPaymentToken",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoSuchRequestLock",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlyCallableByRouter",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OnlyCallableByRouterOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OwnableInvalidOwner",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "OwnableUnauthorizedAccount",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "RedundancyExhausted",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ReentrancyGuardReentrantCall",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RequestAlreadyLocked",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RouterMustBeSet",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SafeERC20FailedOperation",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ZeroAmount",
+    "inputs": []
+  }
+]
