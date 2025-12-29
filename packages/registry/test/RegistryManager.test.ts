@@ -82,9 +82,9 @@ describe('RegistryManager', () => {
       await registry.load();
 
       const stats = registry.getStats();
-      // Default registry includes "echo-service" container
-      expect(stats.totalContainers).toBeGreaterThanOrEqual(1);
-      expect(stats.totalVerifiers).toBeGreaterThanOrEqual(1);
+      // Default registry is now empty (will be populated from remote sync)
+      expect(stats.totalContainers).toBe(0);
+      expect(stats.totalVerifiers).toBe(0);
     });
 
     it('should merge local and remote registries', async () => {

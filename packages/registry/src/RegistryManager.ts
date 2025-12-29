@@ -234,33 +234,10 @@ export class RegistryManager {
    * Create default registry with example entries
    */
   private async createDefaultRegistry(): Promise<void> {
-    // Add example container
-    const exampleContainer: ContainerMetadata = {
-      id: '0x0000000000000000000000000000000000000000000000000000000000000001',
-      name: 'echo-service',
-      imageName: 'busybox',
-      command: 'sh -c "cat /workspace/input.json > /workspace/output.json"',
-      statusCode: 'ACTIVE',
-      description: 'Simple echo service for testing',
-      tags: ['test', 'example'],
-    };
-
-    this.containers.set(exampleContainer.id, exampleContainer);
-
-    // Add example verifier (no verifier = simple delivery)
-    const noVerifier: VerifierMetadata = {
-      id: '00000000-0000-0000-0000-000000000000',
-      name: 'No Verification',
-      verifierAddress: '0x0000000000000000000000000000000000000000',
-      imageName: '',
-      statusCode: 'ACTIVE',
-      description: 'No verification required (simple delivery)',
-    };
-
-    this.verifiers.set(noVerifier.verifierAddress, noVerifier);
-
+    // Create empty registry - will be populated from remote sync
+    // No default containers or verifiers
     await this.saveLocal();
-    console.log('✓ Created default registry');
+    console.log('✓ Created empty local registry (will sync from remote)');
   }
 
   /**

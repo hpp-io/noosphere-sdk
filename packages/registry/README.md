@@ -48,8 +48,14 @@ const aiContainers = registry.searchContainers('ai');
 const containers = registry.listContainers();
 
 // Get verifier by contract address
-const verifier = registry.getVerifier('0x111...');
-console.log(verifier.name);  // "ZK-SNARK Groth16 Verifier"
+const verifier = registry.getVerifier('0x0165878A594ca255338adfa4d48449f69242Eb8F');
+console.log(verifier.name);  // "Immediate Finalize Verifier"
+
+// Check if proof generation is required
+if (verifier.requiresProof && verifier.proofService) {
+  console.log('Proof service:', verifier.proofService.imageName);
+  console.log('Proof service port:', verifier.proofService.port);
+}
 ```
 
 ### Adding Custom Containers
@@ -74,14 +80,37 @@ await registry.addContainer({
 ### Adding Custom Verifiers
 
 ```typescript
+// Verifier with integrated proof generation service
 await registry.addVerifier({
   id: 'custom-verifier-id',
   name: 'My Custom Verifier',
   verifierAddress: '0x222...',  // Onchain verifier contract address
-  imageName: 'myrepo/my-verifier',
-  port: 8080,
+  requiresProof: true,
+  proofService: {
+    imageName: 'myrepo/my-proof-service',
+    port: 3000,
+    command: 'npm start',
+    env: {
+      RPC_URL: 'https://...',
+      VERIFIER_ADDRESS: '0x222...',
+    },
+    requirements: {
+      memory: '2GB',
+      cpu: 2,
+    },
+  },
   statusCode: 'ACTIVE',
-  description: 'Custom proof verification',
+  description: 'Custom proof verification with integrated proof generation',
+});
+
+// Simple verifier without proof generation
+await registry.addVerifier({
+  id: 'simple-verifier-id',
+  name: 'Simple Verifier',
+  verifierAddress: '0x333...',
+  requiresProof: false,
+  statusCode: 'ACTIVE',
+  description: 'Simple verification without proof generation',
 });
 ```
 
@@ -134,15 +163,33 @@ interface ContainerMetadata {
 ### Verifier Metadata
 
 ```typescript
+interface ProofServiceConfig {
+  imageName: string;       // Docker image for proof generation service
+  port: number;            // Exposed port
+  command?: string;        // Docker command
+  env?: Record<string, string>;      // Environment variables
+  volumes?: string[];      // Volume mounts
+  requirements?: {
+    memory?: string;       // "2GB"
+    cpu?: number;
+    gpu?: boolean;
+  };
+}
+
 interface VerifierMetadata {
   id: string;              // UUID
   name: string;
   verifierAddress: string; // Onchain contract address (used as key)
-  imageName: string;       // Docker image for proof generation
+  requiresProof?: boolean; // Whether this verifier requires proof generation
+  proofService?: ProofServiceConfig; // Proof generation service configuration
+
+  // Deprecated: Use proofService instead
+  imageName?: string;      // Docker image for proof generation
   port?: number;
   command?: string;
   env?: Record<string, string>;
   volumes?: string[];
+
   payments?: {
     basePrice: string;
     token: string;
@@ -155,6 +202,54 @@ interface VerifierMetadata {
   updatedAt?: string;
 }
 ```
+
+## Working with Proof Generation
+
+When a verifier requires proof generation, you'll need to start the proof service container and interact with it:
+
+```typescript
+import { RegistryManager } from '@noosphere/registry';
+
+// Load registry
+const registry = new RegistryManager();
+await registry.load();
+
+// Get verifier for a subscription
+const verifier = registry.getVerifier('0x0165878A594ca255338adfa4d48449f69242Eb8F');
+
+// Check if proof generation is required
+if (verifier.requiresProof && verifier.proofService) {
+  // Start proof service container
+  const proofContainer = await containerManager.start({
+    imageName: verifier.proofService.imageName,
+    port: verifier.proofService.port,
+    command: verifier.proofService.command,
+    env: {
+      ...verifier.proofService.env,
+      RPC_URL: process.env.RPC_URL,
+      CHAIN_ID: process.env.CHAIN_ID,
+      VERIFIER_ADDRESS: verifier.verifierAddress,
+    },
+  });
+
+  // Generate proof
+  const proof = await fetch(`http://localhost:${verifier.proofService.port}/generate-proof`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      requestId,
+      subscriptionId,
+      interval: commitment.interval,
+      output: computeResult,
+    }),
+  }).then(r => r.json());
+
+  console.log('Proof generated:', proof);
+  // Proof service typically handles on-chain submission automatically
+}
+```
+
+See the [community registry integration guide](https://github.com/hpp-io/noosphere-registry/blob/main/VERIFIER_INTEGRATION.md) for complete examples.
 
 ## Local Registry Path
 

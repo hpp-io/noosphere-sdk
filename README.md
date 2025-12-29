@@ -175,7 +175,7 @@ const wallets = walletManager.listPaymentWallets();
 
 ### [@noosphere/registry](./packages/registry)
 
-Container and verifier discovery.
+Container and verifier discovery with integrated proof generation support.
 
 ```typescript
 import { RegistryManager } from '@noosphere/registry';
@@ -186,6 +186,13 @@ await registry.load();
 
 // Get container configuration
 const container = registry.getContainer(containerId);
+
+// Get verifier with proof service configuration
+const verifier = registry.getVerifier(verifierAddress);
+if (verifier.requiresProof && verifier.proofService) {
+  // Start proof generation service
+  console.log('Proof service:', verifier.proofService.imageName);
+}
 ```
 
 ## Usage Examples

@@ -24,15 +24,33 @@ export interface ContainerMetadata {
   tags?: string[];
 }
 
+export interface ProofServiceConfig {
+  imageName: string;
+  port: number;
+  command?: string;
+  env?: Record<string, string>;
+  volumes?: string[];
+  requirements?: {
+    memory?: string;
+    cpu?: number;
+    gpu?: boolean;
+  };
+}
+
 export interface VerifierMetadata {
   id: string; // UUID
   name: string;
   verifierAddress: string; // Onchain verifier contract address
-  imageName: string;
+  requiresProof?: boolean; // Whether this verifier requires proof generation
+  proofService?: ProofServiceConfig; // Proof generation service configuration (required if requiresProof is true)
+
+  // Deprecated: Use proofService instead
+  imageName?: string;
   port?: number;
   command?: string;
   env?: Record<string, string>;
   volumes?: string[];
+
   payments?: {
     basePrice: string;
     token: string;

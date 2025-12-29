@@ -3,6 +3,7 @@ import { EventMonitor } from './EventMonitor';
 import { ContainerManager } from './ContainerManager';
 import { SchedulerService } from './SchedulerService';
 import { WalletManager, KeystoreManager } from '@noosphere/crypto';
+import { RegistryManager } from '@noosphere/registry';
 import { CommitmentUtils } from './utils/CommitmentUtils';
 import { ConfigLoader } from './utils/ConfigLoader';
 import type { AgentConfig, RequestStartedEvent, ContainerMetadata, Commitment, NoosphereAgentConfig } from './types';
@@ -22,6 +23,7 @@ export class NoosphereAgent {
   private containerManager: ContainerManager;
   private scheduler: SchedulerService;
   private walletManager: WalletManager;
+  private registryManager: RegistryManager;
   private router: ethers.Contract;
   private coordinator: ethers.Contract;
   private provider: ethers.JsonRpcProvider;
@@ -49,6 +51,10 @@ export class NoosphereAgent {
     }
 
     this.containerManager = new ContainerManager();
+    this.registryManager = new RegistryManager({
+      autoSync: true, // Enable automatic sync with remote registry
+      cacheTTL: 3600000, // 1 hour cache
+    });
     this.eventMonitor = new EventMonitor(
       options.config,
       options.routerAbi,
@@ -194,6 +200,12 @@ export class NoosphereAgent {
   async start(): Promise<void> {
     console.log('Starting Noosphere Agent...');
 
+    // Load registry (local + remote sync)
+    console.log('📋 Loading container registry...');
+    await this.registryManager.load();
+    const stats = this.registryManager.getStats();
+    console.log(`✓ Registry loaded: ${stats.totalContainers} containers, ${stats.totalVerifiers} verifiers`);
+
     // Check Docker availability
     const dockerAvailable = await this.containerManager.checkDockerAvailable();
     if (!dockerAvailable) {
@@ -260,6 +272,30 @@ export class NoosphereAgent {
     console.log('Listening for requests...');
   }
 
+  /**
+   * Convert registry ContainerMetadata to agent-core ContainerMetadata
+   */
+  private convertRegistryContainer(registryContainer: any): ContainerMetadata {
+    // Parse image name and tag from imageName (format: "image:tag" or just "image")
+    const [image, tag] = registryContainer.imageName.split(':');
+
+    return {
+      id: registryContainer.id,
+      name: registryContainer.name,
+      image: image,
+      tag: tag || 'latest',
+      port: registryContainer.port?.toString(),
+      env: registryContainer.env,
+      requirements: registryContainer.requirements,
+      payments: registryContainer.payments ? {
+        basePrice: registryContainer.payments.basePrice,
+        unit: registryContainer.payments.token,
+        per: registryContainer.payments.per,
+      } : undefined,
+      verified: registryContainer.verified,
+    };
+  }
+
   private async handleRequest(event: RequestStartedEvent): Promise<void> {
     const requestIdShort = event.requestId.slice(0, 10);
     console.log(`\n[${new Date().toISOString()}] RequestStarted: ${requestIdShort}...`);
@@ -292,20 +328,39 @@ export class NoosphereAgent {
         return;
       }
 
-      // Get container metadata (try callback first, then map)
+      // Get container metadata (try registry first, then callback, then map)
       let container: ContainerMetadata | undefined;
-      if (this.getContainer) {
+
+      // 1. Try registry first
+      const registryContainer = this.registryManager.getContainer(event.containerId);
+      if (registryContainer) {
+        console.log(`  📋 Container found in registry: ${registryContainer.name}`);
+        container = this.convertRegistryContainer(registryContainer);
+      }
+
+      // 2. Fallback to callback function
+      if (!container && this.getContainer) {
         container = this.getContainer(event.containerId);
-      } else if (this.containers) {
+        if (container) {
+          console.log(`  📦 Container found via callback: ${container.name}`);
+        }
+      }
+
+      // 3. Fallback to containers map from config
+      if (!container && this.containers) {
         container = this.containers.get(event.containerId);
+        if (container) {
+          console.log(`  📦 Container found in config: ${container.name}`);
+        }
       }
 
       if (!container) {
         console.error(`  ❌ Container not found: ${event.containerId}`);
+        console.error(`  💡 Try adding it to the registry or config file`);
         return;
       }
 
-      console.log(`  📦 Container: ${container.name} (${container.image}:${container.tag || 'latest'})`);
+      console.log(`  📦 Using container: ${container.name} (${container.image}:${container.tag || 'latest'})`);
 
       // Fetch subscription to get client address
       const subscription = await this.router.getComputeSubscription(event.subscriptionId);
