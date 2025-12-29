@@ -17,7 +17,7 @@
     "ethereum"
   ],
   "author": "Noosphere Team",
-  "license": "BSD-3-Clause-Clear",
+  "license": "MIT",
   "dependencies": {
     "@noosphere/contracts": "file:../contracts",
     "@noosphere/crypto": "^0.1.0",

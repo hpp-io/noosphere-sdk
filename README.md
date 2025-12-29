@@ -2,7 +2,7 @@
 
 > TypeScript SDK for building decentralized compute agents on the Noosphere protocol
 
-[![License](https://img.shields.io/badge/License-BSD--3--Clause--Clear-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-%3E%3D18.0.0-green)](https://nodejs.org/)
 
@@ -363,7 +363,7 @@ npm run format
 
 ## License
 
-BSD-3-Clause-Clear - see [LICENSE](LICENSE) file for details
+MIT - see [LICENSE](LICENSE) file for details
 
 
 ---

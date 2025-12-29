@@ -199,4 +199,4 @@ interface KeystoreInfo {
 
 ## License
 
-BSD-3-Clause-Clear
+MIT

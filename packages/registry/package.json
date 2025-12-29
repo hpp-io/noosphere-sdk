@@ -17,7 +17,7 @@
     "verifier"
   ],
   "author": "Noosphere Team",
-  "license": "BSD-3-Clause-Clear",
+  "license": "MIT",
   "dependencies": {
     "node-fetch": "^3.3.2"
   },

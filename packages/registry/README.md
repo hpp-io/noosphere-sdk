@@ -206,4 +206,4 @@ To contribute containers/verifiers to the public registry:
 
 ## License
 
-BSD-3-Clause-Clear
+MIT

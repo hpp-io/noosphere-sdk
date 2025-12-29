@@ -188,4 +188,4 @@ console.log(ABIs.SubscriptionBatchReader);
 
 ## License
 
-BSD-3-Clause-Clear
+MIT
