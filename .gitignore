@@ -24,8 +24,19 @@ Thumbs.db
 
 # Environment
 .env
+.env.*
 .env.local
 .env.*.local
+
+# Security & Secrets
+*.pem
+*.key
+*.cert
+*.crt
+keystore.json
+mnemonic.txt
+secrets/
+credentials/
 
 # Test coverage
 coverage/
