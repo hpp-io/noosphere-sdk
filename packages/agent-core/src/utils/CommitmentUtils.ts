@@ -10,11 +10,11 @@ export class CommitmentUtils {
     const encoded = ethers.AbiCoder.defaultAbiCoder().encode(
       [
         'bytes32', // requestId
-        'uint64',  // subscriptionId
+        'uint64', // subscriptionId
         'bytes32', // containerId
-        'uint32',  // interval
-        'bool',    // useDeliveryInbox
-        'uint16',  // redundancy
+        'uint32', // interval
+        'bool', // useDeliveryInbox
+        'uint16', // redundancy
         'address', // walletAddress
         'uint256', // feeAmount
         'address', // feeToken
@@ -55,11 +55,11 @@ export class CommitmentUtils {
     return ethers.AbiCoder.defaultAbiCoder().encode(
       [
         'bytes32', // requestId
-        'uint64',  // subscriptionId
+        'uint64', // subscriptionId
         'bytes32', // containerId
-        'uint32',  // interval
-        'bool',    // useDeliveryInbox
-        'uint16',  // redundancy
+        'uint32', // interval
+        'bool', // useDeliveryInbox
+        'uint16', // redundancy
         'address', // walletAddress
         'uint256', // feeAmount
         'address', // feeToken

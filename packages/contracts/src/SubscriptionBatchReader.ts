@@ -10,10 +10,7 @@ import type { ComputeSubscription, IntervalStatus } from './types';
 export class SubscriptionBatchReaderContract {
   private contract: Contract;
 
-  constructor(
-    address: string,
-    provider: Provider
-  ) {
+  constructor(address: string, provider: Provider) {
     this.contract = new Contract(address, SubscriptionBatchReaderABI, provider);
   }
 
@@ -35,11 +32,7 @@ export class SubscriptionBatchReaderContract {
   ): Promise<ComputeSubscription[]> {
     const options = blockNumber ? { blockTag: blockNumber } : {};
 
-    const subscriptions = await this.contract.getSubscriptions(
-      startId,
-      endId,
-      options
-    );
+    const subscriptions = await this.contract.getSubscriptions(startId, endId, options);
 
     return subscriptions.map((sub: any) => this.parseComputeSubscription(sub));
   }
@@ -50,10 +43,7 @@ export class SubscriptionBatchReaderContract {
    * @param intervals Array of interval indices (matched element-wise with ids)
    * @returns Array of IntervalStatus for each pair
    */
-  async getIntervalStatuses(
-    ids: bigint[],
-    intervals: number[]
-  ): Promise<IntervalStatus[]> {
+  async getIntervalStatuses(ids: bigint[], intervals: number[]): Promise<IntervalStatus[]> {
     if (ids.length !== intervals.length) {
       throw new Error('ids and intervals arrays must have the same length');
     }

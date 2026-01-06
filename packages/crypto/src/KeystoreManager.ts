@@ -87,10 +87,7 @@ export class KeystoreManager {
     }
 
     console.log('Decrypting EOA...');
-    const wallet = await ethers.Wallet.fromEncryptedJson(
-      this.keystore.eoa.keystore,
-      this.password
-    );
+    const wallet = await ethers.Wallet.fromEncryptedJson(this.keystore.eoa.keystore, this.password);
 
     return wallet.connect(provider) as ethers.Wallet;
   }
@@ -145,10 +142,7 @@ export class KeystoreManager {
   /**
    * Get a payment wallet
    */
-  async getPaymentWallet(
-    walletAddress: string,
-    provider: ethers.Provider
-  ): Promise<ethers.Wallet> {
+  async getPaymentWallet(walletAddress: string, provider: ethers.Provider): Promise<ethers.Wallet> {
     if (!this.keystore) {
       throw new Error('Keystore not loaded. Call load() first.');
     }
@@ -235,10 +229,7 @@ export class KeystoreManager {
   /**
    * Update EOA (re-encrypt with new password or new private key)
    */
-  async updateEOA(
-    newPrivateKey: string,
-    provider: ethers.Provider
-  ): Promise<void> {
+  async updateEOA(newPrivateKey: string, provider: ethers.Provider): Promise<void> {
     if (!this.keystore) {
       throw new Error('Keystore not loaded. Call load() first.');
     }

@@ -30,7 +30,11 @@ Noosphere SDK enables you to build and run compute agents that participate in th
 ### Installation
 
 ```bash
-npm install @noosphere/agent-core @noosphere/crypto @noosphere/contracts
+# Install all packages at once
+npm install @noosphere/sdk
+
+# Or install individual packages
+npm install @noosphere/agent-core @noosphere/crypto @noosphere/contracts @noosphere/registry
 ```
 
 ### Basic Example
@@ -77,7 +81,7 @@ await agent.start();
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Noosphere SDK                        │
+│  @noosphere/sdk (meta package - includes all below)     │
 ├─────────────────────────────────────────────────────────┤
 │  @noosphere/agent-core                                  │
 │    ├── NoosphereAgent    (orchestrator)                 │

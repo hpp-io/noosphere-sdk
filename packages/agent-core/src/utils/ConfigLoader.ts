@@ -40,7 +40,9 @@ export class ConfigLoader {
   /**
    * Convert ContainerConfig to ContainerMetadata format
    */
-  static containerConfigToMetadata(containerConfig: NoosphereAgentConfig['containers'][0]): ContainerMetadata {
+  static containerConfigToMetadata(
+    containerConfig: NoosphereAgentConfig['containers'][0]
+  ): ContainerMetadata {
     // Parse image name and tag
     const [imageName, tag] = containerConfig.image.includes(':')
       ? containerConfig.image.split(':')
@@ -98,6 +100,6 @@ export class ConfigLoader {
     config: NoosphereAgentConfig,
     containerId: string
   ): NoosphereAgentConfig['containers'][0] | undefined {
-    return config.containers.find(c => c.id === containerId);
+    return config.containers.find((c) => c.id === containerId);
   }
 }

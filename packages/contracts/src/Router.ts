@@ -16,10 +16,7 @@ import type {
 export class RouterContract {
   private contract: Contract;
 
-  constructor(
-    address: string,
-    providerOrSigner: Provider | Signer
-  ) {
+  constructor(address: string, providerOrSigner: Provider | Signer) {
     this.contract = new Contract(address, RouterABI, providerOrSigner);
   }
 

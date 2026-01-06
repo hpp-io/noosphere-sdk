@@ -28,15 +28,6 @@ export class ContainerManager {
     const startTime = Date.now();
 
     try {
-      // Try to parse input as JSON, otherwise use it as plain text
-      let inputData: any;
-      try {
-        inputData = JSON.parse(input);
-      } catch {
-        // Not JSON, treat as plain text - wrap in an object for the container
-        inputData = { input: input };
-      }
-
       // Get the port for this container
       // We need to find the container ID from the metadata
       // Since we don't have a direct mapping from metadata to ID, we'll use the port from metadata
@@ -45,8 +36,19 @@ export class ContainerManager {
       // Make HTTP POST request to the persistent container
       const url = `http://localhost:${port}/computation`;
 
-      // Send inputData directly without wrapping it
-      const response = await axios.post(url, inputData, {
+      // Prepare request body
+      // Try to parse input as JSON and merge with { input: ... }
+      let requestBody: any;
+      try {
+        const parsedInput = JSON.parse(input);
+        // If input is valid JSON, merge it with { input: originalString }
+        requestBody = { input: input, ...parsedInput };
+      } catch {
+        // Not JSON, just wrap in { input: ... }
+        requestBody = { input: input };
+      }
+
+      const response = await axios.post(url, requestBody, {
         timeout,
         headers: {
           'Content-Type': 'application/json',
@@ -63,9 +65,10 @@ export class ContainerManager {
         output = response.data;
       } else if (response.data.output !== undefined) {
         // JSON response with output field
-        output = typeof response.data.output === 'string'
-          ? response.data.output
-          : JSON.stringify(response.data.output);
+        output =
+          typeof response.data.output === 'string'
+            ? response.data.output
+            : JSON.stringify(response.data.output);
       } else {
         // Fallback: stringify the entire response
         output = JSON.stringify(response.data);
@@ -81,9 +84,13 @@ export class ContainerManager {
 
       // Handle HTTP errors
       if (error.response) {
-        throw new Error(`Container HTTP error ${error.response.status}: ${JSON.stringify(error.response.data)}`);
+        throw new Error(
+          `Container HTTP error ${error.response.status}: ${JSON.stringify(error.response.data)}`
+        );
       } else if (error.code === 'ECONNREFUSED') {
-        throw new Error(`Cannot connect to container (port ${container.port || 8081}). Is it running?`);
+        throw new Error(
+          `Cannot connect to container (port ${container.port || 8081}). Is it running?`
+        );
       } else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
         throw new Error(`Container execution timeout after ${timeout}ms`);
       }
@@ -282,7 +289,6 @@ export class ContainerManager {
 
         // Start persistent container
         await this.startPersistentContainer(id, container);
-
       } catch (error) {
         console.error(`  ❌ Failed to prepare ${container.image}:`, (error as Error).message);
       }
@@ -335,9 +341,11 @@ export class ContainerManager {
       ExposedPorts: metadata.port ? { [`${metadata.port}/tcp`]: {} } : undefined,
       HostConfig: {
         AutoRemove: false, // Keep container for reuse
-        PortBindings: metadata.port ? {
-          [`${metadata.port}/tcp`]: [{ HostPort: metadata.port }]
-        } : undefined,
+        PortBindings: metadata.port
+          ? {
+              [`${metadata.port}/tcp`]: [{ HostPort: metadata.port }],
+            }
+          : undefined,
       },
       Env: metadata.env ? Object.entries(metadata.env).map(([k, v]) => `${k}=${v}`) : undefined,
     };
@@ -393,19 +401,21 @@ export class ContainerManager {
 
     console.log(`\n🛑 Stopping ${this.persistentContainers.size} persistent containers...`);
 
-    const stopPromises = Array.from(this.persistentContainers.entries()).map(async ([id, container]) => {
-      try {
-        const inspect = await container.inspect();
-        if (inspect.State.Running) {
-          console.log(`  Stopping ${inspect.Name}...`);
-          await container.stop({ t: 10 });
+    const stopPromises = Array.from(this.persistentContainers.entries()).map(
+      async ([id, container]) => {
+        try {
+          const inspect = await container.inspect();
+          if (inspect.State.Running) {
+            console.log(`  Stopping ${inspect.Name}...`);
+            await container.stop({ t: 10 });
+          }
+          await container.remove({ force: true });
+          console.log(`  ✓ Stopped ${inspect.Name}`);
+        } catch (error) {
+          console.warn(`  Warning: Failed to stop container ${id}:`, (error as Error).message);
         }
-        await container.remove({ force: true });
-        console.log(`  ✓ Stopped ${inspect.Name}`);
-      } catch (error) {
-        console.warn(`  Warning: Failed to stop container ${id}:`, (error as Error).message);
       }
-    });
+    );
 
     await Promise.all(stopPromises);
     this.persistentContainers.clear();

@@ -106,9 +106,7 @@ export class WalletManager {
    * Get ERC20 token balance
    */
   async getTokenBalance(tokenAddress: string): Promise<bigint> {
-    const erc20Abi = [
-      'function balanceOf(address owner) view returns (uint256)',
-    ];
+    const erc20Abi = ['function balanceOf(address owner) view returns (uint256)'];
 
     const contract = new ethers.Contract(tokenAddress, erc20Abi, this.provider);
     return contract.balanceOf(this.wallet.address);
@@ -149,10 +147,7 @@ export class WalletManager {
     subscriptionId?: string
   ): Promise<{ walletAddress: string; txHash: string }> {
     // Use TypeChain-generated factory from @noosphere/contracts
-    const walletFactory = WalletFactoryAbi__factory.connect(
-      walletFactoryAddress,
-      this.wallet
-    );
+    const walletFactory = WalletFactoryAbi__factory.connect(walletFactoryAddress, this.wallet);
 
     console.log(`Creating payment wallet for owner: ${initialOwner}...`);
 
@@ -276,15 +271,9 @@ export class WalletManager {
    * @param walletAddress - Wallet address to validate
    * @returns True if wallet was created by this factory
    */
-  async isValidWallet(
-    walletFactoryAddress: string,
-    walletAddress: string
-  ): Promise<boolean> {
+  async isValidWallet(walletFactoryAddress: string, walletAddress: string): Promise<boolean> {
     // Use TypeChain-generated factory from @noosphere/contracts
-    const walletFactory = WalletFactoryAbi__factory.connect(
-      walletFactoryAddress,
-      this.provider
-    );
+    const walletFactory = WalletFactoryAbi__factory.connect(walletFactoryAddress, this.provider);
 
     return walletFactory.isValidWallet(walletAddress);
   }

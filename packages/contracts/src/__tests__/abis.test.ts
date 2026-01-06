@@ -16,9 +16,9 @@ describe('ABI Exports', () => {
     });
 
     it('should include key functions', () => {
-      const functionNames = ABIs.Router
-        .filter((item: any) => item.type === 'function')
-        .map((item: any) => item.name);
+      const functionNames = ABIs.Router.filter((item: any) => item.type === 'function').map(
+        (item: any) => item.name
+      );
 
       expect(functionNames).toContain('sendRequest');
       expect(functionNames).toContain('createComputeSubscription');
@@ -78,17 +78,17 @@ describe('ABI Exports', () => {
     });
 
     it('should include createWallet function', () => {
-      const functionNames = ABIs.WalletFactory
-        .filter((item: any) => item.type === 'function')
-        .map((item: any) => item.name);
+      const functionNames = ABIs.WalletFactory.filter((item: any) => item.type === 'function').map(
+        (item: any) => item.name
+      );
 
       expect(functionNames).toContain('createWallet');
     });
 
     it('should include WalletCreated event', () => {
-      const eventNames = ABIs.WalletFactory
-        .filter((item: any) => item.type === 'event')
-        .map((item: any) => item.name);
+      const eventNames = ABIs.WalletFactory.filter((item: any) => item.type === 'event').map(
+        (item: any) => item.name
+      );
 
       expect(eventNames).toContain('WalletCreated');
     });
@@ -108,9 +108,9 @@ describe('ABI Exports', () => {
     });
 
     it('should include key wallet functions', () => {
-      const functionNames = ABIs.Wallet
-        .filter((item: any) => item.type === 'function')
-        .map((item: any) => item.name);
+      const functionNames = ABIs.Wallet.filter((item: any) => item.type === 'function').map(
+        (item: any) => item.name
+      );
 
       expect(functionNames).toContain('approve');
       expect(functionNames).toContain('lockForRequest');

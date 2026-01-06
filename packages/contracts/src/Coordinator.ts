@@ -10,10 +10,7 @@ import type { Commitment, ProofVerificationRequest } from './types';
 export class CoordinatorContract {
   private contract: Contract;
 
-  constructor(
-    address: string,
-    providerOrSigner: Provider | Signer
-  ) {
+  constructor(address: string, providerOrSigner: Provider | Signer) {
     this.contract = new Contract(address, CoordinatorABI, providerOrSigner);
   }
 
@@ -109,20 +106,13 @@ export class CoordinatorContract {
     nextInterval: number,
     nodeWallet: string
   ): Promise<ContractTransactionResponse> {
-    return this.contract.prepareNextInterval(
-      subscriptionId,
-      nextInterval,
-      nodeWallet
-    );
+    return this.contract.prepareNextInterval(subscriptionId, nextInterval, nodeWallet);
   }
 
   /**
    * Get commitment for a specific subscription and interval
    */
-  async getCommitment(
-    subscriptionId: bigint,
-    interval: number
-  ): Promise<Commitment> {
+  async getCommitment(subscriptionId: bigint, interval: number): Promise<Commitment> {
     const commitment = await this.contract.getCommitment(subscriptionId, interval);
     return this.parseCommitment(commitment);
   }

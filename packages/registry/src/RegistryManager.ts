@@ -1,12 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import fetch from 'node-fetch';
-import type {
-  ContainerMetadata,
-  VerifierMetadata,
-  RegistryConfig,
-  RegistryIndex,
-} from './types';
+import type { ContainerMetadata, VerifierMetadata, RegistryConfig, RegistryIndex } from './types';
 
 export class RegistryManager {
   private containers = new Map<string, ContainerMetadata>();
@@ -42,9 +37,7 @@ export class RegistryManager {
       }
     }
 
-    console.log(
-      `✓ Loaded ${this.containers.size} containers and ${this.verifiers.size} verifiers`
-    );
+    console.log(`✓ Loaded ${this.containers.size} containers and ${this.verifiers.size} verifiers`);
   }
 
   /**
@@ -131,9 +124,7 @@ export class RegistryManager {
    * Get all containers
    */
   listContainers(): ContainerMetadata[] {
-    return Array.from(this.containers.values()).filter(
-      (c) => c.statusCode === 'ACTIVE'
-    );
+    return Array.from(this.containers.values()).filter((c) => c.statusCode === 'ACTIVE');
   }
 
   /**
@@ -167,9 +158,7 @@ export class RegistryManager {
    * Get all verifiers
    */
   listVerifiers(): VerifierMetadata[] {
-    return Array.from(this.verifiers.values()).filter(
-      (v) => v.statusCode === 'ACTIVE'
-    );
+    return Array.from(this.verifiers.values()).filter((v) => v.statusCode === 'ACTIVE');
   }
 
   /**
@@ -187,9 +176,7 @@ export class RegistryManager {
   async addVerifier(verifier: VerifierMetadata): Promise<void> {
     this.verifiers.set(verifier.verifierAddress, verifier);
     await this.saveLocal();
-    console.log(
-      `✓ Added verifier: ${verifier.name} (${verifier.verifierAddress})`
-    );
+    console.log(`✓ Added verifier: ${verifier.name} (${verifier.verifierAddress})`);
   }
 
   /**
@@ -224,10 +211,7 @@ export class RegistryManager {
     };
 
     await fs.mkdir(path.dirname(this.config.localPath), { recursive: true });
-    await fs.writeFile(
-      this.config.localPath,
-      JSON.stringify(registry, null, 2)
-    );
+    await fs.writeFile(this.config.localPath, JSON.stringify(registry, null, 2));
   }
 
   /**
@@ -255,9 +239,7 @@ export class RegistryManager {
       activeContainers: this.listContainers().length,
       totalVerifiers: this.verifiers.size,
       activeVerifiers: this.listVerifiers().length,
-      lastSync: this.lastSync
-        ? new Date(this.lastSync).toISOString()
-        : 'Never',
+      lastSync: this.lastSync ? new Date(this.lastSync).toISOString() : 'Never',
     };
   }
 }

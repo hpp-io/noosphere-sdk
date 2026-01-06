@@ -6,7 +6,13 @@ import { WalletManager, KeystoreManager } from '@noosphere/crypto';
 import { RegistryManager } from '@noosphere/registry';
 import { CommitmentUtils } from './utils/CommitmentUtils';
 import { ConfigLoader } from './utils/ConfigLoader';
-import type { AgentConfig, RequestStartedEvent, ContainerMetadata, Commitment, NoosphereAgentConfig } from './types';
+import type {
+  AgentConfig,
+  RequestStartedEvent,
+  ContainerMetadata,
+  Commitment,
+  NoosphereAgentConfig,
+} from './types';
 
 export interface NoosphereAgentOptions {
   config: AgentConfig;
@@ -16,6 +22,11 @@ export interface NoosphereAgentOptions {
   containers?: Map<string, ContainerMetadata>; // Container map from config
   walletManager?: WalletManager; // Optional - provide pre-initialized WalletManager
   paymentWallet?: string; // Optional - WalletFactory wallet address for the agent
+  schedulerConfig?: {
+    cronIntervalMs: number;
+    syncPeriodMs: number;
+    maxRetryAttempts: number;
+  }; // Optional - scheduler configuration from config.json
 }
 
 export class NoosphereAgent {
@@ -46,7 +57,7 @@ export class NoosphereAgent {
     } else {
       throw new Error(
         'Either walletManager or config.privateKey must be provided. ' +
-        'Recommended: Use NoosphereAgent.fromKeystore() for production.'
+          'Recommended: Use NoosphereAgent.fromKeystore() for production.'
       );
     }
 
@@ -55,11 +66,7 @@ export class NoosphereAgent {
       autoSync: true, // Enable automatic sync with remote registry
       cacheTTL: 3600000, // 1 hour cache
     });
-    this.eventMonitor = new EventMonitor(
-      options.config,
-      options.routerAbi,
-      options.coordinatorAbi
-    );
+    this.eventMonitor = new EventMonitor(options.config, options.routerAbi, options.coordinatorAbi);
 
     // Initialize router contract
     this.router = new ethers.Contract(
@@ -74,16 +81,20 @@ export class NoosphereAgent {
       this.walletManager.getWallet()
     );
 
-    // Initialize scheduler service
-    this.scheduler = new SchedulerService(
-      provider,
-      this.coordinator,
-      this.walletManager.getAddress()
-    );
-
     // Store container sources
     this.getContainer = options.getContainer;
     this.containers = options.containers;
+
+    // Initialize scheduler service (with container filter)
+    this.scheduler = new SchedulerService(
+      provider,
+      this.router,
+      this.coordinator,
+      this.walletManager.getAddress(),
+      undefined, // batchReaderAddress (set later)
+      undefined, // config (set later)
+      this.getContainer // Pass container filter
+    );
 
     // Store payment wallet (WalletFactory wallet for the agent)
     this.paymentWallet = options.paymentWallet;
@@ -135,10 +146,7 @@ export class NoosphereAgent {
     await keystoreManager.load();
 
     // Initialize WalletManager from keystore
-    const walletManager = await WalletManager.fromKeystoreManager(
-      keystoreManager,
-      provider
-    );
+    const walletManager = await WalletManager.fromKeystoreManager(keystoreManager, provider);
 
     // Create AgentConfig from NoosphereAgentConfig
     const agentConfig: AgentConfig = {
@@ -185,10 +193,7 @@ export class NoosphereAgent {
     await keystoreManager.load();
 
     // Initialize WalletManager from keystore
-    const walletManager = await WalletManager.fromKeystoreManager(
-      keystoreManager,
-      provider
-    );
+    const walletManager = await WalletManager.fromKeystoreManager(keystoreManager, provider);
 
     // Create agent with pre-initialized WalletManager
     return new NoosphereAgent({
@@ -204,7 +209,9 @@ export class NoosphereAgent {
     console.log('📋 Loading container registry...');
     await this.registryManager.load();
     const stats = this.registryManager.getStats();
-    console.log(`✓ Registry loaded: ${stats.totalContainers} containers, ${stats.totalVerifiers} verifiers`);
+    console.log(
+      `✓ Registry loaded: ${stats.totalContainers} containers, ${stats.totalVerifiers} verifiers`
+    );
 
     // Check Docker availability
     const dockerAvailable = await this.containerManager.checkDockerAvailable();
@@ -242,20 +249,26 @@ export class NoosphereAgent {
     // Try to get SubscriptionBatchReader address from coordinator
     try {
       const batchReaderAddress = await this.coordinator.getSubscriptionBatchReader();
-      if (batchReaderAddress && batchReaderAddress !== '0x0000000000000000000000000000000000000000') {
+      if (
+        batchReaderAddress &&
+        batchReaderAddress !== '0x0000000000000000000000000000000000000000'
+      ) {
         console.log(`✓ SubscriptionBatchReader found: ${batchReaderAddress}`);
 
-        // Reinitialize scheduler with BatchReader
+        // Reinitialize scheduler with BatchReader and config from options
         this.scheduler.stop();
         this.scheduler = new SchedulerService(
           this.provider,
+          this.router,
           this.coordinator,
           this.walletManager.getAddress(),
           batchReaderAddress,
-          {
-            cronIntervalMs: 60000, // 1 minute
-            syncPeriodMs: 3000,
-          }
+          this.options.schedulerConfig || {
+            cronIntervalMs: 60000, // 1 minute (default)
+            syncPeriodMs: 3000,     // 3 seconds (default)
+            maxRetryAttempts: 3,     // 3 retries (default)
+          },
+          this.getContainer // Pass container filter
         );
       } else {
         console.warn('⚠️  SubscriptionBatchReader not available - subscription sync disabled');
@@ -287,11 +300,13 @@ export class NoosphereAgent {
       port: registryContainer.port?.toString(),
       env: registryContainer.env,
       requirements: registryContainer.requirements,
-      payments: registryContainer.payments ? {
-        basePrice: registryContainer.payments.basePrice,
-        unit: registryContainer.payments.token,
-        per: registryContainer.payments.per,
-      } : undefined,
+      payments: registryContainer.payments
+        ? {
+            basePrice: registryContainer.payments.basePrice,
+            unit: registryContainer.payments.token,
+            per: registryContainer.payments.per,
+          }
+        : undefined,
       verified: registryContainer.verified,
     };
   }
@@ -303,19 +318,27 @@ export class NoosphereAgent {
     console.log(`  Interval: ${event.interval}`);
     console.log(`  ContainerId: ${event.containerId.slice(0, 10)}...`);
 
-    // Track subscription in scheduler
-    this.scheduler.trackSubscription({
-      subscriptionId: BigInt(event.subscriptionId),
-      routeId: event.requestId,
-      containerId: event.containerId,
-      client: '', // Not available in RequestStartedEvent
-      wallet: this.walletManager.getAddress(),
-      activeAt: BigInt(Math.floor(Date.now() / 1000)), // Current time
-      intervalSeconds: BigInt(3600), // Default 1 hour, should come from subscription data
-      maxExecutions: 0n, // Unlimited by default
-      redundancy: event.redundancy,
-      verifier: event.verifier,
-    });
+    // Check if this interval is still current (skip old replayed events)
+    // Note: One-time executions (intervalSeconds=0) return type(uint32).max, should not be skipped
+    try {
+      const currentInterval = await this.router.getComputeSubscriptionInterval(event.subscriptionId);
+      const eventInterval = Number(event.interval);
+
+      // Skip check only for scheduled subscriptions (not one-time executions)
+      // type(uint32).max = 4294967295 indicates one-time execution
+      const isOneTimeExecution = currentInterval === 4294967295n;
+
+      if (!isOneTimeExecution && currentInterval > eventInterval + 2) {
+        console.log(`  ⏭️  Skipping old interval ${eventInterval} (current: ${currentInterval})`);
+        return;
+      }
+    } catch (error) {
+      console.warn(`  Could not verify interval currency:`, (error as Error).message);
+      // Continue processing if we can't verify
+    }
+
+    // Mark this interval as committed (subscription will be tracked by batch reader)
+    this.scheduler.markIntervalCommitted(BigInt(event.subscriptionId), BigInt(event.interval));
 
     try {
       // Self-coordination: Wait based on position-based priority
@@ -328,21 +351,23 @@ export class NoosphereAgent {
         return;
       }
 
-      // Get container metadata (try registry first, then callback, then map)
+      // Get container metadata (try callback first for validation, then registry, then map)
       let container: ContainerMetadata | undefined;
 
-      // 1. Try registry first
-      const registryContainer = this.registryManager.getContainer(event.containerId);
-      if (registryContainer) {
-        console.log(`  📋 Container found in registry: ${registryContainer.name}`);
-        container = this.convertRegistryContainer(registryContainer);
-      }
-
-      // 2. Fallback to callback function
-      if (!container && this.getContainer) {
+      // 1. Try callback function first (allows config-based filtering)
+      if (this.getContainer) {
         container = this.getContainer(event.containerId);
         if (container) {
           console.log(`  📦 Container found via callback: ${container.name}`);
+        }
+      }
+
+      // 2. Fallback to registry
+      if (!container) {
+        const registryContainer = this.registryManager.getContainer(event.containerId);
+        if (registryContainer) {
+          console.log(`  📋 Container found in registry: ${registryContainer.name}`);
+          container = this.convertRegistryContainer(registryContainer);
         }
       }
 
@@ -360,7 +385,9 @@ export class NoosphereAgent {
         return;
       }
 
-      console.log(`  📦 Using container: ${container.name} (${container.image}:${container.tag || 'latest'})`);
+      console.log(
+        `  📦 Using container: ${container.name} (${container.image}:${container.tag || 'latest'})`
+      );
 
       // Fetch subscription to get client address
       const subscription = await this.router.getComputeSubscription(event.subscriptionId);
@@ -375,7 +402,7 @@ export class NoosphereAgent {
 
       // Call client's getComputeInputs to get the input data
       const clientAbi = [
-        'function getComputeInputs(uint64 subscriptionId, uint32 interval, uint32 timestamp, address caller) external view returns (bytes memory)'
+        'function getComputeInputs(uint64 subscriptionId, uint32 interval, uint32 timestamp, address caller) external view returns (bytes memory)',
       ];
       const client = new ethers.Contract(clientAddress, clientAbi, this.provider);
       const timestamp = Math.floor(Date.now() / 1000);
@@ -395,7 +422,9 @@ export class NoosphereAgent {
 
       // Convert bytes to string
       const inputData = ethers.toUtf8String(inputBytes);
-      console.log(`  📥 Inputs received: ${inputData.substring(0, 100)}${inputData.length > 100 ? '...' : ''}`);
+      console.log(
+        `  📥 Inputs received: ${inputData.substring(0, 100)}${inputData.length > 100 ? '...' : ''}`
+      );
 
       // Execute container
       console.log(`  ⚙️  Executing...`);
@@ -468,7 +497,9 @@ export class NoosphereAgent {
     const delay = Math.floor((priority / 0xffffffff) * maxDelay);
 
     if (delay > 0) {
-      console.log(`  ⏱️  Priority wait: ${delay}ms (priority: 0x${priority.toString(16).slice(0, 8)})`);
+      console.log(
+        `  ⏱️  Priority wait: ${delay}ms (priority: 0x${priority.toString(16).slice(0, 8)})`
+      );
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
@@ -477,9 +508,7 @@ export class NoosphereAgent {
    * Calculate deterministic priority for this agent and request
    */
   private calculatePriority(requestId: string): number {
-    const hash = ethers.keccak256(
-      ethers.concat([requestId, this.walletManager.getAddress()])
-    );
+    const hash = ethers.keccak256(ethers.concat([requestId, this.walletManager.getAddress()]));
 
     // Use first 8 hex chars as priority (0x00000000 - 0xffffffff)
     return parseInt(hash.slice(2, 10), 16);

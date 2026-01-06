@@ -12,7 +12,11 @@ export type { NoosphereKeystore, PaymentWalletInfo, KeystoreInfo } from '@noosph
 
 // Re-export registry utilities for convenience
 export { RegistryManager } from '@noosphere/registry';
-export type { ContainerMetadata as RegistryContainerMetadata, VerifierMetadata as RegistryVerifierMetadata, RegistryConfig } from '@noosphere/registry';
+export type {
+  ContainerMetadata as RegistryContainerMetadata,
+  VerifierMetadata as RegistryVerifierMetadata,
+  RegistryConfig,
+} from '@noosphere/registry';
 
 // Export config types
 export type { NoosphereAgentConfig, ContainerConfig } from './types';

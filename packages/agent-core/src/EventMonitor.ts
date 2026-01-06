@@ -49,11 +49,7 @@ export class EventMonitor extends EventEmitter {
     }
 
     // Initialize contract instances
-    this.router = new ethers.Contract(
-      this.config.routerAddress,
-      this.routerAbi,
-      this.provider
-    );
+    this.router = new ethers.Contract(this.config.routerAddress, this.routerAbi, this.provider);
 
     this.coordinator = new ethers.Contract(
       this.config.coordinatorAddress,
@@ -198,7 +194,9 @@ export class EventMonitor extends EventEmitter {
     }
 
     const backoff = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 60000);
-    console.log(`Reconnecting in ${backoff}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`);
+    console.log(
+      `Reconnecting in ${backoff}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`
+    );
 
     await new Promise((resolve) => setTimeout(resolve, backoff));
 
