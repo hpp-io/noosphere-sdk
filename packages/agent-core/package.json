@@ -4,11 +4,15 @@
   "description": "Core modules for Noosphere agent (EventMonitor, ContainerManager, NoosphereAgent)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "noosphere",
@@ -18,10 +22,22 @@
   ],
   "author": "Noosphere Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hpp-io/noosphere-sdk.git",
+    "directory": "packages/agent-core"
+  },
+  "bugs": {
+    "url": "https://github.com/hpp-io/noosphere-sdk/issues"
+  },
+  "homepage": "https://github.com/hpp-io/noosphere-sdk/tree/main/packages/agent-core#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@noosphere/contracts": "file:../contracts",
+    "@noosphere/contracts": "^0.1.0",
     "@noosphere/crypto": "^0.1.0",
-    "@noosphere/registry": "file:../registry",
+    "@noosphere/registry": "^0.1.0",
     "axios": "^1.13.2",
     "dockerode": "^4.0.0",
     "dotenv": "^16.3.0",

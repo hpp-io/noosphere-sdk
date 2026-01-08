@@ -4,11 +4,15 @@
   "description": "Container and Verifier registry for Noosphere SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest",
     "test:watch": "jest --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "noosphere",
@@ -18,6 +22,18 @@
   ],
   "author": "Noosphere Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hpp-io/noosphere-sdk.git",
+    "directory": "packages/registry"
+  },
+  "bugs": {
+    "url": "https://github.com/hpp-io/noosphere-sdk/issues"
+  },
+  "homepage": "https://github.com/hpp-io/noosphere-sdk/tree/main/packages/registry#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "node-fetch": "^3.3.2"
   },

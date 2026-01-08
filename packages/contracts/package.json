@@ -4,6 +4,10 @@
   "description": "Noosphere smart contract TypeScript wrappers and ABIs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src/abis"
+  ],
   "scripts": {
     "typechain": "typechain --target ethers-v6 --out-dir src/typechain 'src/abis/*.json'",
     "build": "npm run typechain && tsc",
@@ -20,8 +24,20 @@
     "contracts",
     "web3"
   ],
-  "author": "Noosphere",
+  "author": "Noosphere Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hpp-io/noosphere-sdk.git",
+    "directory": "packages/contracts"
+  },
+  "bugs": {
+    "url": "https://github.com/hpp-io/noosphere-sdk/issues"
+  },
+  "homepage": "https://github.com/hpp-io/noosphere-sdk/tree/main/packages/contracts#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "ethers": "^6.13.0"
   },

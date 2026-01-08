@@ -4,10 +4,14 @@
   "description": "Noosphere SDK - Unified package for decentralized compute agent development",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "echo 'No tests for meta package'",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "noosphere",
@@ -21,7 +25,15 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hpp-io/noosphere-sdk.git"
+    "url": "https://github.com/hpp-io/noosphere-sdk.git",
+    "directory": "packages/sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/hpp-io/noosphere-sdk/issues"
+  },
+  "homepage": "https://github.com/hpp-io/noosphere-sdk#readme",
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@noosphere/agent-core": "^0.1.0",

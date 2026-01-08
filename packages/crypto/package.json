@@ -4,11 +4,15 @@
   "description": "Cryptographic utilities and wallet management for Noosphere SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest",
     "lint": "eslint src --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "noosphere",
@@ -17,10 +21,22 @@
     "keystore",
     "ethereum"
   ],
-  "author": "Noosphere",
+  "author": "Noosphere Team",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hpp-io/noosphere-sdk.git",
+    "directory": "packages/crypto"
+  },
+  "bugs": {
+    "url": "https://github.com/hpp-io/noosphere-sdk/issues"
+  },
+  "homepage": "https://github.com/hpp-io/noosphere-sdk/tree/main/packages/crypto#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@noosphere/contracts": "*",
+    "@noosphere/contracts": "^0.1.0",
     "ethers": "^6.13.0"
   },
   "devDependencies": {
