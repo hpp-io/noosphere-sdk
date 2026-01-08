@@ -6,8 +6,9 @@
  */
 
 import { EventEmitter } from 'events';
-import { Contract, Provider } from 'ethers';
+import { Contract, Provider, TransactionReceipt } from 'ethers';
 import { SubscriptionBatchReaderContract, type ComputeSubscription } from '@noosphere/contracts';
+import type { RequestStartedEvent } from './types';
 
 export interface SubscriptionState {
   subscriptionId: bigint;
@@ -30,6 +31,9 @@ export interface SchedulerConfig {
   cronIntervalMs: number; // Default: 60000 (1 minute)
   maxRetryAttempts: number; // Default: 3
   syncPeriodMs: number; // Default: 3000 (3 seconds)
+  // Persistence callbacks for committed intervals
+  loadCommittedIntervals?: () => string[]; // Load from DB on startup
+  saveCommittedInterval?: (key: string) => void; // Save to DB when committed
 }
 
 export class SchedulerService extends EventEmitter {
@@ -58,6 +62,8 @@ export class SchedulerService extends EventEmitter {
       cronIntervalMs: config?.cronIntervalMs ?? 60000, // 1 minute
       maxRetryAttempts: config?.maxRetryAttempts ?? 3,
       syncPeriodMs: config?.syncPeriodMs ?? 3000, // 3 seconds
+      loadCommittedIntervals: config?.loadCommittedIntervals,
+      saveCommittedInterval: config?.saveCommittedInterval,
     };
     this.getContainer = getContainer;
 
@@ -77,6 +83,17 @@ export class SchedulerService extends EventEmitter {
     console.log('🕐 Starting Scheduler Service...');
     console.log(`  Commitment generation interval: ${this.config.cronIntervalMs}ms`);
     console.log(`  Sync period: ${this.config.syncPeriodMs}ms`);
+
+    // Load committed intervals from persistent storage
+    if (this.config.loadCommittedIntervals) {
+      const loaded = this.config.loadCommittedIntervals();
+      for (const key of loaded) {
+        this.committedIntervals.add(key);
+      }
+      if (loaded.length > 0) {
+        console.log(`  Loaded ${loaded.length} committed intervals from storage`);
+      }
+    }
 
     // Start commitment generation timer (like Spring @Scheduled cron)
     this.intervalTimer = setInterval(() => this.generateCommitments(), this.config.cronIntervalMs);
@@ -139,6 +156,18 @@ export class SchedulerService extends EventEmitter {
   untrackSubscription(subscriptionId: bigint): void {
     const key = subscriptionId.toString();
     if (this.subscriptions.delete(key)) {
+      // Clean up committedIntervals for this subscription to prevent memory leak
+      const prefix = `${key}:`;
+      let cleanedCount = 0;
+      for (const commitmentKey of this.committedIntervals) {
+        if (commitmentKey.startsWith(prefix)) {
+          this.committedIntervals.delete(commitmentKey);
+          cleanedCount++;
+        }
+      }
+      if (cleanedCount > 0) {
+        console.log(`  🧹 Cleaned up ${cleanedCount} committed intervals for subscription ${key}`);
+      }
       console.log(`✓ Stopped tracking subscription ${key}`);
       this.emit('subscription:untracked', subscriptionId);
     }
@@ -146,11 +175,24 @@ export class SchedulerService extends EventEmitter {
 
   /**
    * Mark an interval as committed (for RequestStarted events)
+   * Also persists to storage if callback is configured
    */
   markIntervalCommitted(subscriptionId: bigint, interval: bigint): void {
     const commitmentKey = `${subscriptionId}:${interval}`;
-    this.committedIntervals.add(commitmentKey);
+    this.addCommittedInterval(commitmentKey);
     console.log(`  ✓ Marked interval ${interval} as committed for subscription ${subscriptionId}`);
+  }
+
+  /**
+   * Add to committed intervals set and persist to storage
+   */
+  private addCommittedInterval(key: string): void {
+    if (!this.committedIntervals.has(key)) {
+      this.committedIntervals.add(key);
+      if (this.config.saveCommittedInterval) {
+        this.config.saveCommittedInterval(key);
+      }
+    }
   }
 
   /**
@@ -233,7 +275,7 @@ export class SchedulerService extends EventEmitter {
         const hasCommitment = await this.hasRequestCommitments(sub.subscriptionId, currentInterval);
 
         if (hasCommitment) {
-          this.committedIntervals.add(commitmentKey);
+          this.addCommittedInterval(commitmentKey);
           console.log(`  Subscription ${subId} interval ${currentInterval} already committed`);
           continue;
         }
@@ -259,8 +301,17 @@ export class SchedulerService extends EventEmitter {
             containsError(error as Error, 'arithmetic underflow or overflow')) {
           console.log(`  Interval ${currentInterval} for subscription ${subId} appears to be already executed (overflow), marking as committed`);
           const commitmentKey = `${subId}:${currentInterval}`;
-          this.committedIntervals.add(commitmentKey);
+          this.addCommittedInterval(commitmentKey);
           sub.currentInterval = currentInterval + 1n;
+        }
+        // NoNextInterval error (0x3cdc51d3) - client hasn't triggered interval 1 yet
+        // For scheduled subscriptions, interval 1 is triggered by the client, not the scheduler
+        // Keep the subscription tracked and wait for the client to trigger interval 1
+        else if (containsError(error as Error, '0x3cdc51d3') ||
+                 containsError(error as Error, 'NoNextInterval')) {
+          console.log(`  Subscription ${subId}: waiting for client to trigger interval 1 (NoNextInterval)`);
+          // Don't untrack - just wait for the client to trigger interval 1
+          // Once interval 1 is executed, we can prepare interval 2
         }
         // If execution reverted or simulation failed, likely subscription was cancelled
         else if (containsError(error as Error, 'execution reverted') ||
@@ -288,15 +339,14 @@ export class SchedulerService extends EventEmitter {
     const intervalsSinceActive = BigInt(currentBlockTime) - sub.activeAt;
     const currentInterval = (intervalsSinceActive / sub.intervalSeconds) + 1n;
 
-    // Skip interval 1 (created by triggerFirstExecution)
-    if (currentInterval === 1n) {
-      console.log(`    Skip: interval 1 (created by triggerFirstExecution)`);
-      return false;
-    }
+    // Note: We don't skip interval 1 unconditionally anymore.
+    // If triggerFirstExecution was called, hasRequestCommitments will catch it.
+    // If agent crashed before triggerFirstExecution completed, we need to prepare it.
 
-    // Skip if subscription is completed (past last interval)
+    // Untrack if subscription is completed (past last interval)
     if (sub.maxExecutions > 0n && currentInterval > sub.maxExecutions) {
-      console.log(`    Skip: completed (interval ${currentInterval} > maxExecutions ${sub.maxExecutions})`);
+      console.log(`    Subscription ${subId} completed (interval ${currentInterval} > maxExecutions ${sub.maxExecutions}), untracking...`);
+      this.untrackSubscription(sub.subscriptionId);
       return false;
     }
 
@@ -373,7 +423,7 @@ export class SchedulerService extends EventEmitter {
 
         // Mark as committed
         const commitmentKey = `${sub.subscriptionId}:${interval}`;
-        this.committedIntervals.add(commitmentKey);
+        this.addCommittedInterval(commitmentKey);
 
         // Update subscription state
         sub.currentInterval = interval;
@@ -382,11 +432,24 @@ export class SchedulerService extends EventEmitter {
         sub.pendingTx = undefined;
         this.pendingTxs.delete(runKey);
 
+        // Parse RequestStarted event from receipt logs
+        // This ensures compute is triggered even if WebSocket misses the event
+        const requestStartedEvent = this.parseRequestStartedFromReceipt(receipt, sub);
+
+        // Calculate gas cost
+        const gasUsed = receipt.gasUsed;
+        const gasPrice = receipt.gasPrice ?? tx.gasPrice ?? 0n;
+        const gasCost = gasUsed * gasPrice;
+
         this.emit('commitment:success', {
           subscriptionId: sub.subscriptionId,
           interval,
           txHash: tx.hash,
           blockNumber: receipt.blockNumber,
+          gasUsed: gasUsed.toString(),
+          gasPrice: gasPrice.toString(),
+          gasCost: gasCost.toString(),
+          requestStartedEvent, // Include parsed event for immediate processing
         });
       } else {
         throw new Error(`Transaction failed with status ${receipt.status}`);
@@ -398,7 +461,20 @@ export class SchedulerService extends EventEmitter {
       sub.pendingTx = undefined;
       this.pendingTxs.delete(runKey);
 
-      // Increment retry attempts
+      // Check if this is a NoNextInterval error (client hasn't triggered interval 1 yet)
+      const errorMessage = (error as Error).message || '';
+      const isNoNextIntervalError = errorMessage.includes('0x3cdc51d3') ||
+                                     errorMessage.includes('NoNextInterval');
+
+      if (isNoNextIntervalError) {
+        // Don't increment retry attempts for NoNextInterval
+        // This is expected for scheduled subscriptions where interval 1 is client-triggered
+        console.log(`  Subscription ${sub.subscriptionId}: NoNextInterval - waiting for client to trigger interval 1`);
+        sub.txAttempts = 0; // Reset retry counter
+        return;
+      }
+
+      // Increment retry attempts for other errors
       sub.txAttempts++;
 
       if (sub.txAttempts >= this.config.maxRetryAttempts) {
@@ -488,17 +564,27 @@ export class SchedulerService extends EventEmitter {
       let newSubscriptions = 0;
       let skippedContainers = 0;
       let skippedInactive = 0;
+      let skippedEmpty = 0;
+      let skippedOnDemand = 0;
+
+      console.log(`  Syncing ${subscriptions.length} subscriptions (blockTime: ${blockTime})`);
+
       for (let i = 0; i < subscriptions.length; i++) {
         const sub = subscriptions[i];
         const subscriptionId = startId + BigInt(i);
 
         // Skip cancelled/deleted subscriptions (containerId = 0x0000...0)
         if (sub.containerId === '0x0000000000000000000000000000000000000000000000000000000000000000') {
+          skippedEmpty++;
           continue;
         }
 
         // Skip if not active
         if (!this.isSubscriptionActive(sub, blockTime)) {
+          // Debug log for non-empty subscriptions that are inactive
+          if (sub.intervalSeconds > 0) {
+            console.log(`  Sub ${subscriptionId}: inactive (activeAt=${sub.activeAt}, now=${blockTime})`);
+          }
           skippedInactive++;
           continue;
         }
@@ -509,9 +595,18 @@ export class SchedulerService extends EventEmitter {
           continue;
         }
 
-        this.trackSubscriptionFromConfig(sub, subscriptionId);
-        newSubscriptions++;
+        // Track subscription (returns true if actually tracked)
+        if (this.trackSubscriptionFromConfig(sub, subscriptionId)) {
+          newSubscriptions++;
+        } else {
+          // Track on-demand subscriptions that were skipped
+          if (sub.intervalSeconds <= 0) {
+            skippedOnDemand++;
+          }
+        }
       }
+
+      console.log(`  Sync stats: ${newSubscriptions} tracked, ${skippedEmpty} empty, ${skippedInactive} inactive, ${skippedContainers} unsupported containers, ${skippedOnDemand} on-demand`);
 
       // Update last synced ID
       this.lastSyncedId = endId;
@@ -546,9 +641,13 @@ export class SchedulerService extends EventEmitter {
     }
 
     // Check if max executions reached
-    if (sub.maxExecutions > 0) {
+    // Note: currentInterval is 0-based here ((elapsed / intervalSeconds) gives 0 for first interval)
+    // But maxExecutions is count, so we need > not >= (if currentInterval is 4 and max is 5, still active)
+    if (sub.maxExecutions > 0 && sub.intervalSeconds > 0) {
       const elapsed = currentBlockTime - sub.activeAt;
       const currentInterval = Math.floor(elapsed / sub.intervalSeconds);
+      // If currentInterval >= maxExecutions, all intervals have passed
+      // e.g., maxExecutions=5, intervalSeconds=180, after 900s currentInterval=5 -> all done
       if (currentInterval >= sub.maxExecutions) {
         return false;
       }
@@ -559,30 +658,31 @@ export class SchedulerService extends EventEmitter {
 
   /**
    * Track subscription from ComputeSubscription config
+   * Returns true if subscription was tracked, false if skipped
    */
-  private trackSubscriptionFromConfig(sub: ComputeSubscription, subscriptionId: bigint): void {
+  private trackSubscriptionFromConfig(sub: ComputeSubscription, subscriptionId: bigint): boolean {
     // Skip empty/deleted subscriptions (all fields are 0)
     if (sub.containerId === '0x0000000000000000000000000000000000000000000000000000000000000000') {
       // This is an empty slot (never created or deleted)
-      return;
+      return false;
     }
 
     // Skip if client address is zero (another indicator of empty subscription)
     if (sub.client === '0x0000000000000000000000000000000000000000') {
-      return;
+      return false;
     }
 
     const key = subscriptionId.toString();
 
     if (this.subscriptions.has(key)) {
       // Already tracked
-      return;
+      return false;
     }
 
-    // Validate subscription data
+    // Validate subscription data - intervalSeconds=0 means on-demand (not scheduled)
     if (sub.intervalSeconds <= 0) {
-      console.warn(`  Skipping invalid subscription: intervalSeconds must be > 0 (containerId: ${sub.containerId})`);
-      return;
+      // Silently skip on-demand subscriptions (not an error)
+      return false;
     }
 
     // Log subscription details
@@ -619,6 +719,8 @@ export class SchedulerService extends EventEmitter {
       lastProcessedAt: Date.now(),
       txAttempts: 0,
     });
+
+    return true;
   }
 
   /**
@@ -674,5 +776,49 @@ export class SchedulerService extends EventEmitter {
    */
   getSubscriptions(): SubscriptionState[] {
     return Array.from(this.subscriptions.values());
+  }
+
+  /**
+   * Parse RequestStarted event from transaction receipt
+   * This allows the agent to process the event immediately without waiting for WebSocket
+   */
+  private parseRequestStartedFromReceipt(
+    receipt: TransactionReceipt,
+    sub: SubscriptionState
+  ): RequestStartedEvent | null {
+    try {
+      // Find the RequestStarted log in the receipt
+      for (const log of receipt.logs) {
+        try {
+          const parsed = this.coordinator.interface.parseLog({
+            topics: log.topics as string[],
+            data: log.data,
+          });
+
+          if (parsed && parsed.name === 'RequestStarted') {
+            const commitment = parsed.args.commitment;
+            return {
+              requestId: parsed.args.requestId,
+              subscriptionId: parsed.args.subscriptionId,
+              containerId: parsed.args.containerId,
+              interval: Number(commitment.interval),
+              redundancy: Number(commitment.redundancy),
+              useDeliveryInbox: commitment.useDeliveryInbox,
+              feeAmount: commitment.feeAmount,
+              feeToken: commitment.feeToken,
+              verifier: commitment.verifier,
+              coordinator: commitment.coordinator,
+              walletAddress: commitment.walletAddress,
+              blockNumber: receipt.blockNumber,
+            };
+          }
+        } catch {
+          // Not a RequestStarted log, continue
+        }
+      }
+    } catch (error) {
+      console.warn('  ⚠️  Could not parse RequestStarted event from receipt:', error);
+    }
+    return null;
   }
 }

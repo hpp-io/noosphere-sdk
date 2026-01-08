@@ -1,6 +1,8 @@
 export { EventMonitor } from './EventMonitor';
+export type { CheckpointData } from './EventMonitor';
 export { ContainerManager } from './ContainerManager';
 export { NoosphereAgent } from './NoosphereAgent';
+export type { ComputeDeliveredEvent, RequestStartedCallbackEvent, CommitmentSuccessCallbackEvent } from './NoosphereAgent';
 export { SchedulerService } from './SchedulerService';
 
 export * from './types';

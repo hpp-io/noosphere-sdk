@@ -180,3 +180,17 @@ export enum FulfillResult {
   INSUFFICIENT_SUBSCRIPTION_BALANCE = 4,
   COST_EXCEEDS_COMMITMENT = 5,
 }
+
+/**
+ * Event emitted when scheduler successfully prepares next interval
+ */
+export interface CommitmentSuccessEvent {
+  subscriptionId: bigint;
+  interval: bigint;
+  txHash: string;
+  blockNumber: number;
+  gasUsed: string;
+  gasPrice: string;
+  gasCost: string;
+  requestStartedEvent?: RequestStartedEvent;
+}

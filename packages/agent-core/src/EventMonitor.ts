@@ -1,12 +1,16 @@
 import { EventEmitter } from 'events';
 import { ethers } from 'ethers';
-import fs from 'fs/promises';
-import path from 'path';
 import type { AgentConfig, RequestStartedEvent } from './types';
 
-interface Checkpoint {
-  lastProcessedBlock: number;
-  timestamp: number;
+export interface CheckpointData {
+  blockNumber: number;
+  blockHash?: string;
+  blockTimestamp?: number;
+}
+
+export interface EventMonitorOptions {
+  loadCheckpoint?: () => CheckpointData | undefined;
+  saveCheckpoint?: (checkpoint: CheckpointData) => void;
 }
 
 export class EventMonitor extends EventEmitter {
@@ -14,20 +18,24 @@ export class EventMonitor extends EventEmitter {
   private router!: ethers.Contract;
   private coordinator!: ethers.Contract;
   private lastProcessedBlock: number;
-  private checkpointPath: string;
   private useWebSocket: boolean;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
+  private isReconnecting = false;
+  private heartbeatInterval: NodeJS.Timeout | null = null;
+  private lastEventTime = Date.now();
+  private checkpointCallbacks?: EventMonitorOptions;
 
   constructor(
     private config: AgentConfig,
     private routerAbi: any[],
-    private coordinatorAbi: any[]
+    private coordinatorAbi: any[],
+    options?: EventMonitorOptions
   ) {
     super();
-    this.checkpointPath = path.join(process.cwd(), '.noosphere', 'checkpoint.json');
     this.lastProcessedBlock = config.deploymentBlock || 0;
     this.useWebSocket = false;
+    this.checkpointCallbacks = options;
   }
 
   async connect(): Promise<void> {
@@ -35,7 +43,8 @@ export class EventMonitor extends EventEmitter {
       // Try WebSocket first for push-based events
       if (this.config.wsRpcUrl) {
         this.provider = new ethers.WebSocketProvider(this.config.wsRpcUrl);
-        await this.provider._start();
+        // Note: Do NOT call _start() - it causes race condition with auto-initialization
+        // The provider will initialize automatically on first request
         this.useWebSocket = true;
         console.log('✓ Connected via WebSocket (push-based events)');
       } else {
@@ -59,12 +68,13 @@ export class EventMonitor extends EventEmitter {
   }
 
   async start(): Promise<void> {
-    // Ensure .noosphere directory exists
-    await fs.mkdir(path.dirname(this.checkpointPath), { recursive: true });
-
-    // Load checkpoint from disk
-    const checkpoint = await this.loadCheckpoint();
-    this.lastProcessedBlock = checkpoint.lastProcessedBlock;
+    // Load checkpoint from callback or use deployment block
+    if (this.checkpointCallbacks?.loadCheckpoint) {
+      const checkpoint = this.checkpointCallbacks.loadCheckpoint();
+      if (checkpoint) {
+        this.lastProcessedBlock = checkpoint.blockNumber;
+      }
+    }
 
     console.log(`Starting from block ${this.lastProcessedBlock}`);
 
@@ -101,7 +111,7 @@ export class EventMonitor extends EventEmitter {
       }
 
       if (events.length > 0) {
-        await this.saveCheckpoint(end);
+        this.saveCheckpoint(end);
       }
     }
 
@@ -114,17 +124,90 @@ export class EventMonitor extends EventEmitter {
     // Listen for RequestStarted events
     this.coordinator.on('RequestStarted', async (...args) => {
       const event = args[args.length - 1]; // Last argument is the event object
+      this.lastEventTime = Date.now();
       await this.processEvent(event);
 
       const blockNumber = event.blockNumber;
       if (blockNumber - this.lastProcessedBlock >= 10) {
-        await this.saveCheckpoint(blockNumber);
+        this.saveCheckpoint(blockNumber);
       }
     });
 
-    // Note: ethers v6 WebSocketProvider handles reconnection automatically
-    // Manual WebSocket event handling is not exposed in the public API
+    // Setup WebSocket error/close handlers for reconnection
+    if (this.provider instanceof ethers.WebSocketProvider) {
+      const wsProvider = this.provider as ethers.WebSocketProvider;
+
+      // Access the underlying WebSocket to detect connection issues
+      // ethers v6 exposes websocket through _websocket property (internal)
+      const ws = (wsProvider as any)._websocket;
+      if (ws) {
+        ws.on('close', () => {
+          console.warn('⚠️ WebSocket connection closed');
+          this.handleDisconnect();
+        });
+        ws.on('error', (error: Error) => {
+          console.error('⚠️ WebSocket error:', error.message);
+          this.handleDisconnect();
+        });
+      }
+    }
+
+    // Start heartbeat to detect silent disconnections
+    this.startHeartbeat();
+
     console.log('✓ WebSocket event listener started');
+  }
+
+  private startHeartbeat(): void {
+    // Check connection health every 2 minutes (reduced from 30s to avoid rate limits)
+    this.heartbeatInterval = setInterval(async () => {
+      try {
+        if (this.provider instanceof ethers.WebSocketProvider) {
+          // Try to get block number as heartbeat
+          const blockNumber = await this.provider.getBlockNumber();
+
+          // If we haven't received events for 3+ minutes but blocks are advancing,
+          // we might have a stale subscription - replay missed events
+          const timeSinceLastEvent = Date.now() - this.lastEventTime;
+          if (timeSinceLastEvent > 180000 && blockNumber > this.lastProcessedBlock + 5) {
+            console.log(`⚠️ No events for ${Math.round(timeSinceLastEvent / 1000)}s, checking for missed events...`);
+            await this.replayMissedEvents();
+          }
+        }
+      } catch (error) {
+        console.error('⚠️ Heartbeat failed, WebSocket may be disconnected');
+        this.handleDisconnect();
+      }
+    }, 120000); // 2 minutes
+  }
+
+  private async replayMissedEvents(): Promise<void> {
+    try {
+      const currentBlock = await this.provider.getBlockNumber();
+      if (currentBlock > this.lastProcessedBlock) {
+        console.log(`📥 Replaying events from block ${this.lastProcessedBlock + 1} to ${currentBlock}`);
+        await this.replayEvents(this.lastProcessedBlock + 1, currentBlock);
+        this.lastEventTime = Date.now();
+      }
+    } catch (error) {
+      console.error('Failed to replay missed events:', error);
+    }
+  }
+
+  private handleDisconnect(): void {
+    if (this.isReconnecting) return;
+    this.isReconnecting = true;
+
+    // Clear heartbeat during reconnection
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+
+    // Attempt reconnection
+    this.reconnect().finally(() => {
+      this.isReconnecting = false;
+    });
   }
 
   private async startPolling(): Promise<void> {
@@ -148,7 +231,7 @@ export class EventMonitor extends EventEmitter {
           }
 
           if (events.length > 0) {
-            await this.saveCheckpoint(currentBlock);
+            this.saveCheckpoint(currentBlock);
           }
 
           lastBlock = currentBlock;
@@ -195,16 +278,33 @@ export class EventMonitor extends EventEmitter {
 
     const backoff = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 60000);
     console.log(
-      `Reconnecting in ${backoff}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`
+      `🔄 Reconnecting in ${backoff}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`
     );
 
     await new Promise((resolve) => setTimeout(resolve, backoff));
 
     try {
+      // Clean up old listeners before reconnecting
+      if (this.coordinator) {
+        this.coordinator.removeAllListeners();
+      }
+      if (this.provider instanceof ethers.WebSocketProvider) {
+        try {
+          await this.provider.destroy();
+        } catch {
+          // Ignore destroy errors
+        }
+      }
+
       await this.connect();
+
+      // Replay any missed events since last checkpoint
+      await this.replayMissedEvents();
+
       await this.startWebSocketListening();
       console.log('✓ Reconnected successfully');
       this.reconnectAttempts = 0;
+      this.lastEventTime = Date.now();
     } catch (error) {
       console.error('Reconnection failed:', error);
       this.reconnectAttempts++;
@@ -212,30 +312,25 @@ export class EventMonitor extends EventEmitter {
     }
   }
 
-  private async saveCheckpoint(blockNumber: number): Promise<void> {
-    const checkpoint: Checkpoint = {
-      lastProcessedBlock: blockNumber,
-      timestamp: Date.now(),
-    };
-
-    await fs.writeFile(this.checkpointPath, JSON.stringify(checkpoint, null, 2));
+  private saveCheckpoint(blockNumber: number): void {
     this.lastProcessedBlock = blockNumber;
-  }
 
-  private async loadCheckpoint(): Promise<Checkpoint> {
-    try {
-      const data = await fs.readFile(this.checkpointPath, 'utf-8');
-      return JSON.parse(data);
-    } catch {
-      // No checkpoint found, use deployment block or 0
-      return {
-        lastProcessedBlock: this.config.deploymentBlock || 0,
-        timestamp: Date.now(),
-      };
+    // Use callback if provided
+    if (this.checkpointCallbacks?.saveCheckpoint) {
+      this.checkpointCallbacks.saveCheckpoint({
+        blockNumber,
+        blockTimestamp: Date.now(),
+      });
     }
   }
 
   async stop(): Promise<void> {
+    // Clear heartbeat interval
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+
     if (this.router) {
       this.router.removeAllListeners();
     }

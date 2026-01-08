@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { EventMonitor } from './EventMonitor';
 import { ContainerManager } from './ContainerManager';
-import { SchedulerService } from './SchedulerService';
+import { SchedulerService, SchedulerConfig } from './SchedulerService';
 import { WalletManager, KeystoreManager } from '@noosphere/crypto';
 import { RegistryManager } from '@noosphere/registry';
 import { CommitmentUtils } from './utils/CommitmentUtils';
@@ -14,6 +14,54 @@ import type {
   NoosphereAgentConfig,
 } from './types';
 
+export interface ComputeDeliveredEvent {
+  requestId: string;
+  subscriptionId: number;
+  interval: number;
+  containerId: string;
+  redundancy: number;
+  feeAmount: string;
+  feeToken: string;
+  input: string;
+  output: string;
+  txHash: string;
+  blockNumber: number;
+  gasUsed: bigint;
+  gasPrice: bigint;
+}
+
+export interface RequestStartedCallbackEvent {
+  requestId: string;
+  subscriptionId: number;
+  interval: number;
+  containerId: string;
+  redundancy: number;
+  feeAmount: string;
+  feeToken: string;
+  verifier: string;
+  walletAddress: string;
+  blockNumber: number;
+}
+
+/**
+ * Event data for commitment success (scheduler prepareNextInterval)
+ */
+export interface CommitmentSuccessCallbackEvent {
+  subscriptionId: bigint;
+  interval: bigint;
+  txHash: string;
+  blockNumber: number;
+  gasUsed: string;
+  gasPrice: string;
+  gasCost: string;
+}
+
+export interface CheckpointData {
+  blockNumber: number;
+  blockHash?: string;
+  blockTimestamp?: number;
+}
+
 export interface NoosphereAgentOptions {
   config: AgentConfig;
   routerAbi: any[];
@@ -22,11 +70,16 @@ export interface NoosphereAgentOptions {
   containers?: Map<string, ContainerMetadata>; // Container map from config
   walletManager?: WalletManager; // Optional - provide pre-initialized WalletManager
   paymentWallet?: string; // Optional - WalletFactory wallet address for the agent
-  schedulerConfig?: {
-    cronIntervalMs: number;
-    syncPeriodMs: number;
-    maxRetryAttempts: number;
-  }; // Optional - scheduler configuration from config.json
+  schedulerConfig?: Partial<SchedulerConfig>; // Optional - scheduler configuration from config.json
+  onRequestStarted?: (event: RequestStartedCallbackEvent) => void; // Callback when request is received
+  onRequestProcessing?: (requestId: string) => void; // Callback when request processing starts
+  onRequestSkipped?: (requestId: string, reason: string) => void; // Callback when request is skipped
+  onRequestFailed?: (requestId: string, error: string) => void; // Callback when request fails
+  onComputeDelivered?: (event: ComputeDeliveredEvent) => void; // Callback when compute is delivered
+  onCommitmentSuccess?: (event: CommitmentSuccessCallbackEvent) => void; // Callback when scheduler prepares interval
+  isRequestProcessed?: (requestId: string) => boolean; // Check if request is already processed (completed/failed)
+  loadCheckpoint?: () => CheckpointData | undefined; // Load checkpoint from storage
+  saveCheckpoint?: (checkpoint: CheckpointData) => void; // Save checkpoint to storage
 }
 
 export class NoosphereAgent {
@@ -43,6 +96,7 @@ export class NoosphereAgent {
   private containers?: Map<string, ContainerMetadata>;
   private paymentWallet?: string;
   private isRunning = false;
+  private processingRequests = new Set<string>(); // Deduplication: track requests being processed
 
   constructor(private options: NoosphereAgentOptions) {
     this.config = options.config;
@@ -66,7 +120,10 @@ export class NoosphereAgent {
       autoSync: true, // Enable automatic sync with remote registry
       cacheTTL: 3600000, // 1 hour cache
     });
-    this.eventMonitor = new EventMonitor(options.config, options.routerAbi, options.coordinatorAbi);
+    this.eventMonitor = new EventMonitor(options.config, options.routerAbi, options.coordinatorAbi, {
+      loadCheckpoint: options.loadCheckpoint,
+      saveCheckpoint: options.saveCheckpoint,
+    });
 
     // Initialize router contract
     this.router = new ethers.Contract(
@@ -280,6 +337,36 @@ export class NoosphereAgent {
     // Start scheduler service
     this.scheduler.start();
 
+    // Listen for commitment:success events to handle cases where WebSocket misses events
+    this.scheduler.on('commitment:success', async (data: {
+      subscriptionId: bigint;
+      interval: bigint;
+      txHash: string;
+      blockNumber: number;
+      gasUsed?: string;
+      gasPrice?: string;
+      gasCost?: string;
+      requestStartedEvent?: RequestStartedEvent;
+    }) => {
+      // Call callback if provided (for DB persistence)
+      if (this.options.onCommitmentSuccess) {
+        this.options.onCommitmentSuccess({
+          subscriptionId: data.subscriptionId,
+          interval: data.interval,
+          txHash: data.txHash,
+          blockNumber: data.blockNumber,
+          gasUsed: data.gasUsed || '0',
+          gasPrice: data.gasPrice || '0',
+          gasCost: data.gasCost || '0',
+        });
+      }
+
+      if (data.requestStartedEvent) {
+        console.log(`  📥 Processing RequestStarted from prepare receipt (fallback for missed WebSocket)`);
+        await this.handleRequest(data.requestStartedEvent);
+      }
+    });
+
     this.isRunning = true;
     console.log('✓ Noosphere Agent is running');
     console.log('Listening for requests...');
@@ -313,10 +400,41 @@ export class NoosphereAgent {
 
   private async handleRequest(event: RequestStartedEvent): Promise<void> {
     const requestIdShort = event.requestId.slice(0, 10);
+
+    // Deduplication: Check if this request is already being processed
+    if (this.processingRequests.has(event.requestId)) {
+      console.log(`  ⏭️  Request ${requestIdShort}... already being processed, skipping duplicate`);
+      return;
+    }
+
+    // Check if request has already been processed (completed/failed)
+    if (this.options.isRequestProcessed && this.options.isRequestProcessed(event.requestId)) {
+      console.log(`  ⏭️  Request ${requestIdShort}... already processed, skipping`);
+      return;
+    }
+
+    this.processingRequests.add(event.requestId);
+
     console.log(`\n[${new Date().toISOString()}] RequestStarted: ${requestIdShort}...`);
     console.log(`  SubscriptionId: ${event.subscriptionId}`);
     console.log(`  Interval: ${event.interval}`);
     console.log(`  ContainerId: ${event.containerId.slice(0, 10)}...`);
+
+    // Call onRequestStarted callback if provided
+    if (this.options.onRequestStarted) {
+      this.options.onRequestStarted({
+        requestId: event.requestId,
+        subscriptionId: Number(event.subscriptionId),
+        interval: Number(event.interval),
+        containerId: event.containerId,
+        redundancy: event.redundancy,
+        feeAmount: event.feeAmount.toString(),
+        feeToken: event.feeToken,
+        verifier: event.verifier,
+        walletAddress: event.walletAddress,
+        blockNumber: event.blockNumber,
+      });
+    }
 
     // Check if this interval is still current (skip old replayed events)
     // Note: One-time executions (intervalSeconds=0) return type(uint32).max, should not be skipped
@@ -330,6 +448,10 @@ export class NoosphereAgent {
 
       if (!isOneTimeExecution && currentInterval > eventInterval + 2) {
         console.log(`  ⏭️  Skipping old interval ${eventInterval} (current: ${currentInterval})`);
+        if (this.options.onRequestSkipped) {
+          this.options.onRequestSkipped(event.requestId, `Old interval ${eventInterval} (current: ${currentInterval})`);
+        }
+        this.processingRequests.delete(event.requestId);
         return;
       }
     } catch (error) {
@@ -344,10 +466,19 @@ export class NoosphereAgent {
       // Self-coordination: Wait based on position-based priority
       await this.waitForPriority(event);
 
+      // Call onRequestProcessing callback if provided
+      if (this.options.onRequestProcessing) {
+        this.options.onRequestProcessing(event.requestId);
+      }
+
       // Check if already fulfilled (redundancy check)
       const currentCount = await this.coordinator.redundancyCount(event.requestId);
       if (currentCount >= event.redundancy) {
         console.log(`  ⏭️  Already fulfilled (${currentCount}/${event.redundancy}), skipping`);
+        if (this.options.onRequestSkipped) {
+          this.options.onRequestSkipped(event.requestId, `Already fulfilled (${currentCount}/${event.redundancy})`);
+        }
+        this.processingRequests.delete(event.requestId);
         return;
       }
 
@@ -382,6 +513,9 @@ export class NoosphereAgent {
       if (!container) {
         console.error(`  ❌ Container not found: ${event.containerId}`);
         console.error(`  💡 Try adding it to the registry or config file`);
+        if (this.options.onRequestSkipped) {
+          this.options.onRequestSkipped(event.requestId, `Container not found: ${event.containerId}`);
+        }
         return;
       }
 
@@ -395,6 +529,9 @@ export class NoosphereAgent {
 
       if (!clientAddress || clientAddress === '0x0000000000000000000000000000000000000000') {
         console.error(`  ❌ Invalid client address for subscription ${event.subscriptionId}`);
+        if (this.options.onRequestFailed) {
+          this.options.onRequestFailed(event.requestId, `Invalid client address for subscription ${event.subscriptionId}`);
+        }
         return;
       }
 
@@ -416,7 +553,11 @@ export class NoosphereAgent {
           this.walletManager.getAddress()
         );
       } catch (error) {
+        const errorMessage = (error as Error).message || String(error);
         console.error(`  ❌ Failed to get inputs from client:`, error);
+        if (this.options.onRequestFailed) {
+          this.options.onRequestFailed(event.requestId, `Failed to get inputs: ${errorMessage}`);
+        }
         return;
       }
 
@@ -437,6 +578,9 @@ export class NoosphereAgent {
       if (result.exitCode !== 0) {
         console.error(`  ❌ Container execution failed with exit code ${result.exitCode}`);
         console.error(`  📄 Container output:`, result.output);
+        if (this.options.onRequestFailed) {
+          this.options.onRequestFailed(event.requestId, `Container execution failed with exit code ${result.exitCode}`);
+        }
         return;
       }
 
@@ -480,11 +624,46 @@ export class NoosphereAgent {
       if (receipt.status === 1) {
         console.log(`  ✓ Result delivered successfully (block ${receipt.blockNumber})`);
         console.log(`  💰 Fee earned: ${ethers.formatEther(event.feeAmount)} ETH`);
+
+        // Call onComputeDelivered callback if provided
+        if (this.options.onComputeDelivered) {
+          this.options.onComputeDelivered({
+            requestId: event.requestId,
+            subscriptionId: Number(event.subscriptionId),
+            interval: Number(event.interval),
+            containerId: event.containerId,
+            redundancy: event.redundancy,
+            feeAmount: event.feeAmount.toString(),
+            feeToken: event.feeToken,
+            input: input,
+            output: output,
+            txHash: tx.hash,
+            blockNumber: receipt.blockNumber,
+            gasUsed: receipt.gasUsed,
+            gasPrice: receipt.gasPrice || tx.gasPrice || 0n,
+          });
+        }
       } else {
         throw new Error(`Delivery transaction failed with status ${receipt.status}`);
       }
     } catch (error) {
+      const errorMessage = (error as Error).message || String(error);
+      const errorCode = (error as any).code;
+
+      // Handle nonce expired error - this usually means another handler already processed this request
+      if (errorCode === 'NONCE_EXPIRED' || errorMessage.includes('nonce has already been used') || errorMessage.includes('nonce too low')) {
+        console.log(`  ⚠️  Nonce expired (likely already processed by another handler)`);
+        // Don't mark as failed - it was probably successful via another path
+        return;
+      }
+
       console.error(`  ❌ Error processing request:`, error);
+      if (this.options.onRequestFailed) {
+        this.options.onRequestFailed(event.requestId, errorMessage);
+      }
+    } finally {
+      // Cleanup: Remove from processing set
+      this.processingRequests.delete(event.requestId);
     }
   }
 
