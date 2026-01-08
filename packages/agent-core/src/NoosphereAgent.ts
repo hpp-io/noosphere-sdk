@@ -4,6 +4,7 @@ import { ContainerManager } from './ContainerManager';
 import { SchedulerService, SchedulerConfig } from './SchedulerService';
 import { WalletManager, KeystoreManager } from '@noosphere/crypto';
 import { RegistryManager } from '@noosphere/registry';
+import { ABIs } from '@noosphere/contracts';
 import { CommitmentUtils } from './utils/CommitmentUtils';
 import { ConfigLoader } from './utils/ConfigLoader';
 import type {
@@ -64,8 +65,8 @@ export interface CheckpointData {
 
 export interface NoosphereAgentOptions {
   config: AgentConfig;
-  routerAbi: any[];
-  coordinatorAbi: any[];
+  routerAbi?: any[];  // Optional - defaults to ABIs.Router from @noosphere/contracts
+  coordinatorAbi?: any[];  // Optional - defaults to ABIs.Coordinator from @noosphere/contracts
   getContainer?: (containerId: string) => ContainerMetadata | undefined;
   containers?: Map<string, ContainerMetadata>; // Container map from config
   walletManager?: WalletManager; // Optional - provide pre-initialized WalletManager
@@ -103,6 +104,10 @@ export class NoosphereAgent {
     this.provider = new ethers.JsonRpcProvider(options.config.rpcUrl);
     const provider = this.provider;
 
+    // Use default ABIs from @noosphere/contracts if not provided
+    const routerAbi = options.routerAbi || ABIs.Router;
+    const coordinatorAbi = options.coordinatorAbi || ABIs.Coordinator;
+
     // Use provided WalletManager or create from private key
     if (options.walletManager) {
       this.walletManager = options.walletManager;
@@ -120,7 +125,7 @@ export class NoosphereAgent {
       autoSync: true, // Enable automatic sync with remote registry
       cacheTTL: 3600000, // 1 hour cache
     });
-    this.eventMonitor = new EventMonitor(options.config, options.routerAbi, options.coordinatorAbi, {
+    this.eventMonitor = new EventMonitor(options.config, routerAbi, coordinatorAbi, {
       loadCheckpoint: options.loadCheckpoint,
       saveCheckpoint: options.saveCheckpoint,
     });
@@ -128,13 +133,13 @@ export class NoosphereAgent {
     // Initialize router contract
     this.router = new ethers.Contract(
       options.config.routerAddress,
-      options.routerAbi,
+      routerAbi,
       this.provider
     );
 
     this.coordinator = new ethers.Contract(
       options.config.coordinatorAddress,
-      options.coordinatorAbi,
+      coordinatorAbi,
       this.walletManager.getWallet()
     );
 
@@ -167,14 +172,14 @@ export class NoosphereAgent {
    * This loads all configuration including containers from a config file
    *
    * @param configPath - Path to config.json file
-   * @param routerAbi - Router contract ABI
-   * @param coordinatorAbi - Coordinator contract ABI
+   * @param routerAbi - Router contract ABI (optional - defaults to ABIs.Router)
+   * @param coordinatorAbi - Coordinator contract ABI (optional - defaults to ABIs.Coordinator)
    * @returns Initialized NoosphereAgent
    */
   static async fromConfig(
     configPath: string,
-    routerAbi: any[],
-    coordinatorAbi: any[]
+    routerAbi?: any[],
+    coordinatorAbi?: any[]
   ): Promise<NoosphereAgent> {
     // Load config from file
     const fullConfig = ConfigLoader.loadFromFile(configPath);
