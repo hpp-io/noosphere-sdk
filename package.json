@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build -w @noosphere/contracts -w @noosphere/crypto -w @noosphere/registry && npm run build -w @noosphere/agent-core -w @noosphere/sdk",
     "test": "npm run test --workspaces",
     "lint": "eslint packages/**/src/**/*.ts",
     "format": "prettier --write \"packages/**/src/**/*.ts\"",
