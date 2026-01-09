@@ -6,6 +6,12 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-%3E%3D18.0.0-green)](https://nodejs.org/)
 
+[![npm @noosphere/sdk](https://img.shields.io/npm/v/@noosphere/sdk.svg?label=@noosphere/sdk)](https://www.npmjs.com/package/@noosphere/sdk)
+[![npm @noosphere/agent-core](https://img.shields.io/npm/v/@noosphere/agent-core.svg?label=@noosphere/agent-core)](https://www.npmjs.com/package/@noosphere/agent-core)
+[![npm @noosphere/contracts](https://img.shields.io/npm/v/@noosphere/contracts.svg?label=@noosphere/contracts)](https://www.npmjs.com/package/@noosphere/contracts)
+[![npm @noosphere/crypto](https://img.shields.io/npm/v/@noosphere/crypto.svg?label=@noosphere/crypto)](https://www.npmjs.com/package/@noosphere/crypto)
+[![npm @noosphere/registry](https://img.shields.io/npm/v/@noosphere/registry.svg?label=@noosphere/registry)](https://www.npmjs.com/package/@noosphere/registry)
+
 ## Overview
 
 Noosphere SDK enables you to build and run compute agents that participate in the Noosphere decentralized compute network. Deploy AI models, data processing pipelines, or custom compute workloads as containerized services and earn fees for processing requests.
@@ -104,7 +110,7 @@ await agent.start();
 
 ## Packages
 
-### [@noosphere/agent-core](./packages/agent-core)
+### [@noosphere/agent-core](./packages/agent-core) · [npm](https://www.npmjs.com/package/@noosphere/agent-core)
 
 Core agent functionality for processing compute requests.
 
@@ -121,7 +127,7 @@ await agent.start();
 - `EventMonitor` - Blockchain event listener with WebSocket support
 - `ContainerManager` - Docker container execution
 
-### [@noosphere/contracts](./packages/contracts)
+### [@noosphere/contracts](./packages/contracts) · [npm](https://www.npmjs.com/package/@noosphere/contracts)
 
 Type-safe contract interfaces and ABIs.
 
@@ -144,7 +150,7 @@ const tx = await walletFactory.createWallet(owner);
 - Wallet (escrow and payments)
 - SubscriptionBatchReader (batch queries)
 
-### [@noosphere/crypto](./packages/crypto)
+### [@noosphere/crypto](./packages/crypto) · [npm](https://www.npmjs.com/package/@noosphere/crypto)
 
 Secure wallet and keystore management.
 
@@ -177,7 +183,7 @@ const wallets = walletManager.listPaymentWallets();
 - EIP-712 signing support
 - Hub-compatible keystore format
 
-### [@noosphere/registry](./packages/registry)
+### [@noosphere/registry](./packages/registry) · [npm](https://www.npmjs.com/package/@noosphere/registry)
 
 Container and verifier discovery with integrated proof generation support.
 
