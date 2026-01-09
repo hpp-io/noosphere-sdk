@@ -1,9 +1,21 @@
 name: Publish to npm
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 0.1.0-alpha.4)'
+        required: true
+        type: string
+      tag:
+        description: 'npm tag (latest, alpha, beta)'
+        required: true
+        default: 'alpha'
+        type: choice
+        options:
+          - latest
+          - alpha
+          - beta
 
 jobs:
   publish:
@@ -23,6 +35,9 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
+      - name: Set package versions
+        run: npm version ${{ inputs.version }} --workspaces --no-git-tag-version
+
       - name: Install dependencies
         run: npm ci
 
@@ -33,26 +48,26 @@ jobs:
         run: npm run test
 
       - name: Publish @noosphere/contracts
-        run: npm publish -w @noosphere/contracts
+        run: npm publish -w @noosphere/contracts --tag ${{ inputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @noosphere/crypto
-        run: npm publish -w @noosphere/crypto
+        run: npm publish -w @noosphere/crypto --tag ${{ inputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @noosphere/registry
-        run: npm publish -w @noosphere/registry
+        run: npm publish -w @noosphere/registry --tag ${{ inputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @noosphere/agent-core
-        run: npm publish -w @noosphere/agent-core
+        run: npm publish -w @noosphere/agent-core --tag ${{ inputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish @noosphere/sdk
-        run: npm publish -w @noosphere/sdk
+        run: npm publish -w @noosphere/sdk --tag ${{ inputs.tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

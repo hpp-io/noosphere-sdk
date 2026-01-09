@@ -1,14 +1,27 @@
 {
   "name": "@noosphere/agent-core",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.3",
   "description": "Core modules for Noosphere agent (EventMonitor, ContainerManager, NoosphereAgent)",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsup",
     "test": "jest",
     "test:watch": "jest --watch",
     "clean": "rm -rf dist",
@@ -35,9 +48,9 @@
     "access": "public"
   },
   "dependencies": {
-    "@noosphere/contracts": "^0.1.0",
-    "@noosphere/crypto": "^0.1.0",
-    "@noosphere/registry": "^0.1.0",
+    "@noosphere/contracts": "0.1.0-alpha.3",
+    "@noosphere/crypto": "0.1.0-alpha.3",
+    "@noosphere/registry": "0.1.0-alpha.3",
     "axios": "^1.13.2",
     "dockerode": "^4.0.0",
     "dotenv": "^16.3.0",
