@@ -34,7 +34,12 @@ export class ContainerManager {
       const port = container.port ? parseInt(container.port) : 8081; // Default to 8081
 
       // Make HTTP POST request to the persistent container
-      const url = `http://localhost:${port}/computation`;
+      // Use container name as host when DOCKER_NETWORK is set (DinD), otherwise localhost
+      // Note: container.name is the short name like "noosphere-hello-world", not the blockchain hash
+      const containerHost = process.env.DOCKER_NETWORK
+        ? `noosphere-${container.name}`
+        : 'localhost';
+      const url = `http://${containerHost}:${port}/computation`;
 
       // Prepare request body
       // Try to parse input as JSON and merge with { input: ... }
@@ -279,18 +284,23 @@ export class ContainerManager {
     console.log(`\n🚀 Preparing ${containers.size} containers...`);
 
     const pullAndStartPromises = Array.from(containers.entries()).map(async ([id, container]) => {
+      const imageTag = `${container.image}:${container.tag || 'latest'}`;
+
       try {
-        const imageTag = `${container.image}:${container.tag || 'latest'}`;
         console.log(`  Pulling ${imageTag}...`);
-
         await this.pullImage(container.image, container.tag || 'latest');
-
         console.log(`  ✓ ${imageTag} ready`);
+      } catch (error) {
+        console.error(`  ❌ Failed to pull ${imageTag}:`, (error as Error).message);
+        // Skip container start if pull failed
+        return;
+      }
 
+      try {
         // Start persistent container
         await this.startPersistentContainer(id, container);
       } catch (error) {
-        console.error(`  ❌ Failed to prepare ${container.image}:`, (error as Error).message);
+        console.error(`  ❌ Failed to start ${container.name || container.image}:`, (error as Error).message);
       }
     });
 
@@ -305,33 +315,38 @@ export class ContainerManager {
     containerId: string,
     metadata: ContainerMetadata
   ): Promise<void> {
-    const containerName = `noosphere-${containerId}`;
+    // Use metadata.name for Docker container name (human-readable)
+    // This matches the hostname used in runContainer()
+    const containerName = `noosphere-${metadata.name}`;
     const imageTag = `${metadata.image}:${metadata.tag || 'latest'}`;
 
+    // Check if container already exists
+    const existingContainer = this.docker.getContainer(containerName);
     try {
-      // Check if container already exists and is running
-      const existingContainer = this.docker.getContainer(containerName);
-      try {
-        const inspect = await existingContainer.inspect();
-        if (inspect.State.Running) {
-          console.log(`  ✓ Container ${containerName} already running`);
-          this.persistentContainers.set(containerId, existingContainer);
-          return;
-        } else {
-          // Start existing stopped container
+      const inspect = await existingContainer.inspect();
+      if (inspect.State.Running) {
+        console.log(`  ✓ Container ${containerName} already running`);
+        this.persistentContainers.set(containerId, existingContainer);
+        return;
+      } else {
+        // Container exists but stopped - try to start it
+        try {
           await existingContainer.start();
           console.log(`  ✓ Started existing container ${containerName}`);
           this.persistentContainers.set(containerId, existingContainer);
           return;
+        } catch (startErr) {
+          // Failed to start, remove and recreate
+          console.log(`  Removing stopped container ${containerName} to recreate...`);
+          await existingContainer.remove({ force: true });
         }
-      } catch (err) {
-        // Container doesn't exist, will create new one
       }
     } catch (err) {
-      // Container doesn't exist, continue to create
+      // Container doesn't exist, will create new one
     }
 
     // Create new persistent container
+    const dockerNetwork = process.env.DOCKER_NETWORK;
     const createOptions: Docker.ContainerCreateOptions = {
       name: containerName,
       Image: imageTag,
@@ -341,11 +356,15 @@ export class ContainerManager {
       ExposedPorts: metadata.port ? { [`${metadata.port}/tcp`]: {} } : undefined,
       HostConfig: {
         AutoRemove: false, // Keep container for reuse
-        PortBindings: metadata.port
-          ? {
-              [`${metadata.port}/tcp`]: [{ HostPort: metadata.port }],
-            }
-          : undefined,
+        // Only bind ports to host when not using Docker network (local dev)
+        PortBindings:
+          metadata.port && !dockerNetwork
+            ? {
+                [`${metadata.port}/tcp`]: [{ HostPort: metadata.port }],
+              }
+            : undefined,
+        // Join the specified Docker network for DinD communication
+        NetworkMode: dockerNetwork || undefined,
       },
       Env: metadata.env ? Object.entries(metadata.env).map(([k, v]) => `${k}=${v}`) : undefined,
     };
