@@ -75,7 +75,7 @@ export interface NoosphereAgentOptions {
   onRequestStarted?: (event: RequestStartedCallbackEvent) => void; // Callback when request is received
   onRequestProcessing?: (requestId: string) => void; // Callback when request processing starts
   onRequestSkipped?: (requestId: string, reason: string) => void; // Callback when request is skipped
-  onRequestFailed?: (requestId: string, error: string) => void; // Callback when request fails
+  onRequestFailed?: (requestId: string, error: string, txHash?: string) => void; // Callback when request fails (txHash included if tx was sent)
   onComputeDelivered?: (event: ComputeDeliveredEvent) => void; // Callback when compute is delivered
   onCommitmentSuccess?: (event: CommitmentSuccessCallbackEvent) => void; // Callback when scheduler prepares interval
   isRequestProcessed?: (requestId: string) => boolean; // Check if request is already processed (completed/failed)
@@ -467,6 +467,9 @@ export class NoosphereAgent {
     // Mark this interval as committed (subscription will be tracked by batch reader)
     this.scheduler.markIntervalCommitted(BigInt(event.subscriptionId), BigInt(event.interval));
 
+    // Track sent transaction hash for error reporting
+    let sentTxHash: string | undefined;
+
     try {
       // Self-coordination: Wait based on position-based priority
       await this.waitForPriority(event);
@@ -621,6 +624,8 @@ export class NoosphereAgent {
         nodeWallet
       );
 
+      // Capture tx hash immediately for error reporting
+      sentTxHash = tx.hash;
       console.log(`  📤 Transaction sent: ${tx.hash}`);
 
       // Wait for confirmation
@@ -664,7 +669,7 @@ export class NoosphereAgent {
 
       console.error(`  ❌ Error processing request:`, error);
       if (this.options.onRequestFailed) {
-        this.options.onRequestFailed(event.requestId, errorMessage);
+        this.options.onRequestFailed(event.requestId, errorMessage, sentTxHash);
       }
     } finally {
       // Cleanup: Remove from processing set
