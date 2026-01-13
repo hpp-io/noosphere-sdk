@@ -23,85 +23,99 @@ export class ContainerManager {
   async runContainer(
     container: ContainerMetadata,
     input: string,
-    timeout: number = 300000 // 5 minutes default
+    timeout: number = 300000, // 5 minutes default
+    connectionRetries: number = 5, // Retry up to 5 times for connection issues
+    connectionRetryDelayMs: number = 3000 // Wait 3 seconds between retries
   ): Promise<ContainerExecutionResult> {
     const startTime = Date.now();
 
+    // Get the port for this container
+    const port = container.port ? parseInt(container.port) : 8081; // Default to 8081
+
+    // Make HTTP POST request to the persistent container
+    // Use container name as host when DOCKER_NETWORK is set (DinD), otherwise localhost
+    const containerHost = process.env.DOCKER_NETWORK
+      ? `noosphere-${container.name}`
+      : 'localhost';
+    const url = `http://${containerHost}:${port}/computation`;
+
+    // Prepare request body
+    let requestBody: any;
     try {
-      // Get the port for this container
-      // We need to find the container ID from the metadata
-      // Since we don't have a direct mapping from metadata to ID, we'll use the port from metadata
-      const port = container.port ? parseInt(container.port) : 8081; // Default to 8081
-
-      // Make HTTP POST request to the persistent container
-      // Use container name as host when DOCKER_NETWORK is set (DinD), otherwise localhost
-      // Note: container.name is the short name like "noosphere-hello-world", not the blockchain hash
-      const containerHost = process.env.DOCKER_NETWORK
-        ? `noosphere-${container.name}`
-        : 'localhost';
-      const url = `http://${containerHost}:${port}/computation`;
-
-      // Prepare request body
-      // Try to parse input as JSON and merge with { input: ... }
-      let requestBody: any;
-      try {
-        const parsedInput = JSON.parse(input);
-        // If input is valid JSON, merge it with { input: originalString }
-        requestBody = { input: input, ...parsedInput };
-      } catch {
-        // Not JSON, just wrap in { input: ... }
-        requestBody = { input: input };
-      }
-
-      const response = await axios.post(url, requestBody, {
-        timeout,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const executionTime = Date.now() - startTime;
-
-      // Extract output from response
-      // Handle both JSON responses with {output: "..."} and plain text responses
-      let output: string;
-      if (typeof response.data === 'string') {
-        // Plain text response (e.g., LLM containers)
-        output = response.data;
-      } else if (response.data.output !== undefined) {
-        // JSON response with output field
-        output =
-          typeof response.data.output === 'string'
-            ? response.data.output
-            : JSON.stringify(response.data.output);
-      } else {
-        // Fallback: stringify the entire response
-        output = JSON.stringify(response.data);
-      }
-
-      return {
-        output,
-        exitCode: 0,
-        executionTime,
-      };
-    } catch (error: any) {
-      const executionTime = Date.now() - startTime;
-
-      // Handle HTTP errors
-      if (error.response) {
-        throw new Error(
-          `Container HTTP error ${error.response.status}: ${JSON.stringify(error.response.data)}`
-        );
-      } else if (error.code === 'ECONNREFUSED') {
-        throw new Error(
-          `Cannot connect to container (port ${container.port || 8081}). Is it running?`
-        );
-      } else if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
-        throw new Error(`Container execution timeout after ${timeout}ms`);
-      }
-
-      throw error;
+      const parsedInput = JSON.parse(input);
+      requestBody = { input: input, ...parsedInput };
+    } catch {
+      requestBody = { input: input };
     }
+
+    let lastError: any;
+
+    for (let attempt = 1; attempt <= connectionRetries; attempt++) {
+      try {
+        const response = await axios.post(url, requestBody, {
+          timeout,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const executionTime = Date.now() - startTime;
+
+        // Extract output from response
+        let output: string;
+        if (typeof response.data === 'string') {
+          output = response.data;
+        } else if (response.data.output !== undefined) {
+          output =
+            typeof response.data.output === 'string'
+              ? response.data.output
+              : JSON.stringify(response.data.output);
+        } else {
+          output = JSON.stringify(response.data);
+        }
+
+        return {
+          output,
+          exitCode: 0,
+          executionTime,
+        };
+      } catch (error: any) {
+        lastError = error;
+
+        // Only retry on connection refused (container not ready yet)
+        if (error.code === 'ECONNREFUSED') {
+          if (attempt < connectionRetries) {
+            console.log(`  ⏳ Container not ready (attempt ${attempt}/${connectionRetries}), retrying in ${connectionRetryDelayMs / 1000}s...`);
+            await this.sleep(connectionRetryDelayMs);
+            continue;
+          }
+        }
+
+        // Don't retry on other errors, break immediately
+        break;
+      }
+    }
+
+    // All retries exhausted or non-retryable error
+    const executionTime = Date.now() - startTime;
+
+    if (lastError.response) {
+      throw new Error(
+        `Container HTTP error ${lastError.response.status}: ${JSON.stringify(lastError.response.data)}`
+      );
+    } else if (lastError.code === 'ECONNREFUSED') {
+      throw new Error(
+        `Cannot connect to container (port ${container.port || 8081}) after ${connectionRetries} attempts. Is it running?`
+      );
+    } else if (lastError.code === 'ETIMEDOUT' || lastError.code === 'ECONNABORTED') {
+      throw new Error(`Container execution timeout after ${timeout}ms`);
+    }
+
+    throw lastError;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private async collectContainerResult(

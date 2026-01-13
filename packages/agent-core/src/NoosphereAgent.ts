@@ -63,6 +63,14 @@ export interface CheckpointData {
   blockTimestamp?: number;
 }
 
+export interface RetryableEvent {
+  requestId: string;
+  subscriptionId: number;
+  interval: number;
+  containerId: string;
+  retryCount: number;
+}
+
 export interface NoosphereAgentOptions {
   config: AgentConfig;
   routerAbi?: any[];  // Optional - defaults to ABIs.Router from @noosphere/contracts
@@ -81,6 +89,11 @@ export interface NoosphereAgentOptions {
   isRequestProcessed?: (requestId: string) => boolean; // Check if request is already processed (completed/failed)
   loadCheckpoint?: () => CheckpointData | undefined; // Load checkpoint from storage
   saveCheckpoint?: (checkpoint: CheckpointData) => void; // Save checkpoint to storage
+  // Retry configuration
+  maxRetries?: number; // Maximum retry attempts for failed requests (default: 3)
+  retryIntervalMs?: number; // Interval to check for retryable events (default: 30000ms)
+  getRetryableEvents?: (maxRetries: number) => RetryableEvent[]; // Get events that can be retried
+  resetEventForRetry?: (requestId: string) => void; // Reset event status to pending for retry
 }
 
 export class NoosphereAgent {
@@ -98,6 +111,9 @@ export class NoosphereAgent {
   private paymentWallet?: string;
   private isRunning = false;
   private processingRequests = new Set<string>(); // Deduplication: track requests being processed
+  private retryTimer?: NodeJS.Timeout; // Timer for retry mechanism
+  private maxRetries: number;
+  private retryIntervalMs: number;
 
   constructor(private options: NoosphereAgentOptions) {
     this.config = options.config;
@@ -165,6 +181,10 @@ export class NoosphereAgent {
     if (!this.getContainer && (!this.containers || this.containers.size === 0)) {
       console.warn('⚠️  No container source provided. Agent will not be able to execute requests.');
     }
+
+    // Initialize retry configuration
+    this.maxRetries = options.maxRetries ?? 3;
+    this.retryIntervalMs = options.retryIntervalMs ?? 30000; // 30 seconds
   }
 
   /**
@@ -372,9 +392,86 @@ export class NoosphereAgent {
       }
     });
 
+    // Start retry timer if retry callbacks are provided
+    if (this.options.getRetryableEvents && this.options.resetEventForRetry) {
+      this.startRetryTimer();
+    }
+
     this.isRunning = true;
     console.log('✓ Noosphere Agent is running');
     console.log('Listening for requests...');
+  }
+
+  /**
+   * Start the retry timer for failed requests
+   */
+  private startRetryTimer(): void {
+    if (this.retryTimer) {
+      clearInterval(this.retryTimer);
+    }
+
+    console.log(`🔄 Retry mechanism enabled: max ${this.maxRetries} retries, check every ${this.retryIntervalMs / 1000}s`);
+
+    this.retryTimer = setInterval(async () => {
+      await this.processRetries();
+    }, this.retryIntervalMs);
+  }
+
+  /**
+   * Process retryable failed events (with throttling to avoid rate limits)
+   */
+  private async processRetries(): Promise<void> {
+    if (!this.options.getRetryableEvents || !this.options.resetEventForRetry) {
+      return;
+    }
+
+    const retryableEvents = this.options.getRetryableEvents(this.maxRetries);
+    if (retryableEvents.length === 0) {
+      return;
+    }
+
+    // Only retry one event per cycle to avoid rate limiting
+    const event = retryableEvents[0];
+
+    // Skip if already being processed
+    if (this.processingRequests.has(event.requestId)) {
+      return;
+    }
+
+    console.log(`🔄 Retrying request ${event.requestId.slice(0, 10)}... (attempt ${event.retryCount + 1}/${this.maxRetries}, ${retryableEvents.length} remaining)`);
+
+    // Reset event to pending
+    this.options.resetEventForRetry(event.requestId);
+
+    // Re-process the request
+    const container = this.getContainerMetadata(event.containerId);
+    if (!container) {
+      console.log(`  ⚠️ Container ${event.containerId.slice(0, 10)}... no longer supported, skipping retry`);
+      return;
+    }
+
+    // Create a synthetic RequestStartedEvent for retry
+    const retryEvent: RequestStartedEvent = {
+      requestId: event.requestId,
+      subscriptionId: BigInt(event.subscriptionId),
+      interval: event.interval,
+      containerId: event.containerId,
+      redundancy: 1,
+      useDeliveryInbox: false,
+      feeAmount: BigInt(0),
+      feeToken: '0x0000000000000000000000000000000000000000',
+      walletAddress: '0x0000000000000000000000000000000000000000',
+      verifier: '0x0000000000000000000000000000000000000000',
+      coordinator: this.config.coordinatorAddress,
+      blockNumber: 0,
+    };
+
+    // Handle the request
+    try {
+      await this.handleRequest(retryEvent);
+    } catch (error) {
+      console.log(`  ❌ Retry failed for ${event.requestId.slice(0, 10)}...: ${(error as Error).message}`);
+    }
   }
 
   /**
@@ -701,6 +798,12 @@ export class NoosphereAgent {
 
   async stop(): Promise<void> {
     console.log('Stopping Noosphere Agent...');
+
+    // Stop retry timer
+    if (this.retryTimer) {
+      clearInterval(this.retryTimer);
+      this.retryTimer = undefined;
+    }
 
     // Stop event monitoring
     await this.eventMonitor.stop();
