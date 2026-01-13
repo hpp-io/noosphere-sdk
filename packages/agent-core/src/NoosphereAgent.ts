@@ -403,8 +403,40 @@ export class NoosphereAgent {
     };
   }
 
+  /**
+   * Get container metadata from available sources
+   * Returns undefined if container is not supported by this agent
+   *
+   * NOTE: Only checks config-defined sources (callback and containers map).
+   * Registry is NOT used here - we only process containers explicitly configured.
+   */
+  private getContainerMetadata(containerId: string): ContainerMetadata | undefined {
+    // 1. Try callback function first (allows config-based filtering)
+    if (this.getContainer) {
+      const container = this.getContainer(containerId);
+      if (container) return container;
+    }
+
+    // 2. Fallback to containers map from config
+    // NOTE: We do NOT use registry here - only explicitly configured containers
+    if (this.containers) {
+      const container = this.containers.get(containerId);
+      if (container) return container;
+    }
+
+    return undefined;
+  }
+
   private async handleRequest(event: RequestStartedEvent): Promise<void> {
     const requestIdShort = event.requestId.slice(0, 10);
+
+    // Container filter: Only process events for containers we support
+    // This must be checked FIRST, before any DB save or RPC calls
+    const container = this.getContainerMetadata(event.containerId);
+    if (!container) {
+      // Silently skip - we don't support this container
+      return;
+    }
 
     // Deduplication: Check if this request is already being processed
     if (this.processingRequests.has(event.requestId)) {
@@ -424,8 +456,10 @@ export class NoosphereAgent {
     console.log(`  SubscriptionId: ${event.subscriptionId}`);
     console.log(`  Interval: ${event.interval}`);
     console.log(`  ContainerId: ${event.containerId.slice(0, 10)}...`);
+    console.log(`  📦 Container: ${container.name} (${container.image}:${container.tag || 'latest'})`);
 
-    // Call onRequestStarted callback if provided
+    // Call onRequestStarted callback if provided (saves to DB)
+    // This is called AFTER container check, so only supported containers are saved
     if (this.options.onRequestStarted) {
       this.options.onRequestStarted({
         requestId: event.requestId,
@@ -490,46 +524,8 @@ export class NoosphereAgent {
         return;
       }
 
-      // Get container metadata (try callback first for validation, then registry, then map)
-      let container: ContainerMetadata | undefined;
-
-      // 1. Try callback function first (allows config-based filtering)
-      if (this.getContainer) {
-        container = this.getContainer(event.containerId);
-        if (container) {
-          console.log(`  📦 Container found via callback: ${container.name}`);
-        }
-      }
-
-      // 2. Fallback to registry
-      if (!container) {
-        const registryContainer = this.registryManager.getContainer(event.containerId);
-        if (registryContainer) {
-          console.log(`  📋 Container found in registry: ${registryContainer.name}`);
-          container = this.convertRegistryContainer(registryContainer);
-        }
-      }
-
-      // 3. Fallback to containers map from config
-      if (!container && this.containers) {
-        container = this.containers.get(event.containerId);
-        if (container) {
-          console.log(`  📦 Container found in config: ${container.name}`);
-        }
-      }
-
-      if (!container) {
-        console.error(`  ❌ Container not found: ${event.containerId}`);
-        console.error(`  💡 Try adding it to the registry or config file`);
-        if (this.options.onRequestSkipped) {
-          this.options.onRequestSkipped(event.requestId, `Container not found: ${event.containerId}`);
-        }
-        return;
-      }
-
-      console.log(
-        `  📦 Using container: ${container.name} (${container.image}:${container.tag || 'latest'})`
-      );
+      // Container already verified at the start of handleRequest()
+      // Using the container variable from there
 
       // Fetch subscription to get client address
       const subscription = await this.router.getComputeSubscription(event.subscriptionId);
