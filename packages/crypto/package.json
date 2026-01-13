@@ -50,7 +50,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@noosphere/contracts": "0.1.0-alpha.3",
+    "@noosphere/contracts": "0.1.0-alpha.5",
     "ethers": "^6.13.0"
   },
   "devDependencies": {
