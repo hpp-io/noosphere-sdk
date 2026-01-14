@@ -22,8 +22,10 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "jest --testPathIgnorePatterns=integration",
+    "test:watch": "jest --watch --testPathIgnorePatterns=integration",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:all": "jest",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"
   },
