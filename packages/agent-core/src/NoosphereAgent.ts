@@ -5,7 +5,7 @@ import { SchedulerService, SchedulerConfig } from './SchedulerService';
 import { WalletManager, KeystoreManager } from '@noosphere/crypto';
 import { RegistryManager } from '@noosphere/registry';
 import { ABIs } from '@noosphere/contracts';
-import { CommitmentUtils } from './utils/CommitmentUtils';
+import { CommitmentUtils, PayloadUtils } from './utils/CommitmentUtils';
 import { ConfigLoader } from './utils/ConfigLoader';
 import type {
   AgentConfig,
@@ -707,12 +707,17 @@ export class NoosphereAgent {
       // Use payment wallet (WalletFactory wallet) if set, otherwise fallback to EOA
       const nodeWallet = this.paymentWallet || this.walletManager.getAddress();
 
+      // Create PayloadData for input, output, and proof
+      const inputPayload = PayloadUtils.fromInlineData(input);
+      const outputPayload = PayloadUtils.fromInlineData(output);
+      const proofPayload = proof ? PayloadUtils.fromInlineData(proof) : PayloadUtils.empty();
+
       // Send transaction
       const tx = await this.coordinator.reportComputeResult(
         event.interval,
-        ethers.toUtf8Bytes(input),
-        ethers.toUtf8Bytes(output),
-        ethers.toUtf8Bytes(proof),
+        inputPayload,
+        outputPayload,
+        proofPayload,
         commitmentData,
         nodeWallet
       );

@@ -1,6 +1,6 @@
-import { Contract, Provider, Signer, EventLog, ContractTransactionResponse } from 'ethers';
+import { Contract, Provider, Signer, EventLog, ContractTransactionResponse, ethers } from 'ethers';
 import CoordinatorABI from './abis/Coordinator.abi.json';
-import type { Commitment, ProofVerificationRequest } from './types';
+import type { Commitment, ProofVerificationRequest, PayloadData } from './types';
 
 /**
  * CoordinatorContract
@@ -61,23 +61,53 @@ export class CoordinatorContract {
 
   /**
    * Report compute result for an interval
+   * @param deliveryInterval - The interval number for this delivery
+   * @param input - PayloadData containing contentHash and uri for input
+   * @param output - PayloadData containing contentHash and uri for output
+   * @param proof - PayloadData containing contentHash and uri for proof
+   * @param commitmentData - ABI-encoded commitment data
+   * @param nodeWallet - Address of the node's payment wallet
    */
   async reportComputeResult(
     deliveryInterval: number,
-    input: Uint8Array,
-    output: Uint8Array,
-    proof: Uint8Array,
+    input: PayloadData,
+    output: PayloadData,
+    proof: PayloadData,
     commitmentData: Uint8Array,
     nodeWallet: string
   ): Promise<ContractTransactionResponse> {
     return this.contract.reportComputeResult(
       deliveryInterval,
-      input,
-      output,
-      proof,
+      this.encodePayloadData(input),
+      this.encodePayloadData(output),
+      this.encodePayloadData(proof),
       commitmentData,
       nodeWallet
     );
+  }
+
+  /**
+   * Encode PayloadData for contract call
+   * @param payload - PayloadData to encode
+   * @returns Tuple format expected by contract
+   */
+  private encodePayloadData(payload: PayloadData): [string, Uint8Array] {
+    return [
+      payload.contentHash,
+      ethers.toUtf8Bytes(payload.uri),
+    ];
+  }
+
+  /**
+   * Parse PayloadData from contract response
+   * @param data - Raw tuple from contract
+   * @returns Parsed PayloadData
+   */
+  private parsePayloadData(data: any): PayloadData {
+    return {
+      contentHash: data.contentHash || data[0],
+      uri: ethers.toUtf8String(data.uri || data[1]),
+    };
   }
 
   /*//////////////////////////////////////////////////////////////////////////

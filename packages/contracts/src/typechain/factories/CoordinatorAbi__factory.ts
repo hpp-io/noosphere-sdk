@@ -317,18 +317,54 @@ const _abi = [
       },
       {
         name: "input",
-        type: "bytes",
-        internalType: "bytes",
+        type: "tuple",
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "output",
-        type: "bytes",
-        internalType: "bytes",
+        type: "tuple",
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "proof",
-        type: "bytes",
-        internalType: "bytes",
+        type: "tuple",
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "commitmentData",
@@ -644,6 +680,60 @@ const _abi = [
         type: "uint16",
         indexed: false,
         internalType: "uint16",
+      },
+      {
+        name: "input",
+        type: "tuple",
+        indexed: false,
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+      {
+        name: "output",
+        type: "tuple",
+        indexed: false,
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+      {
+        name: "proof",
+        type: "tuple",
+        indexed: false,
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
     ],
     anonymous: false,

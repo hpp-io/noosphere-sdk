@@ -3,6 +3,24 @@
  * Based on noosphere-evm Solidity types
  */
 
+/**
+ * PayloadData struct for gas-optimized payload references
+ * Supports multiple URI schemes: data:, ipfs://, ar://, https://, chain://
+ */
+export interface PayloadData {
+  contentHash: string; // bytes32 - keccak256(content) for integrity verification
+  uri: string; // bytes - Full URI string (e.g., "ipfs://Qm...", "https://...")
+}
+
+/**
+ * Input type for compute requests
+ */
+export enum InputType {
+  RAW_DATA = 0, // Raw inline data (<1KB)
+  URI_STRING = 1, // URI string
+  PAYLOAD_DATA = 2, // PayloadData struct
+}
+
 export interface ComputeSubscription {
   routeId: string; // bytes32
   containerId: string; // bytes32
@@ -80,6 +98,9 @@ export interface ComputeDeliveredEvent {
   requestId: string;
   nodeWallet: string;
   numRedundantDeliveries: number;
+  input: PayloadData;
+  output: PayloadData;
+  proof: PayloadData;
 }
 
 export interface ProofVerifiedEvent {

@@ -385,18 +385,54 @@ const _abi = [
     inputs: [
       {
         name: "input",
-        type: "bytes",
-        internalType: "bytes",
+        type: "tuple",
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "output",
-        type: "bytes",
-        internalType: "bytes",
+        type: "tuple",
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "proof",
-        type: "bytes",
-        internalType: "bytes",
+        type: "tuple",
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
       },
       {
         name: "numRedundantDeliveries",

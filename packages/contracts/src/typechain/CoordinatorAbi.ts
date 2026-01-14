@@ -85,6 +85,13 @@ export type BillingConfigStructOutput = [
   tickNodeFeeToken: string;
 };
 
+export type PayloadDataStruct = { contentHash: BytesLike; uri: BytesLike };
+
+export type PayloadDataStructOutput = [contentHash: string, uri: string] & {
+  contentHash: string;
+  uri: string;
+};
+
 export type ProofVerificationRequestStruct = {
   subscriptionId: BigNumberish;
   interval: BigNumberish;
@@ -192,9 +199,9 @@ export interface CoordinatorAbiInterface extends Interface {
     functionFragment: "reportComputeResult",
     values: [
       BigNumberish,
-      BytesLike,
-      BytesLike,
-      BytesLike,
+      PayloadDataStruct,
+      PayloadDataStruct,
+      PayloadDataStruct,
       BytesLike,
       AddressLike
     ]
@@ -312,17 +319,26 @@ export namespace ComputeDeliveredEvent {
   export type InputTuple = [
     requestId: BytesLike,
     nodeWallet: AddressLike,
-    numRedundantDeliveries: BigNumberish
+    numRedundantDeliveries: BigNumberish,
+    input: PayloadDataStruct,
+    output: PayloadDataStruct,
+    proof: PayloadDataStruct
   ];
   export type OutputTuple = [
     requestId: string,
     nodeWallet: string,
-    numRedundantDeliveries: bigint
+    numRedundantDeliveries: bigint,
+    input: PayloadDataStructOutput,
+    output: PayloadDataStructOutput,
+    proof: PayloadDataStructOutput
   ];
   export interface OutputObject {
     requestId: string;
     nodeWallet: string;
     numRedundantDeliveries: bigint;
+    input: PayloadDataStructOutput;
+    output: PayloadDataStructOutput;
+    proof: PayloadDataStructOutput;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -509,9 +525,9 @@ export interface CoordinatorAbi extends BaseContract {
   reportComputeResult: TypedContractMethod<
     [
       deliveryInterval: BigNumberish,
-      input: BytesLike,
-      output: BytesLike,
-      proof: BytesLike,
+      input: PayloadDataStruct,
+      output: PayloadDataStruct,
+      proof: PayloadDataStruct,
       commitmentData: BytesLike,
       nodeWallet: AddressLike
     ],
@@ -622,9 +638,9 @@ export interface CoordinatorAbi extends BaseContract {
   ): TypedContractMethod<
     [
       deliveryInterval: BigNumberish,
-      input: BytesLike,
-      output: BytesLike,
-      proof: BytesLike,
+      input: PayloadDataStruct,
+      output: PayloadDataStruct,
+      proof: PayloadDataStruct,
       commitmentData: BytesLike,
       nodeWallet: AddressLike
     ],
@@ -716,7 +732,7 @@ export interface CoordinatorAbi extends BaseContract {
   >;
 
   filters: {
-    "ComputeDelivered(bytes32,address,uint16)": TypedContractEvent<
+    "ComputeDelivered(bytes32,address,uint16,tuple,tuple,tuple)": TypedContractEvent<
       ComputeDeliveredEvent.InputTuple,
       ComputeDeliveredEvent.OutputTuple,
       ComputeDeliveredEvent.OutputObject

@@ -66,6 +66,13 @@ export type ComputeSubscriptionStructOutput = [
   useDeliveryInbox: boolean;
 };
 
+export type PayloadDataStruct = { contentHash: BytesLike; uri: BytesLike };
+
+export type PayloadDataStructOutput = [contentHash: string, uri: string] & {
+  contentHash: string;
+  uri: string;
+};
+
 export type PaymentStruct = {
   recipient: AddressLike;
   feeToken: AddressLike;
@@ -265,9 +272,9 @@ export interface RouterAbiInterface extends Interface {
   encodeFunctionData(
     functionFragment: "fulfill",
     values: [
-      BytesLike,
-      BytesLike,
-      BytesLike,
+      PayloadDataStruct,
+      PayloadDataStruct,
+      PayloadDataStruct,
       BigNumberish,
       AddressLike,
       PaymentStruct[],
@@ -956,9 +963,9 @@ export interface RouterAbi extends BaseContract {
 
   fulfill: TypedContractMethod<
     [
-      input: BytesLike,
-      output: BytesLike,
-      proof: BytesLike,
+      input: PayloadDataStruct,
+      output: PayloadDataStruct,
+      proof: PayloadDataStruct,
       numRedundantDeliveries: BigNumberish,
       nodeWallet: AddressLike,
       payments: PaymentStruct[],
@@ -1199,9 +1206,9 @@ export interface RouterAbi extends BaseContract {
     nameOrSignature: "fulfill"
   ): TypedContractMethod<
     [
-      input: BytesLike,
-      output: BytesLike,
-      proof: BytesLike,
+      input: PayloadDataStruct,
+      output: PayloadDataStruct,
+      proof: PayloadDataStruct,
       numRedundantDeliveries: BigNumberish,
       nodeWallet: AddressLike,
       payments: PaymentStruct[],
