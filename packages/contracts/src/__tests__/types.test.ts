@@ -10,8 +10,9 @@ import type {
   ComputeDeliveredEvent,
   ProofVerifiedEvent,
   SubscriptionCreatedEvent,
+  PayloadData,
 } from '../types';
-import { FulfillResult } from '../types';
+import { FulfillResult, InputType } from '../types';
 
 describe('Custom Types', () => {
   describe('ComputeSubscription', () => {
@@ -174,10 +175,24 @@ describe('Custom Types', () => {
         requestId: '0xRequest',
         nodeWallet: '0xNode',
         numRedundantDeliveries: 3,
+        input: {
+          contentHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+          uri: '',
+        },
+        output: {
+          contentHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+          uri: 'ipfs://QmOutput',
+        },
+        proof: {
+          contentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+          uri: '',
+        },
       };
 
       expect(event).toBeDefined();
       expect(event.numRedundantDeliveries).toBe(3);
+      expect(event.input.contentHash).toMatch(/^0x[0-9a-f]{64}$/);
+      expect(event.output.uri).toBe('ipfs://QmOutput');
     });
 
     it('should accept valid ProofVerifiedEvent object', () => {
@@ -203,6 +218,87 @@ describe('Custom Types', () => {
 
       expect(event).toBeDefined();
       expect(event.subscriptionId).toBe(BigInt(1));
+    });
+  });
+
+  describe('PayloadData', () => {
+    it('should accept valid PayloadData with empty URI (inline)', () => {
+      const payload: PayloadData = {
+        contentHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        uri: '',
+      };
+
+      expect(payload).toBeDefined();
+      expect(payload.contentHash).toMatch(/^0x[0-9a-f]{64}$/);
+      expect(payload.uri).toBe('');
+    });
+
+    it('should accept valid PayloadData with IPFS URI', () => {
+      const payload: PayloadData = {
+        contentHash: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        uri: 'ipfs://QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
+      };
+
+      expect(payload).toBeDefined();
+      expect(payload.uri).toContain('ipfs://');
+    });
+
+    it('should accept valid PayloadData with HTTPS URI', () => {
+      const payload: PayloadData = {
+        contentHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        uri: 'https://api.example.com/data/12345?token=abc',
+      };
+
+      expect(payload).toBeDefined();
+      expect(payload.uri).toContain('https://');
+    });
+
+    it('should accept valid PayloadData with Arweave URI', () => {
+      const payload: PayloadData = {
+        contentHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        uri: 'ar://bNbA3TEQVL60xlgCcqdz4ZPH',
+      };
+
+      expect(payload).toBeDefined();
+      expect(payload.uri).toContain('ar://');
+    });
+
+    it('should accept valid PayloadData with chain URI', () => {
+      const payload: PayloadData = {
+        contentHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        uri: 'chain://1/0xabc123def456789012345678901234567890123456789012345678901234abcd/0',
+      };
+
+      expect(payload).toBeDefined();
+      expect(payload.uri).toContain('chain://');
+    });
+
+    it('should accept valid PayloadData with data URI', () => {
+      const payload: PayloadData = {
+        contentHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        uri: 'data:application/json;base64,eyJhY3Rpb24iOiJwaW5nIn0=',
+      };
+
+      expect(payload).toBeDefined();
+      expect(payload.uri).toContain('data:');
+    });
+  });
+
+  describe('InputType enum', () => {
+    it('should export InputType enum', () => {
+      expect(InputType).toBeDefined();
+    });
+
+    it('should have RAW_DATA value', () => {
+      expect(InputType.RAW_DATA).toBe(0);
+    });
+
+    it('should have URI_STRING value', () => {
+      expect(InputType.URI_STRING).toBe(1);
+    });
+
+    it('should have PAYLOAD_DATA value', () => {
+      expect(InputType.PAYLOAD_DATA).toBe(2);
     });
   });
 });
