@@ -48,6 +48,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@noosphere/agent-core": "^0.1.0-alpha.12",
     "@noosphere/contracts": "0.1.0-alpha.5",
     "@noosphere/crypto": "0.1.0-alpha.5",
     "@noosphere/registry": "0.1.0-alpha.6",

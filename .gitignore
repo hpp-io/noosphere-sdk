@@ -28,6 +28,10 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# NPM config (may contain auth tokens)
+.npmrc
+.npmrc.local
+
 # Security & Secrets
 *.pem
 *.key

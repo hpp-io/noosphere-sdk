@@ -41,8 +41,8 @@ export class RegistryManager {
       }
     }
 
-    // Check if we have 0 containers and should retry
-    if (this.containers.size === 0 && retryCount < maxRetries) {
+    // Check if we have 0 containers and should retry (only when autoSync is enabled)
+    if (this.config.autoSync && this.containers.size === 0 && retryCount < maxRetries) {
       console.warn(`⚠️  Loaded 0 containers, attempting recovery (attempt ${retryCount + 1}/${maxRetries})...`);
 
       // Wait before retry
