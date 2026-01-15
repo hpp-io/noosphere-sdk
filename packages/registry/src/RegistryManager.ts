@@ -158,6 +158,9 @@ export class RegistryManager {
 
       this.lastSync = Date.now();
       console.log(`✓ Synced registry (version: ${registry.version})`);
+
+      // Persist synced registry to local file for faster subsequent loads
+      await this.saveLocal();
     } catch (error) {
       console.error('Failed to sync remote registry:', error);
       throw error;
