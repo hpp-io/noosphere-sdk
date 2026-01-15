@@ -83,6 +83,7 @@ export interface NoosphereAgentOptions {
   coordinatorAbi?: any[];  // Optional - defaults to ABIs.Coordinator from @noosphere/contracts
   getContainer?: (containerId: string) => ContainerMetadata | undefined;
   containers?: Map<string, ContainerMetadata>; // Container map from config
+  registryManager?: RegistryManager; // Optional - provide pre-initialized RegistryManager to avoid duplicate loading
   walletManager?: WalletManager; // Optional - provide pre-initialized WalletManager
   paymentWallet?: string; // Optional - WalletFactory wallet address for the agent
   schedulerConfig?: Partial<SchedulerConfig>; // Optional - scheduler configuration from config.json
@@ -152,7 +153,8 @@ export class NoosphereAgent {
     }
 
     this.containerManager = new ContainerManager();
-    this.registryManager = new RegistryManager({
+    // Use provided registryManager or create a new one
+    this.registryManager = options.registryManager || new RegistryManager({
       autoSync: true, // Enable automatic sync with remote registry
       cacheTTL: 3600000, // 1 hour cache
     });
@@ -310,9 +312,12 @@ export class NoosphereAgent {
   async start(): Promise<void> {
     console.log('Starting Noosphere Agent...');
 
-    // Load registry (local + remote sync)
+    // Load registry (local + remote sync) - skip if already loaded
     console.log('📋 Loading container registry...');
-    await this.registryManager.load();
+    const existingStats = this.registryManager.getStats();
+    if (existingStats.totalContainers === 0) {
+      await this.registryManager.load();
+    }
     const stats = this.registryManager.getStats();
     console.log(
       `✓ Registry loaded: ${stats.totalContainers} containers, ${stats.totalVerifiers} verifiers`
