@@ -22,8 +22,12 @@ export class RegistryManager {
 
   /**
    * Load registry from local and optionally sync from remote
+   * Retries if 0 containers are loaded
    */
-  async load(): Promise<void> {
+  async load(retryCount: number = 0): Promise<void> {
+    const maxRetries = 3;
+    const retryDelayMs = 5000;
+
     // Load local registry
     await this.loadLocal();
 
@@ -34,6 +38,26 @@ export class RegistryManager {
       } catch (error) {
         console.warn('Failed to sync remote registry:', error);
         console.log('Continuing with local registry only');
+      }
+    }
+
+    // Check if we have 0 containers and should retry (only when autoSync is enabled)
+    if (this.config.autoSync && this.containers.size === 0 && retryCount < maxRetries) {
+      console.warn(`⚠️  Loaded 0 containers, attempting recovery (attempt ${retryCount + 1}/${maxRetries})...`);
+
+      // Wait before retry
+      await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+
+      // Try force sync from remote
+      try {
+        await this.forceSync();
+      } catch (error) {
+        console.warn('Force sync failed:', error);
+      }
+
+      // If still 0, recurse with incremented retry count
+      if (this.containers.size === 0) {
+        return this.load(retryCount + 1);
       }
     }
 
@@ -81,6 +105,33 @@ export class RegistryManager {
       return;
     }
 
+    await this.fetchRemote();
+  }
+
+  /**
+   * Force sync from remote, bypassing cache TTL
+   */
+  async forceSync(): Promise<void> {
+    console.log('Force syncing registry (bypassing cache)...');
+    this.lastSync = 0; // Reset cache
+    await this.fetchRemote();
+  }
+
+  /**
+   * Reload registry completely (clear and reload from local + remote)
+   */
+  async reload(): Promise<void> {
+    console.log('Reloading registry...');
+    this.containers.clear();
+    this.verifiers.clear();
+    this.lastSync = 0;
+    await this.load();
+  }
+
+  /**
+   * Fetch and merge remote registry
+   */
+  private async fetchRemote(): Promise<void> {
     console.log(`Syncing registry from ${this.config.remotePath}...`);
 
     try {
@@ -105,8 +156,11 @@ export class RegistryManager {
         }
       });
 
-      this.lastSync = now;
+      this.lastSync = Date.now();
       console.log(`✓ Synced registry (version: ${registry.version})`);
+
+      // Persist synced registry to local file for faster subsequent loads
+      await this.saveLocal();
     } catch (error) {
       console.error('Failed to sync remote registry:', error);
       throw error;
