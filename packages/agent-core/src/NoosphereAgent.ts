@@ -71,6 +71,12 @@ export interface RetryableEvent {
   retryCount: number;
 }
 
+export interface ContainerExecutionConfig {
+  timeout?: number; // Container execution timeout in ms (default: 300000 = 5 min)
+  connectionRetries?: number; // Number of connection retry attempts (default: 5)
+  connectionRetryDelayMs?: number; // Delay between retries in ms (default: 3000)
+}
+
 export interface NoosphereAgentOptions {
   config: AgentConfig;
   routerAbi?: any[];  // Optional - defaults to ABIs.Router from @noosphere/contracts
@@ -80,6 +86,7 @@ export interface NoosphereAgentOptions {
   walletManager?: WalletManager; // Optional - provide pre-initialized WalletManager
   paymentWallet?: string; // Optional - WalletFactory wallet address for the agent
   schedulerConfig?: Partial<SchedulerConfig>; // Optional - scheduler configuration from config.json
+  containerConfig?: ContainerExecutionConfig; // Optional - container execution configuration
   onRequestStarted?: (event: RequestStartedCallbackEvent) => void; // Callback when request is received
   onRequestProcessing?: (requestId: string) => void; // Callback when request processing starts
   onRequestSkipped?: (requestId: string, reason: string) => void; // Callback when request is skipped
@@ -94,6 +101,8 @@ export interface NoosphereAgentOptions {
   retryIntervalMs?: number; // Interval to check for retryable events (default: 30000ms)
   getRetryableEvents?: (maxRetries: number) => RetryableEvent[]; // Get events that can be retried
   resetEventForRetry?: (requestId: string) => void; // Reset event status to pending for retry
+  // Health check configuration
+  healthCheckIntervalMs?: number; // Interval to check registry health (default: 300000ms = 5 min)
 }
 
 export class NoosphereAgent {
@@ -112,8 +121,14 @@ export class NoosphereAgent {
   private isRunning = false;
   private processingRequests = new Set<string>(); // Deduplication: track requests being processed
   private retryTimer?: NodeJS.Timeout; // Timer for retry mechanism
+  private healthCheckTimer?: NodeJS.Timeout; // Timer for registry health check
   private maxRetries: number;
   private retryIntervalMs: number;
+  private healthCheckIntervalMs: number;
+  // Container execution config
+  private containerTimeout: number;
+  private containerConnectionRetries: number;
+  private containerConnectionRetryDelayMs: number;
 
   constructor(private options: NoosphereAgentOptions) {
     this.config = options.config;
@@ -185,6 +200,14 @@ export class NoosphereAgent {
     // Initialize retry configuration
     this.maxRetries = options.maxRetries ?? 3;
     this.retryIntervalMs = options.retryIntervalMs ?? 30000; // 30 seconds
+
+    // Initialize container execution configuration
+    this.containerTimeout = options.containerConfig?.timeout ?? 300000; // 5 minutes default
+    this.containerConnectionRetries = options.containerConfig?.connectionRetries ?? 5;
+    this.containerConnectionRetryDelayMs = options.containerConfig?.connectionRetryDelayMs ?? 3000; // 3 seconds default
+
+    // Initialize health check configuration
+    this.healthCheckIntervalMs = options.healthCheckIntervalMs ?? 300000; // 5 minutes default
   }
 
   /**
@@ -397,6 +420,9 @@ export class NoosphereAgent {
       this.startRetryTimer();
     }
 
+    // Start health check timer
+    this.startHealthCheck();
+
     this.isRunning = true;
     console.log('✓ Noosphere Agent is running');
     console.log('Listening for requests...');
@@ -415,6 +441,45 @@ export class NoosphereAgent {
     this.retryTimer = setInterval(async () => {
       await this.processRetries();
     }, this.retryIntervalMs);
+  }
+
+  /**
+   * Start the health check timer for registry validation
+   */
+  private startHealthCheck(): void {
+    if (this.healthCheckTimer) {
+      clearInterval(this.healthCheckTimer);
+    }
+
+    console.log(`🏥 Health check enabled: check every ${this.healthCheckIntervalMs / 1000}s`);
+
+    this.healthCheckTimer = setInterval(async () => {
+      await this.performHealthCheck();
+    }, this.healthCheckIntervalMs);
+  }
+
+  /**
+   * Perform health check - verify registry has containers and reload if necessary
+   */
+  private async performHealthCheck(): Promise<void> {
+    const stats = this.registryManager.getStats();
+
+    if (stats.totalContainers === 0) {
+      console.warn('⚠️  Health check: 0 containers detected, attempting registry reload...');
+
+      try {
+        await this.registryManager.reload();
+        const newStats = this.registryManager.getStats();
+
+        if (newStats.totalContainers > 0) {
+          console.log(`✓ Health check: Registry recovered - ${newStats.totalContainers} containers loaded`);
+        } else {
+          console.error('❌ Health check: Registry reload failed - still 0 containers');
+        }
+      } catch (error) {
+        console.error('❌ Health check: Registry reload error:', (error as Error).message);
+      }
+    }
   }
 
   /**
@@ -673,7 +738,9 @@ export class NoosphereAgent {
       const result = await this.containerManager.runContainer(
         container,
         inputData,
-        300000 // 5 min timeout
+        this.containerTimeout,
+        this.containerConnectionRetries,
+        this.containerConnectionRetryDelayMs
       );
 
       if (result.exitCode !== 0) {
@@ -803,6 +870,12 @@ export class NoosphereAgent {
     if (this.retryTimer) {
       clearInterval(this.retryTimer);
       this.retryTimer = undefined;
+    }
+
+    // Stop health check timer
+    if (this.healthCheckTimer) {
+      clearInterval(this.healthCheckTimer);
+      this.healthCheckTimer = undefined;
     }
 
     // Stop event monitoring

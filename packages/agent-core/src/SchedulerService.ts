@@ -252,8 +252,17 @@ export class SchedulerService extends EventEmitter {
         try {
           currentInterval = BigInt(await this.router.getComputeSubscriptionInterval(sub.subscriptionId));
         } catch (error) {
-          console.warn(`  Could not get interval from router for subscription ${subId}:`, (error as Error).message);
-          // Fall back to local calculation as last resort
+          const errorMessage = (error as Error).message || '';
+          console.warn(`  Could not get interval from router for subscription ${subId}:`, errorMessage);
+
+          // If subscription not found, it was cancelled - untrack and skip
+          if (errorMessage.includes('SubscriptionNotFound')) {
+            console.log(`  Subscription ${subId} not found (cancelled), untracking...`);
+            this.untrackSubscription(sub.subscriptionId);
+            continue;
+          }
+
+          // Fall back to local calculation only for transient errors
           const intervalsSinceActive = BigInt(currentBlockTime) - sub.activeAt;
           currentInterval = (intervalsSinceActive / sub.intervalSeconds) + 1n;
         }
