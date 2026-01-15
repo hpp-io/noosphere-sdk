@@ -1,6 +1,6 @@
 {
   "name": "@noosphere/agent-core",
-  "version": "0.1.0-alpha.12",
+  "version": "0.1.0-alpha.13",
   "description": "Core modules for Noosphere agent (EventMonitor, ContainerManager, NoosphereAgent)",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -51,7 +51,7 @@
     "@noosphere/agent-core": "^0.1.0-alpha.12",
     "@noosphere/contracts": "0.1.0-alpha.5",
     "@noosphere/crypto": "0.1.0-alpha.5",
-    "@noosphere/registry": "0.1.0-alpha.6",
+    "@noosphere/registry": "0.1.0-alpha.7",
     "axios": "^1.13.2",
     "dockerode": "^4.0.0",
     "dotenv": "^16.3.0",
