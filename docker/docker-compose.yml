@@ -1,0 +1,40 @@
+# =============================================================================
+# Noosphere SDK - Local Verdaccio Registry
+# =============================================================================
+#
+# Local npm registry for SDK development and testing.
+# Allows publishing @noosphere/* packages locally before pushing to npm.
+#
+# Usage:
+#   # Start Verdaccio
+#   docker compose -f docker/docker-compose.yml up -d
+#
+#   # Publish SDK packages
+#   ./scripts/publish-local.sh
+#
+#   # Stop Verdaccio
+#   docker compose -f docker/docker-compose.yml down
+#
+# Access:
+#   Registry: http://localhost:4873
+#   Web UI: http://localhost:4873 (browser)
+#
+# =============================================================================
+
+services:
+  verdaccio:
+    image: verdaccio/verdaccio:5
+    container_name: noosphere-verdaccio
+    ports:
+      - "4873:4873"
+    volumes:
+      - ./verdaccio/config.yaml:/verdaccio/conf/config.yaml:ro
+      - verdaccio-storage:/verdaccio/storage
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -q --spider http://localhost:4873/-/ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  verdaccio-storage:
