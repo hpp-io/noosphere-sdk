@@ -14,7 +14,9 @@ describe('PayloadUtils', () => {
 
       expect(payload).toBeDefined();
       expect(payload.contentHash).toMatch(/^0x[0-9a-f]{64}$/);
-      expect(payload.uri).toBe('');
+      // URI is hex-encoded data: URI for Solidity bytes type
+      expect(payload.uri).toMatch(/^0x[0-9a-f]+$/);
+      expect(payload.uri).toContain('646174613a'); // "data:" in hex
     });
 
     it('should compute correct content hash', () => {
@@ -30,7 +32,8 @@ describe('PayloadUtils', () => {
 
       expect(payload).toBeDefined();
       expect(payload.contentHash).toMatch(/^0x[0-9a-f]{64}$/);
-      expect(payload.uri).toBe('');
+      // URI is hex-encoded data: URI for Solidity bytes type
+      expect(payload.uri).toMatch(/^0x[0-9a-f]+$/);
     });
 
     it('should handle JSON content', () => {
@@ -59,7 +62,8 @@ describe('PayloadUtils', () => {
       const uri = 'ipfs://QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG';
       const payload = PayloadUtils.fromExternalUri(content, uri);
 
-      expect(payload.uri).toBe(uri);
+      // URI is hex-encoded for Solidity bytes type
+      expect(payload.uri).toBe(ethers.hexlify(ethers.toUtf8Bytes(uri)));
       expect(payload.contentHash).toBe(ethers.keccak256(ethers.toUtf8Bytes(content)));
     });
 
@@ -68,7 +72,8 @@ describe('PayloadUtils', () => {
       const uri = 'https://api.example.com/data/12345';
       const payload = PayloadUtils.fromExternalUri(content, uri);
 
-      expect(payload.uri).toBe(uri);
+      // URI is hex-encoded for Solidity bytes type
+      expect(payload.uri).toBe(ethers.hexlify(ethers.toUtf8Bytes(uri)));
       expect(payload.contentHash).toMatch(/^0x[0-9a-f]{64}$/);
     });
 
@@ -77,7 +82,8 @@ describe('PayloadUtils', () => {
       const uri = 'ar://bNbA3TEQVL60xlgCcqdz4ZPH';
       const payload = PayloadUtils.fromExternalUri(content, uri);
 
-      expect(payload.uri).toBe(uri);
+      // URI is hex-encoded for Solidity bytes type
+      expect(payload.uri).toBe(ethers.hexlify(ethers.toUtf8Bytes(uri)));
     });
 
     it('should create PayloadData with chain URI', () => {
@@ -85,7 +91,8 @@ describe('PayloadUtils', () => {
       const uri = 'chain://1/0xabc123def456789012345678901234567890123456789012345678901234abcd/0';
       const payload = PayloadUtils.fromExternalUri(content, uri);
 
-      expect(payload.uri).toBe(uri);
+      // URI is hex-encoded for Solidity bytes type
+      expect(payload.uri).toBe(ethers.hexlify(ethers.toUtf8Bytes(uri)));
     });
 
     it('should handle long HTTPS URLs with query params', () => {
@@ -93,8 +100,9 @@ describe('PayloadUtils', () => {
       const uri = 'https://api.noosphere.io/v1/payloads/request-12345678-abcd?token=eyJhbGciOiJIUzI1NiJ9&timestamp=1234567890';
       const payload = PayloadUtils.fromExternalUri(content, uri);
 
-      expect(payload.uri).toBe(uri);
-      expect(payload.uri.length).toBeGreaterThan(100);
+      // URI is hex-encoded for Solidity bytes type
+      expect(payload.uri).toBe(ethers.hexlify(ethers.toUtf8Bytes(uri)));
+      expect(uri.length).toBeGreaterThan(100);
     });
   });
 
@@ -109,7 +117,8 @@ describe('PayloadUtils', () => {
       const payload = PayloadUtils.fromHashAndUri(contentHash, uri);
 
       expect(payload.contentHash).toBe(contentHash);
-      expect(payload.uri).toBe(uri);
+      // URI is hex-encoded for Solidity bytes type
+      expect(payload.uri).toBe(ethers.hexlify(ethers.toUtf8Bytes(uri)));
     });
 
     it('should create PayloadData with empty URI (inline)', () => {
@@ -117,7 +126,8 @@ describe('PayloadUtils', () => {
       const payload = PayloadUtils.fromHashAndUri(contentHash, '');
 
       expect(payload.contentHash).toBe(contentHash);
-      expect(payload.uri).toBe('');
+      // Empty URI becomes '0x' (empty bytes)
+      expect(payload.uri).toBe('0x');
     });
   });
 
@@ -130,7 +140,8 @@ describe('PayloadUtils', () => {
       const payload = PayloadUtils.empty();
 
       expect(payload.contentHash).toBe(ethers.ZeroHash);
-      expect(payload.uri).toBe('');
+      // Empty bytes for Solidity
+      expect(payload.uri).toBe('0x');
     });
 
     it('should be usable for empty proof', () => {
@@ -235,7 +246,8 @@ describe('PayloadUtils', () => {
 
       // Later, verify downloaded content
       expect(PayloadUtils.verifyContent(payload, largeContent)).toBe(true);
-      expect(payload.uri).toBe(ipfsUri);
+      // URI is hex-encoded for Solidity bytes type
+      expect(payload.uri).toBe(ethers.hexlify(ethers.toUtf8Bytes(ipfsUri)));
     });
 
     it('should support mixed URI schemes in single transaction', () => {
@@ -251,9 +263,10 @@ describe('PayloadUtils', () => {
       const proofContent = 'zkproof-data';
       const proof = PayloadUtils.fromExternalUri(proofContent, 'https://proofs.example.com/abc123');
 
-      expect(input.uri).toContain('ipfs://');
-      expect(output.uri).toBe('');
-      expect(proof.uri).toContain('https://');
+      // Hex-encoded URIs contain the original URI bytes
+      expect(input.uri).toContain('697066733a2f2f'); // 'ipfs://' in hex
+      expect(output.uri).toContain('646174613a'); // 'data:' in hex
+      expect(proof.uri).toContain('68747470733a2f2f'); // 'https://' in hex
     });
   });
 
@@ -275,7 +288,8 @@ describe('PayloadUtils', () => {
       const uri = 'https://api.example.com/data?key=value&foo=bar%20baz#fragment';
       const payload = PayloadUtils.fromExternalUri(content, uri);
 
-      expect(payload.uri).toBe(uri);
+      // URI is hex-encoded for Solidity bytes type
+      expect(payload.uri).toBe(ethers.hexlify(ethers.toUtf8Bytes(uri)));
     });
 
     it('should handle data URI scheme', () => {
@@ -283,7 +297,8 @@ describe('PayloadUtils', () => {
       const dataUri = 'data:application/json;base64,eyJhY3Rpb24iOiJwaW5nIn0=';
       const payload = PayloadUtils.fromExternalUri(content, dataUri);
 
-      expect(payload.uri).toContain('data:');
+      // Hex-encoded URI contains 'data:' bytes
+      expect(payload.uri).toContain('646174613a'); // 'data:' in hex
     });
 
     it('should maintain content hash consistency across methods', () => {
