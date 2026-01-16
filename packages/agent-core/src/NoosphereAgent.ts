@@ -6,6 +6,7 @@ import { WalletManager, KeystoreManager } from '@noosphere/crypto';
 import { RegistryManager } from '@noosphere/registry';
 import { ABIs } from '@noosphere/contracts';
 import { CommitmentUtils, PayloadUtils } from './utils/CommitmentUtils';
+import { PayloadResolver } from './PayloadResolver';
 import { ConfigLoader } from './utils/ConfigLoader';
 import type {
   AgentConfig,
@@ -13,6 +14,7 @@ import type {
   ContainerMetadata,
   Commitment,
   NoosphereAgentConfig,
+  PayloadData,
 } from './types';
 
 export interface ComputeDeliveredEvent {
@@ -104,6 +106,8 @@ export interface NoosphereAgentOptions {
   resetEventForRetry?: (requestId: string) => void; // Reset event status to pending for retry
   // Health check configuration
   healthCheckIntervalMs?: number; // Interval to check registry health (default: 300000ms = 5 min)
+  // Payload encoder for outputs (allows IPFS upload for large payloads)
+  payloadEncoder?: (content: string) => Promise<PayloadData>;
 }
 
 export class NoosphereAgent {
@@ -130,6 +134,8 @@ export class NoosphereAgent {
   private containerTimeout: number;
   private containerConnectionRetries: number;
   private containerConnectionRetryDelayMs: number;
+  // Payload encoder (for IPFS upload)
+  private payloadEncoder?: (content: string) => Promise<PayloadData>;
 
   constructor(private options: NoosphereAgentOptions) {
     this.config = options.config;
@@ -204,12 +210,15 @@ export class NoosphereAgent {
     this.retryIntervalMs = options.retryIntervalMs ?? 30000; // 30 seconds
 
     // Initialize container execution configuration
-    this.containerTimeout = options.containerConfig?.timeout ?? 300000; // 5 minutes default
+    this.containerTimeout = options.containerConfig?.timeout ?? 180000; // 3 minutes default
     this.containerConnectionRetries = options.containerConfig?.connectionRetries ?? 5;
     this.containerConnectionRetryDelayMs = options.containerConfig?.connectionRetryDelayMs ?? 3000; // 3 seconds default
 
     // Initialize health check configuration
     this.healthCheckIntervalMs = options.healthCheckIntervalMs ?? 300000; // 5 minutes default
+
+    // Initialize payload encoder (for IPFS upload)
+    this.payloadEncoder = options.payloadEncoder;
   }
 
   /**
@@ -709,20 +718,24 @@ export class NoosphereAgent {
       console.log(`  📞 Fetching inputs from client: ${clientAddress.slice(0, 10)}...`);
 
       // Call client's getComputeInputs to get the input data
+      // InputType enum: 0=RAW_DATA, 1=URI_STRING, 2=PAYLOAD_DATA
       const clientAbi = [
-        'function getComputeInputs(uint64 subscriptionId, uint32 interval, uint32 timestamp, address caller) external view returns (bytes memory)',
+        'function getComputeInputs(uint64 subscriptionId, uint32 interval, uint32 timestamp, address caller) external view returns (bytes memory data, uint8 inputType)',
       ];
       const client = new ethers.Contract(clientAddress, clientAbi, this.provider);
       const timestamp = Math.floor(Date.now() / 1000);
 
       let inputBytes: string;
+      let inputType: number;
       try {
-        inputBytes = await client.getComputeInputs(
+        const result = await client.getComputeInputs(
           event.subscriptionId,
           event.interval,
           timestamp,
           this.walletManager.getAddress()
         );
+        inputBytes = result[0];
+        inputType = Number(result[1]);
       } catch (error) {
         const errorMessage = (error as Error).message || String(error);
         console.error(`  ❌ Failed to get inputs from client:`, error);
@@ -732,8 +745,44 @@ export class NoosphereAgent {
         return;
       }
 
-      // Convert bytes to string
-      const inputData = ethers.toUtf8String(inputBytes);
+      // Convert bytes to string based on inputType
+      let inputData: string;
+      if (inputType === 2) {
+        // PAYLOAD_DATA: ABI-encoded PayloadData struct
+        console.log(`  📦 Input type: PAYLOAD_DATA - resolving from external storage...`);
+        try {
+          // Decode ABI-encoded PayloadData: (bytes32 contentHash, bytes uri)
+          const abiCoder = ethers.AbiCoder.defaultAbiCoder();
+          const decoded = abiCoder.decode(['bytes32', 'bytes'], inputBytes);
+          const contentHash = decoded[0] as string;
+          const uriBytes = decoded[1] as string;
+          const uri = ethers.toUtf8String(uriBytes);
+
+          console.log(`  📍 Content hash: ${contentHash.slice(0, 18)}...`);
+          console.log(`  📍 URI: ${uri}`);
+
+          // Resolve the payload using PayloadResolver
+          // Use IPFS_GATEWAY from environment for fetching (e.g., Pinata gateway for cross-provider support)
+          const ipfsGateway = process.env.IPFS_GATEWAY || 'http://localhost:8080/ipfs/';
+          console.log(`  🌐 Using IPFS gateway: ${ipfsGateway}`);
+          const payloadResolver = new PayloadResolver({
+            ipfs: { gateway: ipfsGateway }
+          });
+          const resolved = await payloadResolver.resolve({ contentHash, uri });
+          inputData = resolved.content;
+          console.log(`  ✅ Payload resolved, size: ${inputData.length} bytes`);
+        } catch (resolveError) {
+          const errorMessage = (resolveError as Error).message || String(resolveError);
+          console.error(`  ❌ Failed to resolve PayloadData:`, resolveError);
+          if (this.options.onRequestFailed) {
+            this.options.onRequestFailed(event.requestId, `Failed to resolve PayloadData: ${errorMessage}`);
+          }
+          return;
+        }
+      } else {
+        // RAW_DATA (0) or URI_STRING (1): direct UTF-8 string
+        inputData = ethers.toUtf8String(inputBytes);
+      }
       console.log(
         `  📥 Inputs received: ${inputData.substring(0, 100)}${inputData.length > 100 ? '...' : ''}`
       );
@@ -780,9 +829,17 @@ export class NoosphereAgent {
       const nodeWallet = this.paymentWallet || this.walletManager.getAddress();
 
       // Create PayloadData for input, output, and proof
-      const inputPayload = PayloadUtils.fromInlineData(input);
-      const outputPayload = PayloadUtils.fromInlineData(output);
-      const proofPayload = proof ? PayloadUtils.fromInlineData(proof) : PayloadUtils.empty();
+      // Use custom payloadEncoder if provided (for IPFS upload), otherwise inline
+      console.log(`  📦 payloadEncoder available: ${!!this.payloadEncoder}`);
+      const inputPayload = this.payloadEncoder
+        ? await this.payloadEncoder(input)
+        : PayloadUtils.fromInlineData(input);
+      const outputPayload = this.payloadEncoder
+        ? await this.payloadEncoder(output)
+        : PayloadUtils.fromInlineData(output);
+      const proofPayload = proof
+        ? (this.payloadEncoder ? await this.payloadEncoder(proof) : PayloadUtils.fromInlineData(proof))
+        : PayloadUtils.empty();
 
       // Send transaction
       const tx = await this.coordinator.reportComputeResult(

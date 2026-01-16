@@ -7,6 +7,9 @@ export { SchedulerService } from './SchedulerService';
 
 export * from './types';
 export * from './utils';
+export * from './storage';
+export { PayloadResolver, PayloadScheme } from './PayloadResolver';
+export type { PayloadResolverConfig, ResolvedPayload } from './PayloadResolver';
 
 // Re-export crypto utilities for convenience
 export { WalletManager, KeystoreManager } from '@noosphere/crypto';

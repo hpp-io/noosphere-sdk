@@ -23,7 +23,7 @@ export class ContainerManager {
   async runContainer(
     container: ContainerMetadata,
     input: string,
-    timeout: number = 300000, // 5 minutes default
+    timeout: number = 180000, // 3 minutes default
     connectionRetries: number = 5, // Retry up to 5 times for connection issues
     connectionRetryDelayMs: number = 3000 // Wait 3 seconds between retries
   ): Promise<ContainerExecutionResult> {

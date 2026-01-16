@@ -14,9 +14,14 @@ export class PayloadUtils {
   static fromInlineData(content: string): PayloadData {
     const contentBytes = ethers.toUtf8Bytes(content);
     const contentHash = ethers.keccak256(contentBytes);
+    // Encode as data: URI (base64) and convert to hex bytes
+    const base64Content = Buffer.from(content, 'utf-8').toString('base64');
+    const dataUri = `data:application/json;base64,${base64Content}`;
+    // Convert URI string to hex bytes for Solidity bytes type
+    const uriBytes = ethers.hexlify(ethers.toUtf8Bytes(dataUri));
     return {
       contentHash,
-      uri: '', // Empty URI means data is inline/on-chain
+      uri: uriBytes,
     };
   }
 
@@ -30,9 +35,11 @@ export class PayloadUtils {
   static fromExternalUri(content: string, uri: string): PayloadData {
     const contentBytes = ethers.toUtf8Bytes(content);
     const contentHash = ethers.keccak256(contentBytes);
+    // Convert URI string to hex bytes for Solidity bytes type
+    const uriBytes = ethers.hexlify(ethers.toUtf8Bytes(uri));
     return {
       contentHash,
-      uri,
+      uri: uriBytes,
     };
   }
 
@@ -43,9 +50,11 @@ export class PayloadUtils {
    * @returns PayloadData
    */
   static fromHashAndUri(contentHash: string, uri: string): PayloadData {
+    // Convert URI string to hex bytes for Solidity bytes type (if not already hex)
+    const uriBytes = uri.startsWith('0x') ? uri : ethers.hexlify(ethers.toUtf8Bytes(uri));
     return {
       contentHash,
-      uri,
+      uri: uriBytes,
     };
   }
 
@@ -56,7 +65,7 @@ export class PayloadUtils {
   static empty(): PayloadData {
     return {
       contentHash: ethers.ZeroHash,
-      uri: '',
+      uri: '0x', // Empty bytes
     };
   }
 
