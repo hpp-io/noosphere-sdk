@@ -25,8 +25,8 @@ export interface ComputeDeliveredEvent {
   redundancy: number;
   feeAmount: string;
   feeToken: string;
-  input: string;
-  output: string;
+  input: string | PayloadData;
+  output: string | PayloadData;
   txHash: string;
   blockNumber: number;
   gasUsed: bigint;
@@ -872,8 +872,8 @@ export class NoosphereAgent {
             redundancy: event.redundancy,
             feeAmount: event.feeAmount.toString(),
             feeToken: event.feeToken,
-            input: input,
-            output: output,
+            input: inputPayload,
+            output: outputPayload,
             txHash: tx.hash,
             blockNumber: receipt.blockNumber,
             gasUsed: receipt.gasUsed,

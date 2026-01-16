@@ -8,3 +8,4 @@ export * from './IPayloadStorage';
 export * from './IpfsStorage';
 export * from './DataUriStorage';
 export * from './HttpStorage';
+export * from './S3Storage';

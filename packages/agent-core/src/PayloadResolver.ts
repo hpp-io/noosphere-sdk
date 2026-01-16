@@ -31,6 +31,7 @@ import { PayloadUtils } from './utils/CommitmentUtils';
 import { IpfsStorage, type IpfsStorageConfig } from './storage/IpfsStorage';
 import { DataUriStorage } from './storage/DataUriStorage';
 import { HttpStorage } from './storage/HttpStorage';
+import { S3Storage, type S3StorageConfig } from './storage/S3Storage';
 import type { IPayloadStorage } from './storage/IPayloadStorage';
 
 /**
@@ -51,12 +52,14 @@ export enum PayloadScheme {
 export interface PayloadResolverConfig {
   /** IPFS storage configuration */
   ipfs?: IpfsStorageConfig;
+  /** S3-compatible storage configuration (R2, S3, MinIO) */
+  s3?: S3StorageConfig;
   /** Arweave gateway URL */
   arweaveGateway?: string;
   /** Size threshold for auto-upload (bytes, default: 1024) */
   uploadThreshold?: number;
-  /** Default storage for large payloads ('ipfs' | 'data') */
-  defaultStorage?: 'ipfs' | 'data';
+  /** Default storage for large payloads ('ipfs' | 's3' | 'data') */
+  defaultStorage?: 'ipfs' | 's3' | 'data';
   /** Request timeout in milliseconds */
   timeout?: number;
 }
@@ -77,10 +80,11 @@ export interface ResolvedPayload {
 
 export class PayloadResolver {
   private ipfsStorage: IpfsStorage;
+  private s3Storage: S3Storage | null = null;
   private dataUriStorage: DataUriStorage;
   private httpStorage: HttpStorage;
   private uploadThreshold: number;
-  private defaultStorage: 'ipfs' | 'data';
+  private defaultStorage: 'ipfs' | 's3' | 'data';
   private arweaveGateway: string;
 
   constructor(config: PayloadResolverConfig = {}) {
@@ -90,6 +94,11 @@ export class PayloadResolver {
     this.uploadThreshold = config.uploadThreshold ?? 1024;
     this.defaultStorage = config.defaultStorage ?? 'ipfs';
     this.arweaveGateway = config.arweaveGateway || 'https://arweave.net';
+
+    // Initialize S3 storage if configured
+    if (config.s3) {
+      this.s3Storage = new S3Storage(config.s3);
+    }
   }
 
   /**
@@ -188,7 +197,7 @@ export class PayloadResolver {
     content: string,
     options: {
       forceUpload?: boolean;
-      storage?: 'ipfs' | 'data';
+      storage?: 'ipfs' | 's3' | 'data';
     } = {}
   ): Promise<PayloadData> {
     const contentSize = Buffer.byteLength(content, 'utf-8');
@@ -213,6 +222,19 @@ export class PayloadResolver {
         return PayloadUtils.fromExternalUri(content, result.uri);
       } catch (error) {
         console.warn(`IPFS upload failed, falling back to data URI: ${(error as Error).message}`);
+        return PayloadUtils.fromInlineData(content);
+      }
+    } else if (storage === 's3') {
+      if (!this.s3Storage || !this.s3Storage.isConfigured()) {
+        console.warn('S3 not configured, falling back to data URI');
+        return PayloadUtils.fromInlineData(content);
+      }
+
+      try {
+        const result = await this.s3Storage.upload(content);
+        return PayloadUtils.fromExternalUri(content, result.uri);
+      } catch (error) {
+        console.warn(`S3 upload failed, falling back to data URI: ${(error as Error).message}`);
         return PayloadUtils.fromInlineData(content);
       }
     } else {
@@ -244,10 +266,31 @@ export class PayloadResolver {
   }
 
   /**
+   * Get the configured S3 storage instance
+   */
+  getS3Storage(): S3Storage | null {
+    return this.s3Storage;
+  }
+
+  /**
    * Check if IPFS is configured
    */
   isIpfsConfigured(): boolean {
     return this.ipfsStorage.isConfigured();
+  }
+
+  /**
+   * Check if S3 is configured
+   */
+  isS3Configured(): boolean {
+    return this.s3Storage?.isConfigured() ?? false;
+  }
+
+  /**
+   * Get the default storage type
+   */
+  getDefaultStorage(): 'ipfs' | 's3' | 'data' {
+    return this.defaultStorage;
   }
 
   /**
