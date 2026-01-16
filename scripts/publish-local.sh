@@ -53,22 +53,7 @@ echo ""
 echo "SDK path: $SDK_ROOT"
 echo ""
 
-# Configure npm to use local registry for publishing
-echo -e "${YELLOW}Configuring npm registry...${NC}"
-npm config set registry "${VERDACCIO_URL}"
-echo ""
-
-# Create npm user if not exists (Verdaccio auto-creates on first adduser)
-echo -e "${YELLOW}Setting up npm authentication...${NC}"
-if ! npm whoami --registry "${VERDACCIO_URL}" > /dev/null 2>&1; then
-    echo "Creating local npm user..."
-    npm adduser --registry "${VERDACCIO_URL}" << EOF
-localdev
-localdev
-localdev@localhost
-EOF
-fi
-echo -e "${GREEN}Authenticated with Verdaccio${NC}"
+# Note: Verdaccio config allows unauthenticated publishing for @noosphere/* packages
 echo ""
 
 # Publish each package
