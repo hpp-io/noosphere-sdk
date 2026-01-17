@@ -1,6 +1,6 @@
 {
   "name": "@noosphere/sdk",
-  "version": "0.1.0-alpha.5",
+  "version": "0.2.0-alpha.1",
   "description": "Noosphere SDK - Unified package for decentralized compute agent development",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -49,10 +49,10 @@
     "access": "public"
   },
   "dependencies": {
-    "@noosphere/agent-core": "0.1.0-alpha.9",
-    "@noosphere/contracts": "0.1.0-alpha.5",
-    "@noosphere/crypto": "0.1.0-alpha.5",
-    "@noosphere/registry": "0.1.0-alpha.5"
+    "@noosphere/agent-core": "0.2.0-alpha.1",
+    "@noosphere/contracts": "0.2.0-alpha.1",
+    "@noosphere/crypto": "0.2.0-alpha.1",
+    "@noosphere/registry": "0.2.0-alpha.1"
   },
   "devDependencies": {
     "typescript": "^5.3.0"

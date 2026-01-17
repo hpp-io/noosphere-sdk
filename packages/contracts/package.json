@@ -1,6 +1,6 @@
 {
   "name": "@noosphere/contracts",
-  "version": "0.1.0-alpha.6",
+  "version": "0.2.0-alpha.1",
   "description": "Noosphere smart contract TypeScript wrappers and ABIs",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -52,7 +52,6 @@
     "access": "public"
   },
   "dependencies": {
-    "@noosphere/contracts": "^0.1.0-alpha.6",
     "ethers": "^6.13.0"
   },
   "devDependencies": {
