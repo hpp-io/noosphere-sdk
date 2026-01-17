@@ -92,7 +92,12 @@ await agent.start();
 │  @noosphere/agent-core                                  │
 │    ├── NoosphereAgent    (orchestrator)                 │
 │    ├── EventMonitor      (blockchain events)            │
-│    └── ContainerManager  (Docker execution)             │
+│    ├── ContainerManager  (Docker execution)             │
+│    └── PayloadResolver   (URI-based payload handling)   │
+│         ├── IpfsStorage    (IPFS/Pinata)                │
+│         ├── S3Storage      (S3/R2/MinIO)                │
+│         ├── DataUriStorage (inline data)                │
+│         └── HttpStorage    (HTTP/HTTPS)                 │
 ├─────────────────────────────────────────────────────────┤
 │  @noosphere/contracts                                   │
 │    ├── ABIs              (contract interfaces)          │
@@ -126,6 +131,7 @@ await agent.start();
 - `NoosphereAgent` - Main orchestrator
 - `EventMonitor` - Blockchain event listener with WebSocket support
 - `ContainerManager` - Docker container execution
+- `PayloadResolver` - URI-based payload resolution with multiple storage backends
 
 ### [@noosphere/contracts](./packages/contracts) · [npm](https://www.npmjs.com/package/@noosphere/contracts)
 
@@ -204,6 +210,55 @@ if (verifier.requiresProof && verifier.proofService) {
   console.log('Proof service:', verifier.proofService.imageName);
 }
 ```
+
+### Payload Resolution
+
+The SDK includes `PayloadResolver` for handling URI-based payload data with multiple storage backends.
+
+```typescript
+import { PayloadResolver } from '@noosphere/agent-core';
+
+const resolver = new PayloadResolver({
+  // IPFS configuration
+  ipfs: {
+    gateway: 'https://gateway.pinata.cloud/ipfs/',
+    apiEndpoint: 'https://api.pinata.cloud',
+    apiKey: process.env.PINATA_API_KEY,
+    apiSecret: process.env.PINATA_API_SECRET,
+  },
+  // S3-compatible storage (R2, S3, MinIO)
+  s3: {
+    endpoint: process.env.R2_ENDPOINT,
+    accessKeyId: process.env.R2_ACCESS_KEY_ID,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    bucket: process.env.R2_BUCKET,
+    publicUrlBase: process.env.R2_PUBLIC_URL,
+  },
+  // Auto-upload threshold (bytes)
+  uploadThreshold: 1024,
+  // Default storage for large payloads
+  defaultStorage: 's3', // 'ipfs' | 's3' | 'data'
+});
+
+// Resolve PayloadData from various URI schemes
+const { content, verified } = await resolver.resolve(payloadData);
+// Supports: data:, ipfs://, https://, http://, ar://
+
+// Encode output (auto-uploads if > threshold)
+const outputPayload = await resolver.encode(outputContent);
+```
+
+**Supported URI Schemes:**
+- `data:` - Inline base64-encoded data
+- `ipfs://` - IPFS content addressing
+- `https://` / `http://` - HTTP(S) URLs
+- `ar://` - Arweave permanent storage
+
+**Storage Backends:**
+- `IpfsStorage` - Pinata IPFS pinning service
+- `S3Storage` - S3-compatible storage (AWS S3, Cloudflare R2, MinIO)
+- `DataUriStorage` - Inline data URI encoding
+- `HttpStorage` - HTTP(S) fetch
 
 ## Usage Examples
 
@@ -324,6 +379,18 @@ RPC_URL=https://...
 # Optional
 WS_URL=wss://...
 WALLET_FACTORY_ADDRESS=0x...
+
+# Payload Storage (S3/R2)
+R2_ENDPOINT=https://xxx.r2.cloudflarestorage.com
+R2_ACCESS_KEY_ID=your-access-key
+R2_SECRET_ACCESS_KEY=your-secret-key
+R2_BUCKET=your-bucket
+R2_PUBLIC_URL=https://pub-xxx.r2.dev
+
+# Payload Storage (IPFS/Pinata)
+PINATA_API_KEY=your-api-key
+PINATA_API_SECRET=your-api-secret
+IPFS_GATEWAY=https://gateway.pinata.cloud/ipfs/
 ```
 
 ### Keystore Structure
