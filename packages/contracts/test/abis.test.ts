@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ABIs } from '../index';
+import { ABIs } from '../src/index';
 
 describe('ABI Exports', () => {
   describe('Router ABI', () => {

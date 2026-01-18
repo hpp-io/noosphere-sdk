@@ -18,5 +18,8 @@ export * as contracts from '@noosphere/contracts';
 // Re-export from crypto
 export * as crypto from '@noosphere/crypto';
 
+// Re-export from payload
+export * as payload from '@noosphere/payload';
+
 // Re-export from registry
 export * as registry from '@noosphere/registry';

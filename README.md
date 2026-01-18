@@ -40,7 +40,7 @@ Noosphere SDK enables you to build and run compute agents that participate in th
 npm install @noosphere/sdk
 
 # Or install individual packages
-npm install @noosphere/agent-core @noosphere/crypto @noosphere/contracts @noosphere/registry
+npm install @noosphere/agent-core @noosphere/crypto @noosphere/contracts @noosphere/registry @noosphere/payload
 ```
 
 ### Basic Example
@@ -92,8 +92,11 @@ await agent.start();
 │  @noosphere/agent-core                                  │
 │    ├── NoosphereAgent    (orchestrator)                 │
 │    ├── EventMonitor      (blockchain events)            │
-│    ├── ContainerManager  (Docker execution)             │
-│    └── PayloadResolver   (URI-based payload handling)   │
+│    └── ContainerManager  (Docker execution)             │
+├─────────────────────────────────────────────────────────┤
+│  @noosphere/payload      (browser & Node.js)            │
+│    ├── PayloadResolver   (URI-based payload handling)   │
+│    └── Storage providers                                │
 │         ├── IpfsStorage    (IPFS/Pinata)                │
 │         ├── S3Storage      (S3/R2/MinIO)                │
 │         ├── DataUriStorage (inline data)                │
@@ -131,7 +134,32 @@ await agent.start();
 - `NoosphereAgent` - Main orchestrator
 - `EventMonitor` - Blockchain event listener with WebSocket support
 - `ContainerManager` - Docker container execution
-- `PayloadResolver` - URI-based payload resolution with multiple storage backends
+
+### [@noosphere/payload](./packages/payload) · [npm](https://www.npmjs.com/package/@noosphere/payload)
+
+PayloadData utilities for URI-based payload handling. Works in both browser and Node.js environments.
+
+```typescript
+import { PayloadResolver, createDataUriPayload } from '@noosphere/payload';
+
+// Create PayloadData
+const payload = createDataUriPayload('{"action": "ping"}');
+
+// Resolve PayloadData
+const resolver = new PayloadResolver({ ipfs: { gateway: 'https://ipfs.io/ipfs/' } });
+const { content, verified } = await resolver.resolve(payload);
+```
+
+**Key Components:**
+- `PayloadResolver` - Resolves and encodes PayloadData with verification
+- `IpfsStorage` - IPFS/Pinata storage provider
+- `S3Storage` - S3/R2/MinIO storage provider
+- `DataUriStorage` - Inline base64 data URI provider
+
+**Supported URI Schemes:**
+- `data:` - Inline base64-encoded data
+- `ipfs://` - IPFS content addressing
+- `https://` / `http://` - HTTP(S) URLs
 
 ### [@noosphere/contracts](./packages/contracts) · [npm](https://www.npmjs.com/package/@noosphere/contracts)
 
@@ -242,7 +270,7 @@ const resolver = new PayloadResolver({
 
 // Resolve PayloadData from various URI schemes
 const { content, verified } = await resolver.resolve(payloadData);
-// Supports: data:, ipfs://, https://, http://, ar://
+// Supports: data:, ipfs://, https://, http://
 
 // Encode output (auto-uploads if > threshold)
 const outputPayload = await resolver.encode(outputContent);
@@ -252,7 +280,6 @@ const outputPayload = await resolver.encode(outputContent);
 - `data:` - Inline base64-encoded data
 - `ipfs://` - IPFS content addressing
 - `https://` / `http://` - HTTP(S) URLs
-- `ar://` - Arweave permanent storage
 
 **Storage Backends:**
 - `IpfsStorage` - Pinata IPFS pinning service

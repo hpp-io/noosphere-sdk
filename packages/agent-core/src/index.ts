@@ -11,6 +11,15 @@ export * from './storage';
 export { PayloadResolver, PayloadScheme } from './PayloadResolver';
 export type { PayloadResolverConfig, ResolvedPayload } from './PayloadResolver';
 
+// Re-export payload utilities from @noosphere/payload for convenience
+export {
+  computeContentHash,
+  verifyContentHash,
+  createDataUriPayload,
+  detectPayloadType,
+  PayloadType,
+} from '@noosphere/payload';
+
 // Re-export crypto utilities for convenience
 export { WalletManager, KeystoreManager } from '@noosphere/crypto';
 export type { NoosphereKeystore, PaymentWalletInfo, KeystoreInfo } from '@noosphere/crypto';

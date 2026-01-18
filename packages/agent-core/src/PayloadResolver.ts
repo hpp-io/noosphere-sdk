@@ -1,8 +1,11 @@
 /**
  * PayloadResolver - Unified Payload Resolution
  *
+ * This module wraps @noosphere/payload for backward compatibility.
+ * New code should use @noosphere/payload directly.
+ *
  * Resolves PayloadData to actual content by:
- * 1. Detecting URI scheme (data:, ipfs://, https://, ar://)
+ * 1. Detecting URI scheme (data:, ipfs://, https://, http://)
  * 2. Fetching content from appropriate storage
  * 3. Verifying content hash for integrity
  *
@@ -26,13 +29,25 @@
  */
 
 import { ethers } from 'ethers';
+import {
+  PayloadResolver as BasePayloadResolver,
+  IpfsStorage,
+  S3Storage,
+  DataUriStorage,
+  HttpStorage,
+  PayloadType,
+  computeContentHash,
+  verifyContentHash,
+  createDataUriPayload,
+  createIpfsPayload,
+  createHttpsPayload,
+  detectPayloadType as baseDetectPayloadType,
+  type PayloadResolverConfig as BaseConfig,
+  type IpfsConfig,
+  type S3Config,
+  type PayloadData as BasePayloadData,
+} from '@noosphere/payload';
 import type { PayloadData } from './types';
-import { PayloadUtils } from './utils/CommitmentUtils';
-import { IpfsStorage, type IpfsStorageConfig } from './storage/IpfsStorage';
-import { DataUriStorage } from './storage/DataUriStorage';
-import { HttpStorage } from './storage/HttpStorage';
-import { S3Storage, type S3StorageConfig } from './storage/S3Storage';
-import type { IPayloadStorage } from './storage/IPayloadStorage';
 
 /**
  * Supported URI schemes
@@ -42,8 +57,6 @@ export enum PayloadScheme {
   IPFS = 'ipfs',
   HTTPS = 'https',
   HTTP = 'http',
-  ARWEAVE = 'ar',
-  CHAIN = 'chain',
 }
 
 /**
@@ -51,11 +64,9 @@ export enum PayloadScheme {
  */
 export interface PayloadResolverConfig {
   /** IPFS storage configuration */
-  ipfs?: IpfsStorageConfig;
+  ipfs?: IpfsConfig;
   /** S3-compatible storage configuration (R2, S3, MinIO) */
-  s3?: S3StorageConfig;
-  /** Arweave gateway URL */
-  arweaveGateway?: string;
+  s3?: S3Config;
   /** Size threshold for auto-upload (bytes, default: 1024) */
   uploadThreshold?: number;
   /** Default storage for large payloads ('ipfs' | 's3' | 'data') */
@@ -79,21 +90,29 @@ export interface ResolvedPayload {
 }
 
 export class PayloadResolver {
+  private baseResolver: BasePayloadResolver;
   private ipfsStorage: IpfsStorage;
   private s3Storage: S3Storage | null = null;
   private dataUriStorage: DataUriStorage;
   private httpStorage: HttpStorage;
   private uploadThreshold: number;
   private defaultStorage: 'ipfs' | 's3' | 'data';
-  private arweaveGateway: string;
 
   constructor(config: PayloadResolverConfig = {}) {
+    // Initialize @noosphere/payload resolver
+    this.baseResolver = new BasePayloadResolver({
+      ipfs: config.ipfs,
+      s3: config.s3,
+      uploadThreshold: config.uploadThreshold,
+      defaultStorage: config.defaultStorage,
+    });
+
+    // Keep individual storage references for compatibility
     this.ipfsStorage = new IpfsStorage(config.ipfs);
     this.dataUriStorage = new DataUriStorage();
-    this.httpStorage = new HttpStorage({ timeout: config.timeout });
+    this.httpStorage = new HttpStorage();
     this.uploadThreshold = config.uploadThreshold ?? 1024;
     this.defaultStorage = config.defaultStorage ?? 'ipfs';
-    this.arweaveGateway = config.arweaveGateway || 'https://arweave.net';
 
     // Initialize S3 storage if configured
     if (config.s3) {
@@ -102,24 +121,56 @@ export class PayloadResolver {
   }
 
   /**
+   * Convert agent-core PayloadData to @noosphere/payload PayloadData
+   * Note: URI is decoded from hex if needed
+   */
+  private toBasePayload(payload: PayloadData): BasePayloadData {
+    // Decode hex-encoded URI if it starts with 0x
+    let uri = payload.uri;
+    if (uri && uri.startsWith('0x') && uri !== '0x') {
+      try {
+        uri = ethers.toUtf8String(uri);
+      } catch {
+        // Keep as-is if not valid UTF-8
+      }
+    }
+    return {
+      contentHash: payload.contentHash as `0x${string}`,
+      uri: uri || '',
+    };
+  }
+
+  /**
+   * Convert @noosphere/payload PayloadData to agent-core PayloadData
+   * Note: URI is hex-encoded for on-chain compatibility
+   */
+  private fromBasePayload(payload: BasePayloadData): PayloadData {
+    // Convert URI string to hex bytes for Solidity bytes type
+    const uriBytes = payload.uri
+      ? ethers.hexlify(ethers.toUtf8Bytes(payload.uri))
+      : '0x';
+    return {
+      contentHash: payload.contentHash,
+      uri: uriBytes,
+    };
+  }
+
+  /**
    * Detect URI scheme from PayloadData
    */
   detectScheme(payload: PayloadData): PayloadScheme {
-    const uri = payload.uri;
-
-    if (!uri || uri === '' || uri === '0x') {
-      return PayloadScheme.DATA; // Empty URI treated as inline
+    const type = baseDetectPayloadType(this.toBasePayload(payload));
+    switch (type) {
+      case PayloadType.IPFS:
+        return PayloadScheme.IPFS;
+      case PayloadType.HTTPS:
+        return PayloadScheme.HTTPS;
+      case PayloadType.HTTP:
+        return PayloadScheme.HTTP;
+      case PayloadType.DATA_URI:
+      default:
+        return PayloadScheme.DATA;
     }
-
-    if (uri.startsWith('data:')) return PayloadScheme.DATA;
-    if (uri.startsWith('ipfs://')) return PayloadScheme.IPFS;
-    if (uri.startsWith('https://')) return PayloadScheme.HTTPS;
-    if (uri.startsWith('http://')) return PayloadScheme.HTTP;
-    if (uri.startsWith('ar://')) return PayloadScheme.ARWEAVE;
-    if (uri.startsWith('chain://')) return PayloadScheme.CHAIN;
-
-    // Default to data if unrecognized
-    return PayloadScheme.DATA;
   }
 
   /**
@@ -131,57 +182,22 @@ export class PayloadResolver {
    */
   async resolve(payload: PayloadData, verifyHash: boolean = true): Promise<ResolvedPayload> {
     const scheme = this.detectScheme(payload);
-    let content: string;
+    const basePayload = this.toBasePayload(payload);
 
-    switch (scheme) {
-      case PayloadScheme.DATA:
-        content = await this.dataUriStorage.download(payload.uri);
-        break;
+    const result = await this.baseResolver.resolve(basePayload);
 
-      case PayloadScheme.IPFS:
-        content = await this.ipfsStorage.download(payload.uri);
-        break;
-
-      case PayloadScheme.HTTPS:
-      case PayloadScheme.HTTP:
-        content = await this.httpStorage.download(payload.uri);
-        break;
-
-      case PayloadScheme.ARWEAVE:
-        content = await this.resolveArweave(payload.uri);
-        break;
-
-      case PayloadScheme.CHAIN:
-        throw new Error('Chain scheme not yet implemented');
-
-      default:
-        throw new Error(`Unsupported URI scheme: ${scheme}`);
-    }
-
-    // Verify content hash if requested
-    let verified = false;
-    if (verifyHash && payload.contentHash && payload.contentHash !== ethers.ZeroHash) {
-      verified = PayloadUtils.verifyContent(payload, content);
-      if (!verified) {
-        console.warn('PayloadResolver: Content hash verification failed');
-      }
+    // Override verification if needed
+    let verified = result.verified;
+    if (!verifyHash) {
+      verified = false;
     }
 
     return {
-      content,
+      content: result.content,
       payload,
       scheme,
       verified,
     };
-  }
-
-  /**
-   * Resolve Arweave URI
-   */
-  private async resolveArweave(uri: string): Promise<string> {
-    const txId = uri.replace('ar://', '');
-    const url = `${this.arweaveGateway}/${txId}`;
-    return this.httpStorage.download(url);
   }
 
   /**
@@ -200,62 +216,25 @@ export class PayloadResolver {
       storage?: 'ipfs' | 's3' | 'data';
     } = {}
   ): Promise<PayloadData> {
-    const contentSize = Buffer.byteLength(content, 'utf-8');
-    const shouldUpload = options.forceUpload || contentSize > this.uploadThreshold;
-
-    if (!shouldUpload) {
-      // Inline as data: URI
-      return PayloadUtils.fromInlineData(content);
-    }
-
-    // Upload to external storage
-    const storage = options.storage || this.defaultStorage;
-
-    if (storage === 'ipfs') {
-      if (!this.ipfsStorage.isConfigured()) {
-        console.warn('IPFS not configured, falling back to data URI');
-        return PayloadUtils.fromInlineData(content);
-      }
-
-      try {
-        const result = await this.ipfsStorage.upload(content);
-        return PayloadUtils.fromExternalUri(content, result.uri);
-      } catch (error) {
-        console.warn(`IPFS upload failed, falling back to data URI: ${(error as Error).message}`);
-        return PayloadUtils.fromInlineData(content);
-      }
-    } else if (storage === 's3') {
-      if (!this.s3Storage || !this.s3Storage.isConfigured()) {
-        console.warn('S3 not configured, falling back to data URI');
-        return PayloadUtils.fromInlineData(content);
-      }
-
-      try {
-        const result = await this.s3Storage.upload(content);
-        return PayloadUtils.fromExternalUri(content, result.uri);
-      } catch (error) {
-        console.warn(`S3 upload failed, falling back to data URI: ${(error as Error).message}`);
-        return PayloadUtils.fromInlineData(content);
-      }
-    } else {
-      // Use data: URI for inline storage
-      const result = await this.dataUriStorage.upload(content);
-      return PayloadUtils.fromExternalUri(content, result.uri);
-    }
+    const result = await this.baseResolver.encode(content, options);
+    return this.fromBasePayload(result);
   }
 
   /**
    * Create empty PayloadData
    */
   createEmpty(): PayloadData {
-    return PayloadUtils.empty();
+    return {
+      contentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      uri: '',
+    };
   }
 
   /**
    * Verify content matches PayloadData hash
    */
   verifyContent(payload: PayloadData, content: string): boolean {
-    return PayloadUtils.verifyContent(payload, content);
+    return verifyContentHash(content, payload.contentHash as `0x${string}`);
   }
 
   /**
@@ -315,7 +294,25 @@ export class PayloadResolver {
       };
     } catch {
       // Legacy format - treat as raw content
-      return PayloadUtils.fromInlineData(serialized);
+      const hash = computeContentHash(serialized);
+      const base64 = Buffer.from(serialized, 'utf-8').toString('base64');
+      return {
+        contentHash: hash,
+        uri: `data:application/json;base64,${base64}`,
+      };
     }
   }
 }
+
+// Re-export from @noosphere/payload for convenience
+export {
+  computeContentHash,
+  verifyContentHash,
+  createDataUriPayload,
+  createIpfsPayload,
+  createHttpsPayload,
+  PayloadType,
+} from '@noosphere/payload';
+
+// For backward compatibility, also export detectPayloadType
+export { detectPayloadType } from '@noosphere/payload';

@@ -8,7 +8,7 @@ set -e
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SDK_ROOT="$(dirname "$SCRIPT_DIR")"
-PACKAGES=("contracts" "crypto" "registry" "agent-core")
+PACKAGES=("contracts" "crypto" "registry" "payload" "agent-core")
 
 # Options
 DRY_RUN=false
@@ -66,7 +66,8 @@ PACKAGES (in order):
     1. @noosphere/contracts
     2. @noosphere/crypto
     3. @noosphere/registry
-    4. @noosphere/agent-core
+    4. @noosphere/payload
+    5. @noosphere/agent-core
 
 EOF
     exit 0

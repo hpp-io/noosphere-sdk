@@ -11,8 +11,8 @@ import type {
   ProofVerifiedEvent,
   SubscriptionCreatedEvent,
   PayloadData,
-} from '../types';
-import { FulfillResult, InputType } from '../types';
+} from '../src/types';
+import { FulfillResult, InputType } from '../src/types';
 
 describe('Custom Types', () => {
   describe('ComputeSubscription', () => {

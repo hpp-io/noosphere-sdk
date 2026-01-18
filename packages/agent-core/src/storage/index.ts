@@ -1,11 +1,22 @@
 /**
  * Storage Providers
  *
- * Export all storage provider implementations for payload handling.
+ * Re-export all storage provider implementations from @noosphere/payload.
+ * This module exists for backward compatibility.
+ * New code should use @noosphere/payload directly.
  */
 
-export * from './IPayloadStorage';
-export * from './IpfsStorage';
-export * from './DataUriStorage';
-export * from './HttpStorage';
-export * from './S3Storage';
+export {
+  IpfsStorage,
+  DataUriStorage,
+  HttpStorage,
+  S3Storage,
+  type IPayloadStorage,
+  type UploadResult,
+  type IpfsConfig,
+  type S3Config,
+} from '@noosphere/payload';
+
+// Legacy re-exports for compatibility
+export type { IpfsConfig as IpfsStorageConfig } from '@noosphere/payload';
+export type { S3Config as S3StorageConfig } from '@noosphere/payload';
