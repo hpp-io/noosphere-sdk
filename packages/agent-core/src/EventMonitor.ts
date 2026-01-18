@@ -138,8 +138,8 @@ export class EventMonitor extends EventEmitter {
       const wsProvider = this.provider as ethers.WebSocketProvider;
 
       // Access the underlying WebSocket to detect connection issues
-      // ethers v6 exposes websocket through _websocket property (internal)
-      const ws = (wsProvider as any)._websocket;
+      // ethers v6 exposes websocket through public getter 'websocket'
+      const ws = (wsProvider as any).websocket;
       if (ws) {
         ws.on('close', () => {
           console.warn('⚠️ WebSocket connection closed');

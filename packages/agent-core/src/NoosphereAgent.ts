@@ -71,6 +71,14 @@ export interface RetryableEvent {
   interval: number;
   containerId: string;
   retryCount: number;
+  // Fee and commitment fields (required for valid retry)
+  feeAmount: string;
+  feeToken: string;
+  walletAddress: string;
+  verifier: string;
+  coordinator: string;
+  redundancy: number;
+  useDeliveryInbox: boolean;
 }
 
 export interface ContainerExecutionConfig {
@@ -529,19 +537,19 @@ export class NoosphereAgent {
       return;
     }
 
-    // Create a synthetic RequestStartedEvent for retry
+    // Create a synthetic RequestStartedEvent for retry using stored event data
     const retryEvent: RequestStartedEvent = {
       requestId: event.requestId,
       subscriptionId: BigInt(event.subscriptionId),
       interval: event.interval,
       containerId: event.containerId,
-      redundancy: 1,
-      useDeliveryInbox: false,
-      feeAmount: BigInt(0),
-      feeToken: '0x0000000000000000000000000000000000000000',
-      walletAddress: '0x0000000000000000000000000000000000000000',
-      verifier: '0x0000000000000000000000000000000000000000',
-      coordinator: this.config.coordinatorAddress,
+      redundancy: event.redundancy,
+      useDeliveryInbox: event.useDeliveryInbox,
+      feeAmount: BigInt(event.feeAmount),
+      feeToken: event.feeToken,
+      walletAddress: event.walletAddress,
+      verifier: event.verifier,
+      coordinator: event.coordinator,
       blockNumber: 0,
     };
 
