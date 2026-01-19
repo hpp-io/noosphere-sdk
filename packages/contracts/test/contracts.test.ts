@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { JsonRpcProvider } from 'ethers';
-import { RouterContract } from '../Router';
-import { CoordinatorContract } from '../Coordinator';
-import { SubscriptionBatchReaderContract } from '../SubscriptionBatchReader';
+import { RouterContract } from '../src/Router';
+import { CoordinatorContract } from '../src/Coordinator';
+import { SubscriptionBatchReaderContract } from '../src/SubscriptionBatchReader';
 
 // Mock provider
 const mockProvider = new JsonRpcProvider('http://localhost:8545');

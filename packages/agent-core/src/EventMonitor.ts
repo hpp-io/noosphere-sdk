@@ -138,8 +138,8 @@ export class EventMonitor extends EventEmitter {
       const wsProvider = this.provider as ethers.WebSocketProvider;
 
       // Access the underlying WebSocket to detect connection issues
-      // ethers v6 exposes websocket through _websocket property (internal)
-      const ws = (wsProvider as any)._websocket;
+      // ethers v6 exposes websocket through public getter 'websocket'
+      const ws = (wsProvider as any).websocket;
       if (ws) {
         ws.on('close', () => {
           console.warn('⚠️ WebSocket connection closed');
@@ -170,7 +170,9 @@ export class EventMonitor extends EventEmitter {
           // we might have a stale subscription - replay missed events
           const timeSinceLastEvent = Date.now() - this.lastEventTime;
           if (timeSinceLastEvent > 180000 && blockNumber > this.lastProcessedBlock + 5) {
-            console.log(`⚠️ No events for ${Math.round(timeSinceLastEvent / 1000)}s, checking for missed events...`);
+            console.log(
+              `⚠️ No events for ${Math.round(timeSinceLastEvent / 1000)}s, checking for missed events...`
+            );
             await this.replayMissedEvents();
           }
         }
@@ -185,7 +187,9 @@ export class EventMonitor extends EventEmitter {
     try {
       const currentBlock = await this.provider.getBlockNumber();
       if (currentBlock > this.lastProcessedBlock) {
-        console.log(`📥 Replaying events from block ${this.lastProcessedBlock + 1} to ${currentBlock}`);
+        console.log(
+          `📥 Replaying events from block ${this.lastProcessedBlock + 1} to ${currentBlock}`
+        );
         await this.replayEvents(this.lastProcessedBlock + 1, currentBlock);
         this.lastEventTime = Date.now();
       }

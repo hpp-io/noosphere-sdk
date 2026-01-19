@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w @noosphere/contracts -w @noosphere/crypto -w @noosphere/registry && npm run build -w @noosphere/agent-core -w @noosphere/sdk",
+    "build": "npm run build -w @noosphere/contracts -w @noosphere/crypto -w @noosphere/registry -w @noosphere/payload && npm run build -w @noosphere/agent-core -w @noosphere/sdk",
     "test": "npm run test --workspaces",
     "lint": "eslint packages/**/src/**/*.ts",
     "format": "prettier --write \"packages/**/src/**/*.ts\"",
@@ -27,6 +27,7 @@
     "url": "https://github.com/hpp-io/noosphere-sdk.git"
   },
   "devDependencies": {
+    "@typechain/ethers-v6": "^0.5.1",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
@@ -36,10 +37,12 @@
     "eslint-plugin-prettier": "^5.0.1",
     "prettier": "^3.1.0",
     "tsup": "^8.5.1",
-    "typescript": "^5.3.0"
+    "typechain": "^8.3.2",
+    "typescript": "^5.3.0",
+    "vitest": "^4.0.16"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   }
 }

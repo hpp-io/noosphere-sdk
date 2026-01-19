@@ -1,0 +1,65 @@
+{
+  "name": "@noosphere/payload",
+  "version": "0.2.0-alpha.2",
+  "description": "Noosphere PayloadData utilities for URI-based payload handling (browser & Node.js compatible)",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.cjs"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npx tsup",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "noosphere",
+    "payload",
+    "ipfs",
+    "s3",
+    "storage",
+    "web3"
+  ],
+  "author": "Noosphere Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hpp-io/noosphere-sdk.git",
+    "directory": "packages/payload"
+  },
+  "bugs": {
+    "url": "https://github.com/hpp-io/noosphere-sdk/issues"
+  },
+  "homepage": "https://github.com/hpp-io/noosphere-sdk/tree/main/packages/payload#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "viem": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^4.0.16",
+    "@vitest/ui": "^4.0.16",
+    "typescript": "^5.3.0",
+    "tsup": "^8.0.0",
+    "vitest": "^4.0.16"
+  }
+}

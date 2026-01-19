@@ -2,11 +2,29 @@ export { EventMonitor } from './EventMonitor';
 export type { CheckpointData } from './EventMonitor';
 export { ContainerManager } from './ContainerManager';
 export { NoosphereAgent } from './NoosphereAgent';
-export type { ComputeDeliveredEvent, RequestStartedCallbackEvent, CommitmentSuccessCallbackEvent, RetryableEvent, ContainerExecutionConfig } from './NoosphereAgent';
+export type {
+  ComputeDeliveredEvent,
+  RequestStartedCallbackEvent,
+  CommitmentSuccessCallbackEvent,
+  RetryableEvent,
+  ContainerExecutionConfig,
+} from './NoosphereAgent';
 export { SchedulerService } from './SchedulerService';
 
 export * from './types';
 export * from './utils';
+export * from './storage';
+export { PayloadResolver, PayloadScheme } from './PayloadResolver';
+export type { PayloadResolverConfig, ResolvedPayload } from './PayloadResolver';
+
+// Re-export payload utilities from @noosphere/payload for convenience
+export {
+  computeContentHash,
+  verifyContentHash,
+  createDataUriPayload,
+  detectPayloadType,
+  PayloadType,
+} from '@noosphere/payload';
 
 // Re-export crypto utilities for convenience
 export { WalletManager, KeystoreManager } from '@noosphere/crypto';

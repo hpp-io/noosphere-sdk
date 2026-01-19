@@ -1,3 +1,6 @@
+// Re-export PayloadData from contracts
+export { PayloadData, InputType } from '@noosphere/contracts';
+
 export interface Commitment {
   requestId: string;
   subscriptionId: bigint;

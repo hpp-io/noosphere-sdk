@@ -1,6 +1,6 @@
 {
   "name": "@noosphere/contracts",
-  "version": "0.1.0-alpha.5",
+  "version": "0.2.0-alpha.1",
   "description": "Noosphere smart contract TypeScript wrappers and ABIs",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -22,8 +22,8 @@
     "src/abis"
   ],
   "scripts": {
-    "typechain": "typechain --target ethers-v6 --out-dir src/typechain 'src/abis/*.json'",
-    "build": "npm run typechain && tsup",
+    "typechain": "npx typechain --target ethers-v6 --out-dir src/typechain 'src/abis/*.json'",
+    "build": "npm run typechain && npx tsup",
     "clean": "rm -rf dist src/typechain",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -59,6 +59,7 @@
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/ui": "^4.0.16",
+    "tsup": "^8.0.0",
     "typechain": "^8.3.2",
     "typescript": "^5.3.0",
     "vitest": "^4.0.16"

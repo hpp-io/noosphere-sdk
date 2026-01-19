@@ -1,4 +1,4 @@
-import { Contract, Provider, Signer, EventLog, ContractTransactionResponse } from 'ethers';
+import { Contract, Provider, Signer, EventLog, ContractTransactionResponse, ethers } from 'ethers';
 import RouterABI from './abis/Router.abi.json';
 import type {
   ComputeSubscription,
@@ -6,6 +6,7 @@ import type {
   Payment,
   ProofVerificationRequest,
   FulfillResult,
+  PayloadData,
 } from './types';
 
 /**
@@ -62,26 +63,42 @@ export class RouterContract {
 
   /**
    * Accept fulfillment results and attempt on-chain settlement
+   * @param input - PayloadData containing contentHash and uri for input
+   * @param output - PayloadData containing contentHash and uri for output
+   * @param proof - PayloadData containing contentHash and uri for proof
+   * @param numRedundantDeliveries - Number of redundant deliveries
+   * @param nodeWallet - Address of the node's payment wallet
+   * @param payments - Array of payment instructions
+   * @param commitment - The commitment data
    */
   async fulfill(
-    input: Uint8Array,
-    output: Uint8Array,
-    proof: Uint8Array,
+    input: PayloadData,
+    output: PayloadData,
+    proof: PayloadData,
     numRedundantDeliveries: number,
     nodeWallet: string,
     payments: Payment[],
     commitment: Commitment
   ): Promise<FulfillResult> {
     const result = await this.contract.fulfill(
-      input,
-      output,
-      proof,
+      this.encodePayloadData(input),
+      this.encodePayloadData(output),
+      this.encodePayloadData(proof),
       numRedundantDeliveries,
       nodeWallet,
       payments,
       commitment
     );
     return result as FulfillResult;
+  }
+
+  /**
+   * Encode PayloadData for contract call
+   * @param payload - PayloadData to encode
+   * @returns Tuple format expected by contract
+   */
+  private encodePayloadData(payload: PayloadData): [string, Uint8Array] {
+    return [payload.contentHash, ethers.toUtf8Bytes(payload.uri)];
   }
 
   /**

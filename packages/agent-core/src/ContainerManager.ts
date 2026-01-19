@@ -23,7 +23,7 @@ export class ContainerManager {
   async runContainer(
     container: ContainerMetadata,
     input: string,
-    timeout: number = 300000, // 5 minutes default
+    timeout: number = 180000, // 3 minutes default
     connectionRetries: number = 5, // Retry up to 5 times for connection issues
     connectionRetryDelayMs: number = 3000 // Wait 3 seconds between retries
   ): Promise<ContainerExecutionResult> {
@@ -34,9 +34,7 @@ export class ContainerManager {
 
     // Make HTTP POST request to the persistent container
     // Use container name as host when DOCKER_NETWORK is set (DinD), otherwise localhost
-    const containerHost = process.env.DOCKER_NETWORK
-      ? `noosphere-${container.name}`
-      : 'localhost';
+    const containerHost = process.env.DOCKER_NETWORK ? `noosphere-${container.name}` : 'localhost';
     const url = `http://${containerHost}:${port}/computation`;
 
     // Prepare request body
@@ -85,7 +83,9 @@ export class ContainerManager {
         // Only retry on connection refused (container not ready yet)
         if (error.code === 'ECONNREFUSED') {
           if (attempt < connectionRetries) {
-            console.log(`  ⏳ Container not ready (attempt ${attempt}/${connectionRetries}), retrying in ${connectionRetryDelayMs / 1000}s...`);
+            console.log(
+              `  ⏳ Container not ready (attempt ${attempt}/${connectionRetries}), retrying in ${connectionRetryDelayMs / 1000}s...`
+            );
             await this.sleep(connectionRetryDelayMs);
             continue;
           }
@@ -115,7 +115,7 @@ export class ContainerManager {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private async collectContainerResult(
@@ -314,7 +314,10 @@ export class ContainerManager {
         // Start persistent container
         await this.startPersistentContainer(id, container);
       } catch (error) {
-        console.error(`  ❌ Failed to start ${container.name || container.image}:`, (error as Error).message);
+        console.error(
+          `  ❌ Failed to start ${container.name || container.image}:`,
+          (error as Error).message
+        );
       }
     });
 

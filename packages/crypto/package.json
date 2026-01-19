@@ -1,6 +1,6 @@
 {
   "name": "@noosphere/crypto",
-  "version": "0.1.0-alpha.5",
+  "version": "0.2.0-alpha.1",
   "description": "Cryptographic utilities and wallet management for Noosphere SDK",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -21,8 +21,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
-    "test": "jest",
+    "build": "npx tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "clean": "rm -rf dist",
@@ -50,14 +51,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@noosphere/contracts": "0.1.0-alpha.5",
+    "@noosphere/contracts": "0.2.0-alpha.1",
     "ethers": "^6.13.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "@types/jest": "^29.5.0",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.1.0",
-    "typescript": "^5.5.0"
+    "tsup": "^8.0.0",
+    "typescript": "^5.5.0",
+    "vitest": "^4.0.16"
   }
 }
