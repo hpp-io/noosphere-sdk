@@ -6,11 +6,7 @@
  * 2. Verifying content integrity via contentHash
  * 3. Encoding content as PayloadData with automatic storage selection
  */
-import type {
-  PayloadData,
-  PayloadResolverConfig,
-  ResolvedPayload,
-} from './types';
+import type { PayloadData, PayloadResolverConfig, ResolvedPayload } from './types';
 import { PayloadType } from './types';
 import {
   detectPayloadType,

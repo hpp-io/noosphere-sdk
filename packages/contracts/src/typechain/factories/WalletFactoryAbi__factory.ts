@@ -2,113 +2,110 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
-import type {
-  WalletFactoryAbi,
-  WalletFactoryAbiInterface,
-} from "../WalletFactoryAbi";
+import { Contract, Interface, type ContractRunner } from 'ethers';
+import type { WalletFactoryAbi, WalletFactoryAbiInterface } from '../WalletFactoryAbi';
 
 const _abi = [
   {
-    type: "constructor",
+    type: 'constructor',
     inputs: [
       {
-        name: "router",
-        type: "address",
-        internalType: "address",
+        name: 'router',
+        type: 'address',
+        internalType: 'address',
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: 'nonpayable',
   },
   {
-    type: "function",
-    name: "createWallet",
+    type: 'function',
+    name: 'createWallet',
     inputs: [
       {
-        name: "initialOwner",
-        type: "address",
-        internalType: "address",
+        name: 'initialOwner',
+        type: 'address',
+        internalType: 'address',
       },
     ],
     outputs: [
       {
-        name: "walletAddr",
-        type: "address",
-        internalType: "address",
+        name: 'walletAddr',
+        type: 'address',
+        internalType: 'address',
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: 'nonpayable',
   },
   {
-    type: "function",
-    name: "isValidWallet",
+    type: 'function',
+    name: 'isValidWallet',
     inputs: [
       {
-        name: "walletAddr",
-        type: "address",
-        internalType: "address",
+        name: 'walletAddr',
+        type: 'address',
+        internalType: 'address',
       },
     ],
     outputs: [
       {
-        name: "isCreated",
-        type: "bool",
-        internalType: "bool",
+        name: 'isCreated',
+        type: 'bool',
+        internalType: 'bool',
       },
     ],
-    stateMutability: "view",
+    stateMutability: 'view',
   },
   {
-    type: "function",
-    name: "typeAndVersion",
+    type: 'function',
+    name: 'typeAndVersion',
     inputs: [],
     outputs: [
       {
-        name: "",
-        type: "string",
-        internalType: "string",
+        name: '',
+        type: 'string',
+        internalType: 'string',
       },
     ],
-    stateMutability: "pure",
+    stateMutability: 'pure',
   },
   {
-    type: "event",
-    name: "WalletCreated",
+    type: 'event',
+    name: 'WalletCreated',
     inputs: [
       {
-        name: "operator",
-        type: "address",
+        name: 'operator',
+        type: 'address',
         indexed: true,
-        internalType: "address",
+        internalType: 'address',
       },
       {
-        name: "owner",
-        type: "address",
+        name: 'owner',
+        type: 'address',
         indexed: true,
-        internalType: "address",
+        internalType: 'address',
       },
       {
-        name: "walletAddress",
-        type: "address",
+        name: 'walletAddress',
+        type: 'address',
         indexed: false,
-        internalType: "address",
+        internalType: 'address',
       },
     ],
     anonymous: false,
   },
   {
-    type: "error",
-    name: "OnlyCallableByRouter",
+    type: 'error',
+    name: 'OnlyCallableByRouter',
     inputs: [],
   },
   {
-    type: "error",
-    name: "OnlyCallableByRouterOwner",
+    type: 'error',
+    name: 'OnlyCallableByRouterOwner',
     inputs: [],
   },
   {
-    type: "error",
-    name: "RouterMustBeSet",
+    type: 'error',
+    name: 'RouterMustBeSet',
     inputs: [],
   },
 ] as const;
@@ -118,10 +115,7 @@ export class WalletFactoryAbi__factory {
   static createInterface(): WalletFactoryAbiInterface {
     return new Interface(_abi) as WalletFactoryAbiInterface;
   }
-  static connect(
-    address: string,
-    runner?: ContractRunner | null
-  ): WalletFactoryAbi {
+  static connect(address: string, runner?: ContractRunner | null): WalletFactoryAbi {
     return new Contract(address, _abi, runner) as unknown as WalletFactoryAbi;
   }
 }

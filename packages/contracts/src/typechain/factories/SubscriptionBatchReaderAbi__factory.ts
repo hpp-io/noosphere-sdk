@@ -2,150 +2,150 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from "ethers";
+import { Contract, Interface, type ContractRunner } from 'ethers';
 import type {
   SubscriptionBatchReaderAbi,
   SubscriptionBatchReaderAbiInterface,
-} from "../SubscriptionBatchReaderAbi";
+} from '../SubscriptionBatchReaderAbi';
 
 const _abi = [
   {
-    type: "constructor",
+    type: 'constructor',
     inputs: [
       {
-        name: "_router",
-        type: "address",
-        internalType: "address",
+        name: '_router',
+        type: 'address',
+        internalType: 'address',
       },
       {
-        name: "_coordinator",
-        type: "address",
-        internalType: "address",
+        name: '_coordinator',
+        type: 'address',
+        internalType: 'address',
       },
     ],
-    stateMutability: "nonpayable",
+    stateMutability: 'nonpayable',
   },
   {
-    type: "function",
-    name: "getIntervalStatuses",
+    type: 'function',
+    name: 'getIntervalStatuses',
     inputs: [
       {
-        name: "ids",
-        type: "uint64[]",
-        internalType: "uint64[]",
+        name: 'ids',
+        type: 'uint64[]',
+        internalType: 'uint64[]',
       },
       {
-        name: "intervals",
-        type: "uint32[]",
-        internalType: "uint32[]",
+        name: 'intervals',
+        type: 'uint32[]',
+        internalType: 'uint32[]',
       },
     ],
     outputs: [
       {
-        name: "statuses",
-        type: "tuple[]",
-        internalType: "struct SubscriptionBatchReader.IntervalStatus[]",
+        name: 'statuses',
+        type: 'tuple[]',
+        internalType: 'struct SubscriptionBatchReader.IntervalStatus[]',
         components: [
           {
-            name: "redundancyCount",
-            type: "uint16",
-            internalType: "uint16",
+            name: 'redundancyCount',
+            type: 'uint16',
+            internalType: 'uint16',
           },
           {
-            name: "commitmentExists",
-            type: "bool",
-            internalType: "bool",
+            name: 'commitmentExists',
+            type: 'bool',
+            internalType: 'bool',
           },
         ],
       },
     ],
-    stateMutability: "view",
+    stateMutability: 'view',
   },
   {
-    type: "function",
-    name: "getSubscriptions",
+    type: 'function',
+    name: 'getSubscriptions',
     inputs: [
       {
-        name: "startId",
-        type: "uint64",
-        internalType: "uint64",
+        name: 'startId',
+        type: 'uint64',
+        internalType: 'uint64',
       },
       {
-        name: "endId",
-        type: "uint64",
-        internalType: "uint64",
+        name: 'endId',
+        type: 'uint64',
+        internalType: 'uint64',
       },
     ],
     outputs: [
       {
-        name: "subscriptions",
-        type: "tuple[]",
-        internalType: "struct ComputeSubscription[]",
+        name: 'subscriptions',
+        type: 'tuple[]',
+        internalType: 'struct ComputeSubscription[]',
         components: [
           {
-            name: "routeId",
-            type: "bytes32",
-            internalType: "bytes32",
+            name: 'routeId',
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
-            name: "containerId",
-            type: "bytes32",
-            internalType: "bytes32",
+            name: 'containerId',
+            type: 'bytes32',
+            internalType: 'bytes32',
           },
           {
-            name: "feeAmount",
-            type: "uint256",
-            internalType: "uint256",
+            name: 'feeAmount',
+            type: 'uint256',
+            internalType: 'uint256',
           },
           {
-            name: "client",
-            type: "address",
-            internalType: "address",
+            name: 'client',
+            type: 'address',
+            internalType: 'address',
           },
           {
-            name: "activeAt",
-            type: "uint32",
-            internalType: "uint32",
+            name: 'activeAt',
+            type: 'uint32',
+            internalType: 'uint32',
           },
           {
-            name: "intervalSeconds",
-            type: "uint32",
-            internalType: "uint32",
+            name: 'intervalSeconds',
+            type: 'uint32',
+            internalType: 'uint32',
           },
           {
-            name: "maxExecutions",
-            type: "uint32",
-            internalType: "uint32",
+            name: 'maxExecutions',
+            type: 'uint32',
+            internalType: 'uint32',
           },
           {
-            name: "wallet",
-            type: "address",
-            internalType: "address payable",
+            name: 'wallet',
+            type: 'address',
+            internalType: 'address payable',
           },
           {
-            name: "feeToken",
-            type: "address",
-            internalType: "address",
+            name: 'feeToken',
+            type: 'address',
+            internalType: 'address',
           },
           {
-            name: "verifier",
-            type: "address",
-            internalType: "address payable",
+            name: 'verifier',
+            type: 'address',
+            internalType: 'address payable',
           },
           {
-            name: "redundancy",
-            type: "uint16",
-            internalType: "uint16",
+            name: 'redundancy',
+            type: 'uint16',
+            internalType: 'uint16',
           },
           {
-            name: "useDeliveryInbox",
-            type: "bool",
-            internalType: "bool",
+            name: 'useDeliveryInbox',
+            type: 'bool',
+            internalType: 'bool',
           },
         ],
       },
     ],
-    stateMutability: "view",
+    stateMutability: 'view',
   },
 ] as const;
 
@@ -154,14 +154,7 @@ export class SubscriptionBatchReaderAbi__factory {
   static createInterface(): SubscriptionBatchReaderAbiInterface {
     return new Interface(_abi) as SubscriptionBatchReaderAbiInterface;
   }
-  static connect(
-    address: string,
-    runner?: ContractRunner | null
-  ): SubscriptionBatchReaderAbi {
-    return new Contract(
-      address,
-      _abi,
-      runner
-    ) as unknown as SubscriptionBatchReaderAbi;
+  static connect(address: string, runner?: ContractRunner | null): SubscriptionBatchReaderAbi {
+    return new Contract(address, _abi, runner) as unknown as SubscriptionBatchReaderAbi;
   }
 }

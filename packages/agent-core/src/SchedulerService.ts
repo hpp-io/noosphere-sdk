@@ -135,9 +135,10 @@ export class SchedulerService extends EventEmitter {
     // Note: Contract uses 1-based indexing: ((timestamp - activeAt) / intervalSeconds) + 1
     const now = Math.floor(Date.now() / 1000);
     const elapsed = now - Number(subscription.activeAt);
-    const currentInterval = subscription.intervalSeconds > 0n
-      ? BigInt(Math.max(1, Math.floor(elapsed / Number(subscription.intervalSeconds)) + 1))
-      : 1n;
+    const currentInterval =
+      subscription.intervalSeconds > 0n
+        ? BigInt(Math.max(1, Math.floor(elapsed / Number(subscription.intervalSeconds)) + 1))
+        : 1n;
 
     this.subscriptions.set(key, {
       ...subscription,
@@ -242,7 +243,9 @@ export class SchedulerService extends EventEmitter {
       try {
         // Validate intervalSeconds to prevent division by zero
         if (sub.intervalSeconds <= 0n) {
-          console.warn(`  Skipping subscription ${subId}: invalid intervalSeconds (${sub.intervalSeconds})`);
+          console.warn(
+            `  Skipping subscription ${subId}: invalid intervalSeconds (${sub.intervalSeconds})`
+          );
           this.untrackSubscription(sub.subscriptionId);
           continue;
         }
@@ -250,10 +253,15 @@ export class SchedulerService extends EventEmitter {
         // Get current interval from blockchain (Router contract)
         // This ensures we prepare intervals in the correct sequence
         try {
-          currentInterval = BigInt(await this.router.getComputeSubscriptionInterval(sub.subscriptionId));
+          currentInterval = BigInt(
+            await this.router.getComputeSubscriptionInterval(sub.subscriptionId)
+          );
         } catch (error) {
           const errorMessage = (error as Error).message || '';
-          console.warn(`  Could not get interval from router for subscription ${subId}:`, errorMessage);
+          console.warn(
+            `  Could not get interval from router for subscription ${subId}:`,
+            errorMessage
+          );
 
           // If subscription not found, it was cancelled - untrack and skip
           if (errorMessage.includes('SubscriptionNotFound')) {
@@ -264,10 +272,12 @@ export class SchedulerService extends EventEmitter {
 
           // Fall back to local calculation only for transient errors
           const intervalsSinceActive = BigInt(currentBlockTime) - sub.activeAt;
-          currentInterval = (intervalsSinceActive / sub.intervalSeconds) + 1n;
+          currentInterval = intervalsSinceActive / sub.intervalSeconds + 1n;
         }
 
-        console.log(`  Subscription ${subId}: currentInterval=${currentInterval}, maxExecutions=${sub.maxExecutions}, activeAt=${sub.activeAt}`);
+        console.log(
+          `  Subscription ${subId}: currentInterval=${currentInterval}, maxExecutions=${sub.maxExecutions}, activeAt=${sub.activeAt}`
+        );
 
         // Check if subscription should process
         if (!this.shouldProcess(sub, currentBlockTime)) {
@@ -306,9 +316,13 @@ export class SchedulerService extends EventEmitter {
         };
 
         // If overflow/underflow error, interval likely already executed
-        if (containsError(error as Error, 'Panic due to OVERFLOW') ||
-            containsError(error as Error, 'arithmetic underflow or overflow')) {
-          console.log(`  Interval ${currentInterval} for subscription ${subId} appears to be already executed (overflow), marking as committed`);
+        if (
+          containsError(error as Error, 'Panic due to OVERFLOW') ||
+          containsError(error as Error, 'arithmetic underflow or overflow')
+        ) {
+          console.log(
+            `  Interval ${currentInterval} for subscription ${subId} appears to be already executed (overflow), marking as committed`
+          );
           const commitmentKey = `${subId}:${currentInterval}`;
           this.addCommittedInterval(commitmentKey);
           sub.currentInterval = currentInterval + 1n;
@@ -316,15 +330,21 @@ export class SchedulerService extends EventEmitter {
         // NoNextInterval error (0x3cdc51d3) - client hasn't triggered interval 1 yet
         // For scheduled subscriptions, interval 1 is triggered by the client, not the scheduler
         // Keep the subscription tracked and wait for the client to trigger interval 1
-        else if (containsError(error as Error, '0x3cdc51d3') ||
-                 containsError(error as Error, 'NoNextInterval')) {
-          console.log(`  Subscription ${subId}: waiting for client to trigger interval 1 (NoNextInterval)`);
+        else if (
+          containsError(error as Error, '0x3cdc51d3') ||
+          containsError(error as Error, 'NoNextInterval')
+        ) {
+          console.log(
+            `  Subscription ${subId}: waiting for client to trigger interval 1 (NoNextInterval)`
+          );
           // Don't untrack - just wait for the client to trigger interval 1
           // Once interval 1 is executed, we can prepare interval 2
         }
         // If execution reverted or simulation failed, likely subscription was cancelled
-        else if (containsError(error as Error, 'execution reverted') ||
-                 containsError(error as Error, 'Transaction simulation failed')) {
+        else if (
+          containsError(error as Error, 'execution reverted') ||
+          containsError(error as Error, 'Transaction simulation failed')
+        ) {
           console.log(`  Subscription ${subId} appears to be cancelled or invalid, untracking...`);
           this.untrackSubscription(sub.subscriptionId);
         }
@@ -340,13 +360,15 @@ export class SchedulerService extends EventEmitter {
 
     // Not active yet
     if (BigInt(currentBlockTime) < sub.activeAt) {
-      console.log(`    Skip: not active yet (currentTime=${currentBlockTime}, activeAt=${sub.activeAt})`);
+      console.log(
+        `    Skip: not active yet (currentTime=${currentBlockTime}, activeAt=${sub.activeAt})`
+      );
       return false;
     }
 
     // Calculate current interval
     const intervalsSinceActive = BigInt(currentBlockTime) - sub.activeAt;
-    const currentInterval = (intervalsSinceActive / sub.intervalSeconds) + 1n;
+    const currentInterval = intervalsSinceActive / sub.intervalSeconds + 1n;
 
     // Note: We don't skip interval 1 unconditionally anymore.
     // If triggerFirstExecution was called, hasRequestCommitments will catch it.
@@ -354,7 +376,9 @@ export class SchedulerService extends EventEmitter {
 
     // Untrack if subscription is completed (past last interval)
     if (sub.maxExecutions > 0n && currentInterval > sub.maxExecutions) {
-      console.log(`    Subscription ${subId} completed (interval ${currentInterval} > maxExecutions ${sub.maxExecutions}), untracking...`);
+      console.log(
+        `    Subscription ${subId} completed (interval ${currentInterval} > maxExecutions ${sub.maxExecutions}), untracking...`
+      );
       this.untrackSubscription(sub.subscriptionId);
       return false;
     }
@@ -368,7 +392,9 @@ export class SchedulerService extends EventEmitter {
 
     // Exceeded max retry attempts
     if (sub.txAttempts >= this.config.maxRetryAttempts) {
-      console.log(`    Skip: max retry attempts reached (${sub.txAttempts}/${this.config.maxRetryAttempts})`);
+      console.log(
+        `    Skip: max retry attempts reached (${sub.txAttempts}/${this.config.maxRetryAttempts})`
+      );
       return false;
     }
 
@@ -402,10 +428,14 @@ export class SchedulerService extends EventEmitter {
 
       // Re-verify interval is still current before sending transaction
       // This prevents NotReadyForNextInterval errors due to timing race conditions
-      const currentIntervalNow = BigInt(await this.router.getComputeSubscriptionInterval(sub.subscriptionId));
+      const currentIntervalNow = BigInt(
+        await this.router.getComputeSubscriptionInterval(sub.subscriptionId)
+      );
 
       if (currentIntervalNow !== interval && currentIntervalNow !== interval - 1n) {
-        console.log(`  ⚠️  Interval changed: expected ${interval}, blockchain is at ${currentIntervalNow}. Skipping.`);
+        console.log(
+          `  ⚠️  Interval changed: expected ${interval}, blockchain is at ${currentIntervalNow}. Skipping.`
+        );
         return;
       }
 
@@ -472,13 +502,15 @@ export class SchedulerService extends EventEmitter {
 
       // Check if this is a NoNextInterval error (client hasn't triggered interval 1 yet)
       const errorMessage = (error as Error).message || '';
-      const isNoNextIntervalError = errorMessage.includes('0x3cdc51d3') ||
-                                     errorMessage.includes('NoNextInterval');
+      const isNoNextIntervalError =
+        errorMessage.includes('0x3cdc51d3') || errorMessage.includes('NoNextInterval');
 
       if (isNoNextIntervalError) {
         // Don't increment retry attempts for NoNextInterval
         // This is expected for scheduled subscriptions where interval 1 is client-triggered
-        console.log(`  Subscription ${sub.subscriptionId}: NoNextInterval - waiting for client to trigger interval 1`);
+        console.log(
+          `  Subscription ${sub.subscriptionId}: NoNextInterval - waiting for client to trigger interval 1`
+        );
         sub.txAttempts = 0; // Reset retry counter
         return;
       }
@@ -557,9 +589,7 @@ export class SchedulerService extends EventEmitter {
       // Read subscriptions in batches
       const BATCH_SIZE = 100n;
       const startId = this.lastSyncedId + 1n;
-      const endId = startId + BATCH_SIZE - 1n > maxSubId
-        ? maxSubId
-        : startId + BATCH_SIZE - 1n;
+      const endId = startId + BATCH_SIZE - 1n > maxSubId ? maxSubId : startId + BATCH_SIZE - 1n;
 
       const subscriptions = await this.batchReader.getSubscriptions(startId, endId, currentBlock);
 
@@ -583,7 +613,9 @@ export class SchedulerService extends EventEmitter {
         const subscriptionId = startId + BigInt(i);
 
         // Skip cancelled/deleted subscriptions (containerId = 0x0000...0)
-        if (sub.containerId === '0x0000000000000000000000000000000000000000000000000000000000000000') {
+        if (
+          sub.containerId === '0x0000000000000000000000000000000000000000000000000000000000000000'
+        ) {
           skippedEmpty++;
           continue;
         }
@@ -592,7 +624,9 @@ export class SchedulerService extends EventEmitter {
         if (!this.isSubscriptionActive(sub, blockTime)) {
           // Debug log for non-empty subscriptions that are inactive
           if (sub.intervalSeconds > 0) {
-            console.log(`  Sub ${subscriptionId}: inactive (activeAt=${sub.activeAt}, now=${blockTime})`);
+            console.log(
+              `  Sub ${subscriptionId}: inactive (activeAt=${sub.activeAt}, now=${blockTime})`
+            );
           }
           skippedInactive++;
           continue;
@@ -615,7 +649,9 @@ export class SchedulerService extends EventEmitter {
         }
       }
 
-      console.log(`  Sync stats: ${newSubscriptions} tracked, ${skippedEmpty} empty, ${skippedInactive} inactive, ${skippedContainers} unsupported containers, ${skippedOnDemand} on-demand`);
+      console.log(
+        `  Sync stats: ${newSubscriptions} tracked, ${skippedEmpty} empty, ${skippedInactive} inactive, ${skippedContainers} unsupported containers, ${skippedOnDemand} on-demand`
+      );
 
       // Update last synced ID
       this.lastSyncedId = endId;

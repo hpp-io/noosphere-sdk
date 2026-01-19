@@ -13,7 +13,7 @@ import type {
   ContractRunner,
   ContractMethod,
   Listener,
-} from "ethers";
+} from 'ethers';
 import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
@@ -21,7 +21,7 @@ import type {
   TypedLogDescription,
   TypedListener,
   TypedContractMethod,
-} from "./common";
+} from './common';
 
 export type ComputeSubscriptionStruct = {
   routeId: BytesLike;
@@ -50,7 +50,7 @@ export type ComputeSubscriptionStructOutput = [
   feeToken: string,
   verifier: string,
   redundancy: bigint,
-  useDeliveryInbox: boolean
+  useDeliveryInbox: boolean,
 ] & {
   routeId: string;
   containerId: string;
@@ -79,11 +79,11 @@ export type PaymentStruct = {
   feeAmount: BigNumberish;
 };
 
-export type PaymentStructOutput = [
-  recipient: string,
-  feeToken: string,
-  feeAmount: bigint
-] & { recipient: string; feeToken: string; feeAmount: bigint };
+export type PaymentStructOutput = [recipient: string, feeToken: string, feeAmount: bigint] & {
+  recipient: string;
+  feeToken: string;
+  feeAmount: bigint;
+};
 
 export type CommitmentStruct = {
   requestId: BytesLike;
@@ -110,7 +110,7 @@ export type CommitmentStructOutput = [
   feeAmount: bigint,
   feeToken: string,
   verifier: string,
-  coordinator: string
+  coordinator: string,
 ] & {
   requestId: string;
   subscriptionId: bigint;
@@ -144,7 +144,7 @@ export type ProofVerificationRequestStructOutput = [
   escrowedAmount: bigint,
   escrowToken: string,
   slashAmount: bigint,
-  expiry: bigint
+  expiry: bigint,
 ] & {
   subscriptionId: bigint;
   interval: bigint;
@@ -159,87 +159,75 @@ export type ProofVerificationRequestStructOutput = [
 export interface RouterAbiInterface extends Interface {
   getFunction(
     nameOrSignature:
-      | "EIP712_NAME"
-      | "EIP712_VERSION"
-      | "acceptOwnership"
-      | "cancelComputeSubscription"
-      | "client"
-      | "createComputeSubscription"
-      | "createSubscriptionDelegatee"
-      | "createSubscriptionFor"
-      | "delegateCreatedIds"
-      | "eip712Domain"
-      | "fulfill"
-      | "getComputeSubscription"
-      | "getComputeSubscriptionInterval"
-      | "getContractById"
-      | "getLastSubscriptionId"
-      | "getProposedContractById"
-      | "getWalletFactory"
-      | "hasSubscriptionNextInterval"
-      | "isValidWallet"
-      | "lockForVerification"
-      | "maxSubscriberNonce"
-      | "minRepeatInterval"
-      | "ownerCancelSubscription"
-      | "pause"
-      | "paused"
-      | "payFromCoordinator"
-      | "pendingRequestExists"
-      | "prepareNodeVerification"
-      | "proposeContractsUpdate"
-      | "sendRequest"
-      | "setMinRepeatInterval"
-      | "setWalletFactory"
-      | "timeoutRequest"
-      | "timeoutSubscriptionIntervalsUpTo"
-      | "transferOwnership"
-      | "typeAndVersion"
-      | "unlockForVerification"
-      | "unpause"
-      | "updateContracts"
+      | 'EIP712_NAME'
+      | 'EIP712_VERSION'
+      | 'acceptOwnership'
+      | 'cancelComputeSubscription'
+      | 'client'
+      | 'createComputeSubscription'
+      | 'createSubscriptionDelegatee'
+      | 'createSubscriptionFor'
+      | 'delegateCreatedIds'
+      | 'eip712Domain'
+      | 'fulfill'
+      | 'getComputeSubscription'
+      | 'getComputeSubscriptionInterval'
+      | 'getContractById'
+      | 'getLastSubscriptionId'
+      | 'getProposedContractById'
+      | 'getWalletFactory'
+      | 'hasSubscriptionNextInterval'
+      | 'isValidWallet'
+      | 'lockForVerification'
+      | 'maxSubscriberNonce'
+      | 'minRepeatInterval'
+      | 'ownerCancelSubscription'
+      | 'pause'
+      | 'paused'
+      | 'payFromCoordinator'
+      | 'pendingRequestExists'
+      | 'prepareNodeVerification'
+      | 'proposeContractsUpdate'
+      | 'sendRequest'
+      | 'setMinRepeatInterval'
+      | 'setWalletFactory'
+      | 'timeoutRequest'
+      | 'timeoutSubscriptionIntervalsUpTo'
+      | 'transferOwnership'
+      | 'typeAndVersion'
+      | 'unlockForVerification'
+      | 'unpause'
+      | 'updateContracts'
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
-      | "CommitmentTimedOut"
-      | "ContractsUpdateProposed"
-      | "ContractsUpdated"
-      | "EIP712DomainChanged"
-      | "MinRepeatIntervalSet"
-      | "OwnershipTransferRequested"
-      | "OwnershipTransferred"
-      | "Paused"
-      | "PaymentMade"
-      | "RequestProcessed"
-      | "RequestStart"
-      | "SubscriptionCancelled"
-      | "SubscriptionCreated"
-      | "SubscriptionFulfilled"
-      | "Unpaused"
-      | "VerificationFundsLocked"
-      | "VerificationFundsUnlocked"
+      | 'CommitmentTimedOut'
+      | 'ContractsUpdateProposed'
+      | 'ContractsUpdated'
+      | 'EIP712DomainChanged'
+      | 'MinRepeatIntervalSet'
+      | 'OwnershipTransferRequested'
+      | 'OwnershipTransferred'
+      | 'Paused'
+      | 'PaymentMade'
+      | 'RequestProcessed'
+      | 'RequestStart'
+      | 'SubscriptionCancelled'
+      | 'SubscriptionCreated'
+      | 'SubscriptionFulfilled'
+      | 'Unpaused'
+      | 'VerificationFundsLocked'
+      | 'VerificationFundsUnlocked'
   ): EventFragment;
 
+  encodeFunctionData(functionFragment: 'EIP712_NAME', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'EIP712_VERSION', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'acceptOwnership', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'cancelComputeSubscription', values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'client', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "EIP712_NAME",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "EIP712_VERSION",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "acceptOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "cancelComputeSubscription",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "client", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "createComputeSubscription",
+    functionFragment: 'createComputeSubscription',
     values: [
       string,
       BigNumberish,
@@ -250,27 +238,21 @@ export interface RouterAbiInterface extends Interface {
       BigNumberish,
       AddressLike,
       AddressLike,
-      BytesLike
+      BytesLike,
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "createSubscriptionDelegatee",
+    functionFragment: 'createSubscriptionDelegatee',
     values: [BigNumberish, BigNumberish, ComputeSubscriptionStruct, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "createSubscriptionFor",
+    functionFragment: 'createSubscriptionFor',
     values: [ComputeSubscriptionStruct]
   ): string;
+  encodeFunctionData(functionFragment: 'delegateCreatedIds', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'eip712Domain', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "delegateCreatedIds",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "eip712Domain",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "fulfill",
+    functionFragment: 'fulfill',
     values: [
       PayloadDataStruct,
       PayloadDataStruct,
@@ -278,267 +260,116 @@ export interface RouterAbiInterface extends Interface {
       BigNumberish,
       AddressLike,
       PaymentStruct[],
-      CommitmentStruct
+      CommitmentStruct,
     ]
   ): string;
+  encodeFunctionData(functionFragment: 'getComputeSubscription', values: [BigNumberish]): string;
   encodeFunctionData(
-    functionFragment: "getComputeSubscription",
+    functionFragment: 'getComputeSubscriptionInterval',
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: 'getContractById', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'getLastSubscriptionId', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getProposedContractById', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'getWalletFactory', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "getComputeSubscriptionInterval",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getContractById",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLastSubscriptionId",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getProposedContractById",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getWalletFactory",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "hasSubscriptionNextInterval",
+    functionFragment: 'hasSubscriptionNextInterval',
     values: [BigNumberish, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: 'isValidWallet', values: [AddressLike]): string;
   encodeFunctionData(
-    functionFragment: "isValidWallet",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "lockForVerification",
+    functionFragment: 'lockForVerification',
     values: [ProofVerificationRequestStruct, BytesLike]
   ): string;
+  encodeFunctionData(functionFragment: 'maxSubscriberNonce', values: [AddressLike]): string;
+  encodeFunctionData(functionFragment: 'minRepeatInterval', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'ownerCancelSubscription', values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'pause', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'paused', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "maxSubscriberNonce",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "minRepeatInterval",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "ownerCancelSubscription",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "pause", values?: undefined): string;
-  encodeFunctionData(functionFragment: "paused", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "payFromCoordinator",
+    functionFragment: 'payFromCoordinator',
     values: [BigNumberish, AddressLike, AddressLike, PaymentStruct[]]
   ): string;
+  encodeFunctionData(functionFragment: 'pendingRequestExists', values: [BigNumberish]): string;
   encodeFunctionData(
-    functionFragment: "pendingRequestExists",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "prepareNodeVerification",
+    functionFragment: 'prepareNodeVerification',
     values: [BigNumberish, BigNumberish, AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "proposeContractsUpdate",
+    functionFragment: 'proposeContractsUpdate',
     values: [BytesLike[], AddressLike[]]
   ): string;
+  encodeFunctionData(functionFragment: 'sendRequest', values: [BigNumberish, BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'setMinRepeatInterval', values: [BigNumberish]): string;
+  encodeFunctionData(functionFragment: 'setWalletFactory', values: [AddressLike]): string;
   encodeFunctionData(
-    functionFragment: "sendRequest",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setMinRepeatInterval",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setWalletFactory",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "timeoutRequest",
+    functionFragment: 'timeoutRequest',
     values: [BytesLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "timeoutSubscriptionIntervalsUpTo",
+    functionFragment: 'timeoutSubscriptionIntervalsUpTo',
     values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: 'transferOwnership', values: [AddressLike]): string;
+  encodeFunctionData(functionFragment: 'typeAndVersion', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "typeAndVersion",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "unlockForVerification",
+    functionFragment: 'unlockForVerification',
     values: [ProofVerificationRequestStruct]
   ): string;
-  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "updateContracts",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: 'unpause', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'updateContracts', values?: undefined): string;
 
+  decodeFunctionResult(functionFragment: 'EIP712_NAME', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'EIP712_VERSION', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'acceptOwnership', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'cancelComputeSubscription', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'client', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'createComputeSubscription', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'createSubscriptionDelegatee', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'createSubscriptionFor', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'delegateCreatedIds', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'eip712Domain', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'fulfill', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getComputeSubscription', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getComputeSubscriptionInterval', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getContractById', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getLastSubscriptionId', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getProposedContractById', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getWalletFactory', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'hasSubscriptionNextInterval', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'isValidWallet', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'lockForVerification', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'maxSubscriberNonce', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'minRepeatInterval', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'ownerCancelSubscription', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'pause', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'paused', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'payFromCoordinator', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'pendingRequestExists', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'prepareNodeVerification', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'proposeContractsUpdate', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'sendRequest', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'setMinRepeatInterval', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'setWalletFactory', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'timeoutRequest', data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "EIP712_NAME",
+    functionFragment: 'timeoutSubscriptionIntervalsUpTo',
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "EIP712_VERSION",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "acceptOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "cancelComputeSubscription",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "client", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "createComputeSubscription",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "createSubscriptionDelegatee",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "createSubscriptionFor",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "delegateCreatedIds",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "eip712Domain",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "fulfill", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getComputeSubscription",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getComputeSubscriptionInterval",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getContractById",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getLastSubscriptionId",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getProposedContractById",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getWalletFactory",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "hasSubscriptionNextInterval",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isValidWallet",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "lockForVerification",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "maxSubscriberNonce",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "minRepeatInterval",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "ownerCancelSubscription",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "payFromCoordinator",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "pendingRequestExists",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "prepareNodeVerification",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "proposeContractsUpdate",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "sendRequest",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setMinRepeatInterval",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setWalletFactory",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "timeoutRequest",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "timeoutSubscriptionIntervalsUpTo",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "typeAndVersion",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "unlockForVerification",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "updateContracts",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'transferOwnership', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'typeAndVersion', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'unlockForVerification', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'unpause', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'updateContracts', data: BytesLike): Result;
 }
 
 export namespace CommitmentTimedOutEvent {
   export type InputTuple = [
     requestId: BytesLike,
     subscriptionId: BigNumberish,
-    interval: BigNumberish
+    interval: BigNumberish,
   ];
-  export type OutputTuple = [
-    requestId: string,
-    subscriptionId: bigint,
-    interval: bigint
-  ];
+  export type OutputTuple = [requestId: string, subscriptionId: bigint, interval: bigint];
   export interface OutputObject {
     requestId: string;
     subscriptionId: bigint;
@@ -642,14 +473,14 @@ export namespace PaymentMadeEvent {
     spenderWallet: AddressLike,
     recipient: AddressLike,
     token: AddressLike,
-    amount: BigNumberish
+    amount: BigNumberish,
   ];
   export type OutputTuple = [
     subscriptionId: bigint,
     spenderWallet: string,
     recipient: string,
     token: string,
-    amount: bigint
+    amount: bigint,
   ];
   export interface OutputObject {
     subscriptionId: bigint;
@@ -676,7 +507,7 @@ export namespace RequestProcessedEvent {
     verifier: AddressLike,
     coordinator: AddressLike,
     nodeWallet: AddressLike,
-    result: BigNumberish
+    result: BigNumberish,
   ];
   export type OutputTuple = [
     requestId: string,
@@ -689,7 +520,7 @@ export namespace RequestProcessedEvent {
     verifier: string,
     coordinator: string,
     nodeWallet: string,
-    result: bigint
+    result: bigint,
   ];
   export interface OutputObject {
     requestId: string;
@@ -721,7 +552,7 @@ export namespace RequestStartEvent {
     feeAmount: BigNumberish,
     feeToken: AddressLike,
     verifier: AddressLike,
-    coordinator: AddressLike
+    coordinator: AddressLike,
   ];
   export type OutputTuple = [
     requestId: string,
@@ -733,7 +564,7 @@ export namespace RequestStartEvent {
     feeAmount: bigint,
     feeToken: string,
     verifier: string,
-    coordinator: string
+    coordinator: string,
   ];
   export interface OutputObject {
     requestId: string;
@@ -807,13 +638,13 @@ export namespace VerificationFundsLockedEvent {
     subscriptionId: BigNumberish,
     interval: BigNumberish,
     spender: AddressLike,
-    amount: BigNumberish
+    amount: BigNumberish,
   ];
   export type OutputTuple = [
     subscriptionId: bigint,
     interval: bigint,
     spender: string,
-    amount: bigint
+    amount: bigint,
   ];
   export interface OutputObject {
     subscriptionId: bigint;
@@ -832,13 +663,13 @@ export namespace VerificationFundsUnlockedEvent {
     subscriptionId: BigNumberish,
     interval: BigNumberish,
     spender: AddressLike,
-    amount: BigNumberish
+    amount: BigNumberish,
   ];
   export type OutputTuple = [
     subscriptionId: bigint,
     interval: bigint,
     spender: string,
-    amount: bigint
+    amount: bigint,
   ];
   export interface OutputObject {
     subscriptionId: bigint;
@@ -891,23 +722,21 @@ export interface RouterAbi extends BaseContract {
     event: TCEvent
   ): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(event?: TCEvent): Promise<this>;
 
-  EIP712_NAME: TypedContractMethod<[], [string], "view">;
+  EIP712_NAME: TypedContractMethod<[], [string], 'view'>;
 
-  EIP712_VERSION: TypedContractMethod<[], [string], "view">;
+  EIP712_VERSION: TypedContractMethod<[], [string], 'view'>;
 
-  acceptOwnership: TypedContractMethod<[], [void], "nonpayable">;
+  acceptOwnership: TypedContractMethod<[], [void], 'nonpayable'>;
 
   cancelComputeSubscription: TypedContractMethod<
     [subscriptionId: BigNumberish],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
-  client: TypedContractMethod<[], [string], "view">;
+  client: TypedContractMethod<[], [string], 'view'>;
 
   createComputeSubscription: TypedContractMethod<
     [
@@ -920,10 +749,10 @@ export interface RouterAbi extends BaseContract {
       feeAmount: BigNumberish,
       wallet: AddressLike,
       verifier: AddressLike,
-      routeId: BytesLike
+      routeId: BytesLike,
     ],
     [bigint],
-    "nonpayable"
+    'nonpayable'
   >;
 
   createSubscriptionDelegatee: TypedContractMethod<
@@ -931,19 +760,19 @@ export interface RouterAbi extends BaseContract {
       nonce: BigNumberish,
       expiry: BigNumberish,
       sub: ComputeSubscriptionStruct,
-      signature: BytesLike
+      signature: BytesLike,
     ],
     [bigint],
-    "nonpayable"
+    'nonpayable'
   >;
 
   createSubscriptionFor: TypedContractMethod<
     [sub: ComputeSubscriptionStruct],
     [bigint],
-    "nonpayable"
+    'nonpayable'
   >;
 
-  delegateCreatedIds: TypedContractMethod<[arg0: BytesLike], [bigint], "view">;
+  delegateCreatedIds: TypedContractMethod<[arg0: BytesLike], [bigint], 'view'>;
 
   eip712Domain: TypedContractMethod<
     [],
@@ -956,9 +785,9 @@ export interface RouterAbi extends BaseContract {
         verifyingContract: string;
         salt: string;
         extensions: bigint[];
-      }
+      },
     ],
-    "view"
+    'view'
   >;
 
   fulfill: TypedContractMethod<
@@ -969,88 +798,72 @@ export interface RouterAbi extends BaseContract {
       numRedundantDeliveries: BigNumberish,
       nodeWallet: AddressLike,
       payments: PaymentStruct[],
-      commitment: CommitmentStruct
+      commitment: CommitmentStruct,
     ],
     [bigint],
-    "nonpayable"
+    'nonpayable'
   >;
 
   getComputeSubscription: TypedContractMethod<
     [subscriptionId: BigNumberish],
     [ComputeSubscriptionStructOutput],
-    "view"
+    'view'
   >;
 
   getComputeSubscriptionInterval: TypedContractMethod<
     [subscriptionId: BigNumberish],
     [bigint],
-    "view"
+    'view'
   >;
 
-  getContractById: TypedContractMethod<[id: BytesLike], [string], "view">;
+  getContractById: TypedContractMethod<[id: BytesLike], [string], 'view'>;
 
-  getLastSubscriptionId: TypedContractMethod<[], [bigint], "view">;
+  getLastSubscriptionId: TypedContractMethod<[], [bigint], 'view'>;
 
-  getProposedContractById: TypedContractMethod<
-    [id: BytesLike],
-    [string],
-    "view"
-  >;
+  getProposedContractById: TypedContractMethod<[id: BytesLike], [string], 'view'>;
 
-  getWalletFactory: TypedContractMethod<[], [string], "view">;
+  getWalletFactory: TypedContractMethod<[], [string], 'view'>;
 
   hasSubscriptionNextInterval: TypedContractMethod<
     [subscriptionId: BigNumberish, currentInterval: BigNumberish],
     [boolean],
-    "view"
+    'view'
   >;
 
-  isValidWallet: TypedContractMethod<
-    [walletAddr: AddressLike],
-    [boolean],
-    "view"
-  >;
+  isValidWallet: TypedContractMethod<[walletAddr: AddressLike], [boolean], 'view'>;
 
   lockForVerification: TypedContractMethod<
     [proofRequest: ProofVerificationRequestStruct, commitmentHash: BytesLike],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
-  maxSubscriberNonce: TypedContractMethod<
-    [arg0: AddressLike],
-    [bigint],
-    "view"
-  >;
+  maxSubscriberNonce: TypedContractMethod<[arg0: AddressLike], [bigint], 'view'>;
 
-  minRepeatInterval: TypedContractMethod<[], [bigint], "view">;
+  minRepeatInterval: TypedContractMethod<[], [bigint], 'view'>;
 
   ownerCancelSubscription: TypedContractMethod<
     [subscriptionId: BigNumberish],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
-  pause: TypedContractMethod<[], [void], "nonpayable">;
+  pause: TypedContractMethod<[], [void], 'nonpayable'>;
 
-  paused: TypedContractMethod<[], [boolean], "view">;
+  paused: TypedContractMethod<[], [boolean], 'view'>;
 
   payFromCoordinator: TypedContractMethod<
     [
       subscriptionId: BigNumberish,
       spenderWallet: AddressLike,
       spenderAddress: AddressLike,
-      payments: PaymentStruct[]
+      payments: PaymentStruct[],
     ],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
-  pendingRequestExists: TypedContractMethod<
-    [subscriptionId: BigNumberish],
-    [boolean],
-    "view"
-  >;
+  pendingRequestExists: TypedContractMethod<[subscriptionId: BigNumberish], [boolean], 'view'>;
 
   prepareNodeVerification: TypedContractMethod<
     [
@@ -1058,95 +871,69 @@ export interface RouterAbi extends BaseContract {
       nextInterval: BigNumberish,
       nodeWallet: AddressLike,
       token: AddressLike,
-      amount: BigNumberish
+      amount: BigNumberish,
     ],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
   proposeContractsUpdate: TypedContractMethod<
     [proposalSetIds: BytesLike[], proposalSetAddresses: AddressLike[]],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
   sendRequest: TypedContractMethod<
     [subscriptionId: BigNumberish, interval: BigNumberish],
     [[string, CommitmentStructOutput]],
-    "nonpayable"
+    'nonpayable'
   >;
 
   setMinRepeatInterval: TypedContractMethod<
     [_minRepeatInterval: BigNumberish],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
-  setWalletFactory: TypedContractMethod<
-    [_walletFactory: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  setWalletFactory: TypedContractMethod<[_walletFactory: AddressLike], [void], 'nonpayable'>;
 
   timeoutRequest: TypedContractMethod<
-    [
-      requestId: BytesLike,
-      subscriptionId: BigNumberish,
-      interval: BigNumberish
-    ],
+    [requestId: BytesLike, subscriptionId: BigNumberish, interval: BigNumberish],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
   timeoutSubscriptionIntervalsUpTo: TypedContractMethod<
-    [
-      subscriptionId: BigNumberish,
-      uptoInterval: BigNumberish,
-      maxIter: BigNumberish
-    ],
+    [subscriptionId: BigNumberish, uptoInterval: BigNumberish, maxIter: BigNumberish],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
-  transferOwnership: TypedContractMethod<
-    [to: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  transferOwnership: TypedContractMethod<[to: AddressLike], [void], 'nonpayable'>;
 
-  typeAndVersion: TypedContractMethod<[], [string], "view">;
+  typeAndVersion: TypedContractMethod<[], [string], 'view'>;
 
   unlockForVerification: TypedContractMethod<
     [proofRequest: ProofVerificationRequestStruct],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
-  unpause: TypedContractMethod<[], [void], "nonpayable">;
+  unpause: TypedContractMethod<[], [void], 'nonpayable'>;
 
-  updateContracts: TypedContractMethod<[], [void], "nonpayable">;
+  updateContracts: TypedContractMethod<[], [void], 'nonpayable'>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
 
+  getFunction(nameOrSignature: 'EIP712_NAME'): TypedContractMethod<[], [string], 'view'>;
+  getFunction(nameOrSignature: 'EIP712_VERSION'): TypedContractMethod<[], [string], 'view'>;
+  getFunction(nameOrSignature: 'acceptOwnership'): TypedContractMethod<[], [void], 'nonpayable'>;
   getFunction(
-    nameOrSignature: "EIP712_NAME"
-  ): TypedContractMethod<[], [string], "view">;
+    nameOrSignature: 'cancelComputeSubscription'
+  ): TypedContractMethod<[subscriptionId: BigNumberish], [void], 'nonpayable'>;
+  getFunction(nameOrSignature: 'client'): TypedContractMethod<[], [string], 'view'>;
   getFunction(
-    nameOrSignature: "EIP712_VERSION"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "acceptOwnership"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "cancelComputeSubscription"
-  ): TypedContractMethod<[subscriptionId: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "client"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "createComputeSubscription"
+    nameOrSignature: 'createComputeSubscription'
   ): TypedContractMethod<
     [
       containerId: string,
@@ -1158,36 +945,30 @@ export interface RouterAbi extends BaseContract {
       feeAmount: BigNumberish,
       wallet: AddressLike,
       verifier: AddressLike,
-      routeId: BytesLike
+      routeId: BytesLike,
     ],
     [bigint],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "createSubscriptionDelegatee"
+    nameOrSignature: 'createSubscriptionDelegatee'
   ): TypedContractMethod<
     [
       nonce: BigNumberish,
       expiry: BigNumberish,
       sub: ComputeSubscriptionStruct,
-      signature: BytesLike
+      signature: BytesLike,
     ],
     [bigint],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "createSubscriptionFor"
-  ): TypedContractMethod<
-    [sub: ComputeSubscriptionStruct],
-    [bigint],
-    "nonpayable"
-  >;
+    nameOrSignature: 'createSubscriptionFor'
+  ): TypedContractMethod<[sub: ComputeSubscriptionStruct], [bigint], 'nonpayable'>;
   getFunction(
-    nameOrSignature: "delegateCreatedIds"
-  ): TypedContractMethod<[arg0: BytesLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "eip712Domain"
-  ): TypedContractMethod<
+    nameOrSignature: 'delegateCreatedIds'
+  ): TypedContractMethod<[arg0: BytesLike], [bigint], 'view'>;
+  getFunction(nameOrSignature: 'eip712Domain'): TypedContractMethod<
     [],
     [
       [string, string, string, bigint, string, string, bigint[]] & {
@@ -1198,12 +979,12 @@ export interface RouterAbi extends BaseContract {
         verifyingContract: string;
         salt: string;
         extensions: bigint[];
-      }
+      },
     ],
-    "view"
+    'view'
   >;
   getFunction(
-    nameOrSignature: "fulfill"
+    nameOrSignature: 'fulfill'
   ): TypedContractMethod<
     [
       input: PayloadDataStruct,
@@ -1212,273 +993,233 @@ export interface RouterAbi extends BaseContract {
       numRedundantDeliveries: BigNumberish,
       nodeWallet: AddressLike,
       payments: PaymentStruct[],
-      commitment: CommitmentStruct
+      commitment: CommitmentStruct,
     ],
     [bigint],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "getComputeSubscription"
-  ): TypedContractMethod<
-    [subscriptionId: BigNumberish],
-    [ComputeSubscriptionStructOutput],
-    "view"
-  >;
+    nameOrSignature: 'getComputeSubscription'
+  ): TypedContractMethod<[subscriptionId: BigNumberish], [ComputeSubscriptionStructOutput], 'view'>;
   getFunction(
-    nameOrSignature: "getComputeSubscriptionInterval"
-  ): TypedContractMethod<[subscriptionId: BigNumberish], [bigint], "view">;
+    nameOrSignature: 'getComputeSubscriptionInterval'
+  ): TypedContractMethod<[subscriptionId: BigNumberish], [bigint], 'view'>;
   getFunction(
-    nameOrSignature: "getContractById"
-  ): TypedContractMethod<[id: BytesLike], [string], "view">;
+    nameOrSignature: 'getContractById'
+  ): TypedContractMethod<[id: BytesLike], [string], 'view'>;
+  getFunction(nameOrSignature: 'getLastSubscriptionId'): TypedContractMethod<[], [bigint], 'view'>;
   getFunction(
-    nameOrSignature: "getLastSubscriptionId"
-  ): TypedContractMethod<[], [bigint], "view">;
+    nameOrSignature: 'getProposedContractById'
+  ): TypedContractMethod<[id: BytesLike], [string], 'view'>;
+  getFunction(nameOrSignature: 'getWalletFactory'): TypedContractMethod<[], [string], 'view'>;
   getFunction(
-    nameOrSignature: "getProposedContractById"
-  ): TypedContractMethod<[id: BytesLike], [string], "view">;
-  getFunction(
-    nameOrSignature: "getWalletFactory"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "hasSubscriptionNextInterval"
+    nameOrSignature: 'hasSubscriptionNextInterval'
   ): TypedContractMethod<
     [subscriptionId: BigNumberish, currentInterval: BigNumberish],
     [boolean],
-    "view"
+    'view'
   >;
   getFunction(
-    nameOrSignature: "isValidWallet"
-  ): TypedContractMethod<[walletAddr: AddressLike], [boolean], "view">;
+    nameOrSignature: 'isValidWallet'
+  ): TypedContractMethod<[walletAddr: AddressLike], [boolean], 'view'>;
   getFunction(
-    nameOrSignature: "lockForVerification"
+    nameOrSignature: 'lockForVerification'
   ): TypedContractMethod<
     [proofRequest: ProofVerificationRequestStruct, commitmentHash: BytesLike],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "maxSubscriberNonce"
-  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+    nameOrSignature: 'maxSubscriberNonce'
+  ): TypedContractMethod<[arg0: AddressLike], [bigint], 'view'>;
+  getFunction(nameOrSignature: 'minRepeatInterval'): TypedContractMethod<[], [bigint], 'view'>;
   getFunction(
-    nameOrSignature: "minRepeatInterval"
-  ): TypedContractMethod<[], [bigint], "view">;
+    nameOrSignature: 'ownerCancelSubscription'
+  ): TypedContractMethod<[subscriptionId: BigNumberish], [void], 'nonpayable'>;
+  getFunction(nameOrSignature: 'pause'): TypedContractMethod<[], [void], 'nonpayable'>;
+  getFunction(nameOrSignature: 'paused'): TypedContractMethod<[], [boolean], 'view'>;
   getFunction(
-    nameOrSignature: "ownerCancelSubscription"
-  ): TypedContractMethod<[subscriptionId: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "pause"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "paused"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "payFromCoordinator"
+    nameOrSignature: 'payFromCoordinator'
   ): TypedContractMethod<
     [
       subscriptionId: BigNumberish,
       spenderWallet: AddressLike,
       spenderAddress: AddressLike,
-      payments: PaymentStruct[]
+      payments: PaymentStruct[],
     ],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "pendingRequestExists"
-  ): TypedContractMethod<[subscriptionId: BigNumberish], [boolean], "view">;
+    nameOrSignature: 'pendingRequestExists'
+  ): TypedContractMethod<[subscriptionId: BigNumberish], [boolean], 'view'>;
   getFunction(
-    nameOrSignature: "prepareNodeVerification"
+    nameOrSignature: 'prepareNodeVerification'
   ): TypedContractMethod<
     [
       subscriptionId: BigNumberish,
       nextInterval: BigNumberish,
       nodeWallet: AddressLike,
       token: AddressLike,
-      amount: BigNumberish
+      amount: BigNumberish,
     ],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "proposeContractsUpdate"
+    nameOrSignature: 'proposeContractsUpdate'
   ): TypedContractMethod<
     [proposalSetIds: BytesLike[], proposalSetAddresses: AddressLike[]],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "sendRequest"
+    nameOrSignature: 'sendRequest'
   ): TypedContractMethod<
     [subscriptionId: BigNumberish, interval: BigNumberish],
     [[string, CommitmentStructOutput]],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "setMinRepeatInterval"
+    nameOrSignature: 'setMinRepeatInterval'
+  ): TypedContractMethod<[_minRepeatInterval: BigNumberish], [void], 'nonpayable'>;
+  getFunction(
+    nameOrSignature: 'setWalletFactory'
+  ): TypedContractMethod<[_walletFactory: AddressLike], [void], 'nonpayable'>;
+  getFunction(
+    nameOrSignature: 'timeoutRequest'
   ): TypedContractMethod<
-    [_minRepeatInterval: BigNumberish],
+    [requestId: BytesLike, subscriptionId: BigNumberish, interval: BigNumberish],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "setWalletFactory"
-  ): TypedContractMethod<[_walletFactory: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "timeoutRequest"
+    nameOrSignature: 'timeoutSubscriptionIntervalsUpTo'
   ): TypedContractMethod<
-    [
-      requestId: BytesLike,
-      subscriptionId: BigNumberish,
-      interval: BigNumberish
-    ],
+    [subscriptionId: BigNumberish, uptoInterval: BigNumberish, maxIter: BigNumberish],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "timeoutSubscriptionIntervalsUpTo"
-  ): TypedContractMethod<
-    [
-      subscriptionId: BigNumberish,
-      uptoInterval: BigNumberish,
-      maxIter: BigNumberish
-    ],
-    [void],
-    "nonpayable"
-  >;
+    nameOrSignature: 'transferOwnership'
+  ): TypedContractMethod<[to: AddressLike], [void], 'nonpayable'>;
+  getFunction(nameOrSignature: 'typeAndVersion'): TypedContractMethod<[], [string], 'view'>;
   getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[to: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "typeAndVersion"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "unlockForVerification"
-  ): TypedContractMethod<
-    [proofRequest: ProofVerificationRequestStruct],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "unpause"
-  ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "updateContracts"
-  ): TypedContractMethod<[], [void], "nonpayable">;
+    nameOrSignature: 'unlockForVerification'
+  ): TypedContractMethod<[proofRequest: ProofVerificationRequestStruct], [void], 'nonpayable'>;
+  getFunction(nameOrSignature: 'unpause'): TypedContractMethod<[], [void], 'nonpayable'>;
+  getFunction(nameOrSignature: 'updateContracts'): TypedContractMethod<[], [void], 'nonpayable'>;
 
   getEvent(
-    key: "CommitmentTimedOut"
+    key: 'CommitmentTimedOut'
   ): TypedContractEvent<
     CommitmentTimedOutEvent.InputTuple,
     CommitmentTimedOutEvent.OutputTuple,
     CommitmentTimedOutEvent.OutputObject
   >;
   getEvent(
-    key: "ContractsUpdateProposed"
+    key: 'ContractsUpdateProposed'
   ): TypedContractEvent<
     ContractsUpdateProposedEvent.InputTuple,
     ContractsUpdateProposedEvent.OutputTuple,
     ContractsUpdateProposedEvent.OutputObject
   >;
   getEvent(
-    key: "ContractsUpdated"
+    key: 'ContractsUpdated'
   ): TypedContractEvent<
     ContractsUpdatedEvent.InputTuple,
     ContractsUpdatedEvent.OutputTuple,
     ContractsUpdatedEvent.OutputObject
   >;
   getEvent(
-    key: "EIP712DomainChanged"
+    key: 'EIP712DomainChanged'
   ): TypedContractEvent<
     EIP712DomainChangedEvent.InputTuple,
     EIP712DomainChangedEvent.OutputTuple,
     EIP712DomainChangedEvent.OutputObject
   >;
   getEvent(
-    key: "MinRepeatIntervalSet"
+    key: 'MinRepeatIntervalSet'
   ): TypedContractEvent<
     MinRepeatIntervalSetEvent.InputTuple,
     MinRepeatIntervalSetEvent.OutputTuple,
     MinRepeatIntervalSetEvent.OutputObject
   >;
   getEvent(
-    key: "OwnershipTransferRequested"
+    key: 'OwnershipTransferRequested'
   ): TypedContractEvent<
     OwnershipTransferRequestedEvent.InputTuple,
     OwnershipTransferRequestedEvent.OutputTuple,
     OwnershipTransferRequestedEvent.OutputObject
   >;
   getEvent(
-    key: "OwnershipTransferred"
+    key: 'OwnershipTransferred'
   ): TypedContractEvent<
     OwnershipTransferredEvent.InputTuple,
     OwnershipTransferredEvent.OutputTuple,
     OwnershipTransferredEvent.OutputObject
   >;
   getEvent(
-    key: "Paused"
-  ): TypedContractEvent<
-    PausedEvent.InputTuple,
-    PausedEvent.OutputTuple,
-    PausedEvent.OutputObject
-  >;
+    key: 'Paused'
+  ): TypedContractEvent<PausedEvent.InputTuple, PausedEvent.OutputTuple, PausedEvent.OutputObject>;
   getEvent(
-    key: "PaymentMade"
+    key: 'PaymentMade'
   ): TypedContractEvent<
     PaymentMadeEvent.InputTuple,
     PaymentMadeEvent.OutputTuple,
     PaymentMadeEvent.OutputObject
   >;
   getEvent(
-    key: "RequestProcessed"
+    key: 'RequestProcessed'
   ): TypedContractEvent<
     RequestProcessedEvent.InputTuple,
     RequestProcessedEvent.OutputTuple,
     RequestProcessedEvent.OutputObject
   >;
   getEvent(
-    key: "RequestStart"
+    key: 'RequestStart'
   ): TypedContractEvent<
     RequestStartEvent.InputTuple,
     RequestStartEvent.OutputTuple,
     RequestStartEvent.OutputObject
   >;
   getEvent(
-    key: "SubscriptionCancelled"
+    key: 'SubscriptionCancelled'
   ): TypedContractEvent<
     SubscriptionCancelledEvent.InputTuple,
     SubscriptionCancelledEvent.OutputTuple,
     SubscriptionCancelledEvent.OutputObject
   >;
   getEvent(
-    key: "SubscriptionCreated"
+    key: 'SubscriptionCreated'
   ): TypedContractEvent<
     SubscriptionCreatedEvent.InputTuple,
     SubscriptionCreatedEvent.OutputTuple,
     SubscriptionCreatedEvent.OutputObject
   >;
   getEvent(
-    key: "SubscriptionFulfilled"
+    key: 'SubscriptionFulfilled'
   ): TypedContractEvent<
     SubscriptionFulfilledEvent.InputTuple,
     SubscriptionFulfilledEvent.OutputTuple,
     SubscriptionFulfilledEvent.OutputObject
   >;
   getEvent(
-    key: "Unpaused"
+    key: 'Unpaused'
   ): TypedContractEvent<
     UnpausedEvent.InputTuple,
     UnpausedEvent.OutputTuple,
     UnpausedEvent.OutputObject
   >;
   getEvent(
-    key: "VerificationFundsLocked"
+    key: 'VerificationFundsLocked'
   ): TypedContractEvent<
     VerificationFundsLockedEvent.InputTuple,
     VerificationFundsLockedEvent.OutputTuple,
     VerificationFundsLockedEvent.OutputObject
   >;
   getEvent(
-    key: "VerificationFundsUnlocked"
+    key: 'VerificationFundsUnlocked'
   ): TypedContractEvent<
     VerificationFundsUnlockedEvent.InputTuple,
     VerificationFundsUnlockedEvent.OutputTuple,
@@ -1486,7 +1227,7 @@ export interface RouterAbi extends BaseContract {
   >;
 
   filters: {
-    "CommitmentTimedOut(bytes32,uint64,uint32)": TypedContractEvent<
+    'CommitmentTimedOut(bytes32,uint64,uint32)': TypedContractEvent<
       CommitmentTimedOutEvent.InputTuple,
       CommitmentTimedOutEvent.OutputTuple,
       CommitmentTimedOutEvent.OutputObject
@@ -1497,7 +1238,7 @@ export interface RouterAbi extends BaseContract {
       CommitmentTimedOutEvent.OutputObject
     >;
 
-    "ContractsUpdateProposed(bytes32[],address[])": TypedContractEvent<
+    'ContractsUpdateProposed(bytes32[],address[])': TypedContractEvent<
       ContractsUpdateProposedEvent.InputTuple,
       ContractsUpdateProposedEvent.OutputTuple,
       ContractsUpdateProposedEvent.OutputObject
@@ -1508,7 +1249,7 @@ export interface RouterAbi extends BaseContract {
       ContractsUpdateProposedEvent.OutputObject
     >;
 
-    "ContractsUpdated(bytes32,address)": TypedContractEvent<
+    'ContractsUpdated(bytes32,address)': TypedContractEvent<
       ContractsUpdatedEvent.InputTuple,
       ContractsUpdatedEvent.OutputTuple,
       ContractsUpdatedEvent.OutputObject
@@ -1519,7 +1260,7 @@ export interface RouterAbi extends BaseContract {
       ContractsUpdatedEvent.OutputObject
     >;
 
-    "EIP712DomainChanged()": TypedContractEvent<
+    'EIP712DomainChanged()': TypedContractEvent<
       EIP712DomainChangedEvent.InputTuple,
       EIP712DomainChangedEvent.OutputTuple,
       EIP712DomainChangedEvent.OutputObject
@@ -1530,7 +1271,7 @@ export interface RouterAbi extends BaseContract {
       EIP712DomainChangedEvent.OutputObject
     >;
 
-    "MinRepeatIntervalSet(uint32)": TypedContractEvent<
+    'MinRepeatIntervalSet(uint32)': TypedContractEvent<
       MinRepeatIntervalSetEvent.InputTuple,
       MinRepeatIntervalSetEvent.OutputTuple,
       MinRepeatIntervalSetEvent.OutputObject
@@ -1541,7 +1282,7 @@ export interface RouterAbi extends BaseContract {
       MinRepeatIntervalSetEvent.OutputObject
     >;
 
-    "OwnershipTransferRequested(address,address)": TypedContractEvent<
+    'OwnershipTransferRequested(address,address)': TypedContractEvent<
       OwnershipTransferRequestedEvent.InputTuple,
       OwnershipTransferRequestedEvent.OutputTuple,
       OwnershipTransferRequestedEvent.OutputObject
@@ -1552,7 +1293,7 @@ export interface RouterAbi extends BaseContract {
       OwnershipTransferRequestedEvent.OutputObject
     >;
 
-    "OwnershipTransferred(address,address)": TypedContractEvent<
+    'OwnershipTransferred(address,address)': TypedContractEvent<
       OwnershipTransferredEvent.InputTuple,
       OwnershipTransferredEvent.OutputTuple,
       OwnershipTransferredEvent.OutputObject
@@ -1563,7 +1304,7 @@ export interface RouterAbi extends BaseContract {
       OwnershipTransferredEvent.OutputObject
     >;
 
-    "Paused(address)": TypedContractEvent<
+    'Paused(address)': TypedContractEvent<
       PausedEvent.InputTuple,
       PausedEvent.OutputTuple,
       PausedEvent.OutputObject
@@ -1574,7 +1315,7 @@ export interface RouterAbi extends BaseContract {
       PausedEvent.OutputObject
     >;
 
-    "PaymentMade(uint64,address,address,address,uint256)": TypedContractEvent<
+    'PaymentMade(uint64,address,address,address,uint256)': TypedContractEvent<
       PaymentMadeEvent.InputTuple,
       PaymentMadeEvent.OutputTuple,
       PaymentMadeEvent.OutputObject
@@ -1585,7 +1326,7 @@ export interface RouterAbi extends BaseContract {
       PaymentMadeEvent.OutputObject
     >;
 
-    "RequestProcessed(bytes32,uint64,bytes32,uint32,bool,uint256,address,address,address,address,uint8)": TypedContractEvent<
+    'RequestProcessed(bytes32,uint64,bytes32,uint32,bool,uint256,address,address,address,address,uint8)': TypedContractEvent<
       RequestProcessedEvent.InputTuple,
       RequestProcessedEvent.OutputTuple,
       RequestProcessedEvent.OutputObject
@@ -1596,7 +1337,7 @@ export interface RouterAbi extends BaseContract {
       RequestProcessedEvent.OutputObject
     >;
 
-    "RequestStart(bytes32,uint64,bytes32,uint32,uint16,bool,uint256,address,address,address)": TypedContractEvent<
+    'RequestStart(bytes32,uint64,bytes32,uint32,uint16,bool,uint256,address,address,address)': TypedContractEvent<
       RequestStartEvent.InputTuple,
       RequestStartEvent.OutputTuple,
       RequestStartEvent.OutputObject
@@ -1607,7 +1348,7 @@ export interface RouterAbi extends BaseContract {
       RequestStartEvent.OutputObject
     >;
 
-    "SubscriptionCancelled(uint64)": TypedContractEvent<
+    'SubscriptionCancelled(uint64)': TypedContractEvent<
       SubscriptionCancelledEvent.InputTuple,
       SubscriptionCancelledEvent.OutputTuple,
       SubscriptionCancelledEvent.OutputObject
@@ -1618,7 +1359,7 @@ export interface RouterAbi extends BaseContract {
       SubscriptionCancelledEvent.OutputObject
     >;
 
-    "SubscriptionCreated(uint64)": TypedContractEvent<
+    'SubscriptionCreated(uint64)': TypedContractEvent<
       SubscriptionCreatedEvent.InputTuple,
       SubscriptionCreatedEvent.OutputTuple,
       SubscriptionCreatedEvent.OutputObject
@@ -1629,7 +1370,7 @@ export interface RouterAbi extends BaseContract {
       SubscriptionCreatedEvent.OutputObject
     >;
 
-    "SubscriptionFulfilled(uint64,address)": TypedContractEvent<
+    'SubscriptionFulfilled(uint64,address)': TypedContractEvent<
       SubscriptionFulfilledEvent.InputTuple,
       SubscriptionFulfilledEvent.OutputTuple,
       SubscriptionFulfilledEvent.OutputObject
@@ -1640,7 +1381,7 @@ export interface RouterAbi extends BaseContract {
       SubscriptionFulfilledEvent.OutputObject
     >;
 
-    "Unpaused(address)": TypedContractEvent<
+    'Unpaused(address)': TypedContractEvent<
       UnpausedEvent.InputTuple,
       UnpausedEvent.OutputTuple,
       UnpausedEvent.OutputObject
@@ -1651,7 +1392,7 @@ export interface RouterAbi extends BaseContract {
       UnpausedEvent.OutputObject
     >;
 
-    "VerificationFundsLocked(uint64,uint32,address,uint256)": TypedContractEvent<
+    'VerificationFundsLocked(uint64,uint32,address,uint256)': TypedContractEvent<
       VerificationFundsLockedEvent.InputTuple,
       VerificationFundsLockedEvent.OutputTuple,
       VerificationFundsLockedEvent.OutputObject
@@ -1662,7 +1403,7 @@ export interface RouterAbi extends BaseContract {
       VerificationFundsLockedEvent.OutputObject
     >;
 
-    "VerificationFundsUnlocked(uint64,uint32,address,uint256)": TypedContractEvent<
+    'VerificationFundsUnlocked(uint64,uint32,address,uint256)': TypedContractEvent<
       VerificationFundsUnlockedEvent.InputTuple,
       VerificationFundsUnlockedEvent.OutputTuple,
       VerificationFundsUnlockedEvent.OutputObject

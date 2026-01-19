@@ -92,10 +92,7 @@ export class CoordinatorContract {
    * @returns Tuple format expected by contract
    */
   private encodePayloadData(payload: PayloadData): [string, Uint8Array] {
-    return [
-      payload.contentHash,
-      ethers.toUtf8Bytes(payload.uri),
-    ];
+    return [payload.contentHash, ethers.toUtf8Bytes(payload.uri)];
   }
 
   /**

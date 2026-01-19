@@ -89,8 +89,8 @@ export interface ContainerExecutionConfig {
 
 export interface NoosphereAgentOptions {
   config: AgentConfig;
-  routerAbi?: any[];  // Optional - defaults to ABIs.Router from @noosphere/contracts
-  coordinatorAbi?: any[];  // Optional - defaults to ABIs.Coordinator from @noosphere/contracts
+  routerAbi?: any[]; // Optional - defaults to ABIs.Router from @noosphere/contracts
+  coordinatorAbi?: any[]; // Optional - defaults to ABIs.Coordinator from @noosphere/contracts
   getContainer?: (containerId: string) => ContainerMetadata | undefined;
   containers?: Map<string, ContainerMetadata>; // Container map from config
   registryManager?: RegistryManager; // Optional - provide pre-initialized RegistryManager to avoid duplicate loading
@@ -168,21 +168,19 @@ export class NoosphereAgent {
 
     this.containerManager = new ContainerManager();
     // Use provided registryManager or create a new one
-    this.registryManager = options.registryManager || new RegistryManager({
-      autoSync: true, // Enable automatic sync with remote registry
-      cacheTTL: 3600000, // 1 hour cache
-    });
+    this.registryManager =
+      options.registryManager ||
+      new RegistryManager({
+        autoSync: true, // Enable automatic sync with remote registry
+        cacheTTL: 3600000, // 1 hour cache
+      });
     this.eventMonitor = new EventMonitor(options.config, routerAbi, coordinatorAbi, {
       loadCheckpoint: options.loadCheckpoint,
       saveCheckpoint: options.saveCheckpoint,
     });
 
     // Initialize router contract
-    this.router = new ethers.Contract(
-      options.config.routerAddress,
-      routerAbi,
-      this.provider
-    );
+    this.router = new ethers.Contract(options.config.routerAddress, routerAbi, this.provider);
 
     this.coordinator = new ethers.Contract(
       options.config.coordinatorAddress,
@@ -392,8 +390,8 @@ export class NoosphereAgent {
           batchReaderAddress,
           this.options.schedulerConfig || {
             cronIntervalMs: 60000, // 1 minute (default)
-            syncPeriodMs: 3000,     // 3 seconds (default)
-            maxRetryAttempts: 3,     // 3 retries (default)
+            syncPeriodMs: 3000, // 3 seconds (default)
+            maxRetryAttempts: 3, // 3 retries (default)
           },
           this.getContainer // Pass container filter
         );
@@ -408,34 +406,39 @@ export class NoosphereAgent {
     this.scheduler.start();
 
     // Listen for commitment:success events to handle cases where WebSocket misses events
-    this.scheduler.on('commitment:success', async (data: {
-      subscriptionId: bigint;
-      interval: bigint;
-      txHash: string;
-      blockNumber: number;
-      gasUsed?: string;
-      gasPrice?: string;
-      gasCost?: string;
-      requestStartedEvent?: RequestStartedEvent;
-    }) => {
-      // Call callback if provided (for DB persistence)
-      if (this.options.onCommitmentSuccess) {
-        this.options.onCommitmentSuccess({
-          subscriptionId: data.subscriptionId,
-          interval: data.interval,
-          txHash: data.txHash,
-          blockNumber: data.blockNumber,
-          gasUsed: data.gasUsed || '0',
-          gasPrice: data.gasPrice || '0',
-          gasCost: data.gasCost || '0',
-        });
-      }
+    this.scheduler.on(
+      'commitment:success',
+      async (data: {
+        subscriptionId: bigint;
+        interval: bigint;
+        txHash: string;
+        blockNumber: number;
+        gasUsed?: string;
+        gasPrice?: string;
+        gasCost?: string;
+        requestStartedEvent?: RequestStartedEvent;
+      }) => {
+        // Call callback if provided (for DB persistence)
+        if (this.options.onCommitmentSuccess) {
+          this.options.onCommitmentSuccess({
+            subscriptionId: data.subscriptionId,
+            interval: data.interval,
+            txHash: data.txHash,
+            blockNumber: data.blockNumber,
+            gasUsed: data.gasUsed || '0',
+            gasPrice: data.gasPrice || '0',
+            gasCost: data.gasCost || '0',
+          });
+        }
 
-      if (data.requestStartedEvent) {
-        console.log(`  📥 Processing RequestStarted from prepare receipt (fallback for missed WebSocket)`);
-        await this.handleRequest(data.requestStartedEvent);
+        if (data.requestStartedEvent) {
+          console.log(
+            `  📥 Processing RequestStarted from prepare receipt (fallback for missed WebSocket)`
+          );
+          await this.handleRequest(data.requestStartedEvent);
+        }
       }
-    });
+    );
 
     // Start retry timer if retry callbacks are provided
     if (this.options.getRetryableEvents && this.options.resetEventForRetry) {
@@ -458,7 +461,9 @@ export class NoosphereAgent {
       clearInterval(this.retryTimer);
     }
 
-    console.log(`🔄 Retry mechanism enabled: max ${this.maxRetries} retries, check every ${this.retryIntervalMs / 1000}s`);
+    console.log(
+      `🔄 Retry mechanism enabled: max ${this.maxRetries} retries, check every ${this.retryIntervalMs / 1000}s`
+    );
 
     this.retryTimer = setInterval(async () => {
       await this.processRetries();
@@ -494,7 +499,9 @@ export class NoosphereAgent {
         const newStats = this.registryManager.getStats();
 
         if (newStats.totalContainers > 0) {
-          console.log(`✓ Health check: Registry recovered - ${newStats.totalContainers} containers loaded`);
+          console.log(
+            `✓ Health check: Registry recovered - ${newStats.totalContainers} containers loaded`
+          );
         } else {
           console.error('❌ Health check: Registry reload failed - still 0 containers');
         }
@@ -525,7 +532,9 @@ export class NoosphereAgent {
       return;
     }
 
-    console.log(`🔄 Retrying request ${event.requestId.slice(0, 10)}... (attempt ${event.retryCount + 1}/${this.maxRetries}, ${retryableEvents.length} remaining)`);
+    console.log(
+      `🔄 Retrying request ${event.requestId.slice(0, 10)}... (attempt ${event.retryCount + 1}/${this.maxRetries}, ${retryableEvents.length} remaining)`
+    );
 
     // Reset event to pending
     this.options.resetEventForRetry(event.requestId);
@@ -533,7 +542,9 @@ export class NoosphereAgent {
     // Re-process the request
     const container = this.getContainerMetadata(event.containerId);
     if (!container) {
-      console.log(`  ⚠️ Container ${event.containerId.slice(0, 10)}... no longer supported, skipping retry`);
+      console.log(
+        `  ⚠️ Container ${event.containerId.slice(0, 10)}... no longer supported, skipping retry`
+      );
       return;
     }
 
@@ -557,7 +568,9 @@ export class NoosphereAgent {
     try {
       await this.handleRequest(retryEvent);
     } catch (error) {
-      console.log(`  ❌ Retry failed for ${event.requestId.slice(0, 10)}...: ${(error as Error).message}`);
+      console.log(
+        `  ❌ Retry failed for ${event.requestId.slice(0, 10)}...: ${(error as Error).message}`
+      );
     }
   }
 
@@ -640,7 +653,9 @@ export class NoosphereAgent {
     console.log(`  SubscriptionId: ${event.subscriptionId}`);
     console.log(`  Interval: ${event.interval}`);
     console.log(`  ContainerId: ${event.containerId.slice(0, 10)}...`);
-    console.log(`  📦 Container: ${container.name} (${container.image}:${container.tag || 'latest'})`);
+    console.log(
+      `  📦 Container: ${container.name} (${container.image}:${container.tag || 'latest'})`
+    );
 
     // Call onRequestStarted callback if provided (saves to DB)
     // This is called AFTER container check, so only supported containers are saved
@@ -662,7 +677,9 @@ export class NoosphereAgent {
     // Check if this interval is still current (skip old replayed events)
     // Note: One-time executions (intervalSeconds=0) return type(uint32).max, should not be skipped
     try {
-      const currentInterval = await this.router.getComputeSubscriptionInterval(event.subscriptionId);
+      const currentInterval = await this.router.getComputeSubscriptionInterval(
+        event.subscriptionId
+      );
       const eventInterval = Number(event.interval);
 
       // Skip check only for scheduled subscriptions (not one-time executions)
@@ -672,7 +689,10 @@ export class NoosphereAgent {
       if (!isOneTimeExecution && currentInterval > eventInterval + 2) {
         console.log(`  ⏭️  Skipping old interval ${eventInterval} (current: ${currentInterval})`);
         if (this.options.onRequestSkipped) {
-          this.options.onRequestSkipped(event.requestId, `Old interval ${eventInterval} (current: ${currentInterval})`);
+          this.options.onRequestSkipped(
+            event.requestId,
+            `Old interval ${eventInterval} (current: ${currentInterval})`
+          );
         }
         this.processingRequests.delete(event.requestId);
         return;
@@ -702,7 +722,10 @@ export class NoosphereAgent {
       if (currentCount >= event.redundancy) {
         console.log(`  ⏭️  Already fulfilled (${currentCount}/${event.redundancy}), skipping`);
         if (this.options.onRequestSkipped) {
-          this.options.onRequestSkipped(event.requestId, `Already fulfilled (${currentCount}/${event.redundancy})`);
+          this.options.onRequestSkipped(
+            event.requestId,
+            `Already fulfilled (${currentCount}/${event.redundancy})`
+          );
         }
         this.processingRequests.delete(event.requestId);
         return;
@@ -718,7 +741,10 @@ export class NoosphereAgent {
       if (!clientAddress || clientAddress === '0x0000000000000000000000000000000000000000') {
         console.error(`  ❌ Invalid client address for subscription ${event.subscriptionId}`);
         if (this.options.onRequestFailed) {
-          this.options.onRequestFailed(event.requestId, `Invalid client address for subscription ${event.subscriptionId}`);
+          this.options.onRequestFailed(
+            event.requestId,
+            `Invalid client address for subscription ${event.subscriptionId}`
+          );
         }
         return;
       }
@@ -774,7 +800,7 @@ export class NoosphereAgent {
           const ipfsGateway = process.env.IPFS_GATEWAY || 'http://localhost:8080/ipfs/';
           console.log(`  🌐 Using IPFS gateway: ${ipfsGateway}`);
           const payloadResolver = new PayloadResolver({
-            ipfs: { gateway: ipfsGateway }
+            ipfs: { gateway: ipfsGateway },
           });
           const resolved = await payloadResolver.resolve({ contentHash, uri });
           inputData = resolved.content;
@@ -783,7 +809,10 @@ export class NoosphereAgent {
           const errorMessage = (resolveError as Error).message || String(resolveError);
           console.error(`  ❌ Failed to resolve PayloadData:`, resolveError);
           if (this.options.onRequestFailed) {
-            this.options.onRequestFailed(event.requestId, `Failed to resolve PayloadData: ${errorMessage}`);
+            this.options.onRequestFailed(
+              event.requestId,
+              `Failed to resolve PayloadData: ${errorMessage}`
+            );
           }
           return;
         }
@@ -809,7 +838,10 @@ export class NoosphereAgent {
         console.error(`  ❌ Container execution failed with exit code ${result.exitCode}`);
         console.error(`  📄 Container output:`, result.output);
         if (this.options.onRequestFailed) {
-          this.options.onRequestFailed(event.requestId, `Container execution failed with exit code ${result.exitCode}`);
+          this.options.onRequestFailed(
+            event.requestId,
+            `Container execution failed with exit code ${result.exitCode}`
+          );
         }
         return;
       }
@@ -846,7 +878,9 @@ export class NoosphereAgent {
         ? await this.payloadEncoder(output)
         : PayloadUtils.fromInlineData(output);
       const proofPayload = proof
-        ? (this.payloadEncoder ? await this.payloadEncoder(proof) : PayloadUtils.fromInlineData(proof))
+        ? this.payloadEncoder
+          ? await this.payloadEncoder(proof)
+          : PayloadUtils.fromInlineData(proof)
         : PayloadUtils.empty();
 
       // Send transaction
@@ -896,7 +930,11 @@ export class NoosphereAgent {
       const errorCode = (error as any).code;
 
       // Handle nonce expired error - this usually means another handler already processed this request
-      if (errorCode === 'NONCE_EXPIRED' || errorMessage.includes('nonce has already been used') || errorMessage.includes('nonce too low')) {
+      if (
+        errorCode === 'NONCE_EXPIRED' ||
+        errorMessage.includes('nonce has already been used') ||
+        errorMessage.includes('nonce too low')
+      ) {
         console.log(`  ⚠️  Nonce expired (likely already processed by another handler)`);
         // Don't mark as failed - it was probably successful via another path
         return;

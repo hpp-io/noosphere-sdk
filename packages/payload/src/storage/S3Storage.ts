@@ -49,9 +49,7 @@ export class S3Storage implements IPayloadStorage {
     }
 
     // Generate public URL
-    const publicUrl = this.config.publicUrlBase
-      ? `${this.config.publicUrlBase}/${key}`
-      : url;
+    const publicUrl = this.config.publicUrlBase ? `${this.config.publicUrlBase}/${key}` : url;
 
     return {
       uri: publicUrl,
@@ -114,18 +112,14 @@ export class S3Storage implements IPayloadStorage {
 
     const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
     const canonicalHeaders =
-      `host:${host}\n` +
-      `x-amz-content-sha256:${payloadHash}\n` +
-      `x-amz-date:${timestamp}\n`;
+      `host:${host}\n` + `x-amz-content-sha256:${payloadHash}\n` + `x-amz-date:${timestamp}\n`;
 
-    const canonicalRequest =
-      `${method}\n${canonicalUri}\n${canonicalQueryString}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
+    const canonicalRequest = `${method}\n${canonicalUri}\n${canonicalQueryString}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
 
     // Create string to sign
     const algorithm = 'AWS4-HMAC-SHA256';
     const credentialScope = `${date}/${region}/${service}/aws4_request`;
-    const stringToSign =
-      `${algorithm}\n${timestamp}\n${credentialScope}\n${await this.sha256Hex(canonicalRequest)}`;
+    const stringToSign = `${algorithm}\n${timestamp}\n${credentialScope}\n${await this.sha256Hex(canonicalRequest)}`;
 
     // Calculate signature
     const signingKey = await this.getSignatureKey(
@@ -178,7 +172,11 @@ export class S3Storage implements IPayloadStorage {
       false,
       ['sign']
     );
-    const signature = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(message));
+    const signature = await crypto.subtle.sign(
+      'HMAC',
+      cryptoKey,
+      new TextEncoder().encode(message)
+    );
     return new Uint8Array(signature);
   }
 

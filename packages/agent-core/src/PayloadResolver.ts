@@ -146,9 +146,7 @@ export class PayloadResolver {
    */
   private fromBasePayload(payload: BasePayloadData): PayloadData {
     // Convert URI string to hex bytes for Solidity bytes type
-    const uriBytes = payload.uri
-      ? ethers.hexlify(ethers.toUtf8Bytes(payload.uri))
-      : '0x';
+    const uriBytes = payload.uri ? ethers.hexlify(ethers.toUtf8Bytes(payload.uri)) : '0x';
     return {
       contentHash: payload.contentHash,
       uri: uriBytes,

@@ -13,7 +13,7 @@ import type {
   ContractRunner,
   ContractMethod,
   Listener,
-} from "ethers";
+} from 'ethers';
 import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
@@ -21,7 +21,7 @@ import type {
   TypedLogDescription,
   TypedListener,
   TypedContractMethod,
-} from "./common";
+} from './common';
 
 export type CommitmentStruct = {
   requestId: BytesLike;
@@ -48,7 +48,7 @@ export type CommitmentStructOutput = [
   feeAmount: bigint,
   feeToken: string,
   verifier: string,
-  coordinator: string
+  coordinator: string,
 ] & {
   requestId: string;
   subscriptionId: bigint;
@@ -76,7 +76,7 @@ export type BillingConfigStructOutput = [
   protocolFeeRecipient: string,
   protocolFee: bigint,
   tickNodeFee: bigint,
-  tickNodeFeeToken: string
+  tickNodeFeeToken: string,
 ] & {
   verificationTimeout: bigint;
   protocolFeeRecipient: string;
@@ -111,7 +111,7 @@ export type ProofVerificationRequestStructOutput = [
   escrowedAmount: bigint,
   escrowToken: string,
   slashAmount: bigint,
-  expiry: bigint
+  expiry: bigint,
 ] & {
   subscriptionId: bigint;
   interval: bigint;
@@ -126,100 +126,73 @@ export type ProofVerificationRequestStructOutput = [
 export interface CoordinatorAbiInterface extends Interface {
   getFunction(
     nameOrSignature:
-      | "acceptOwnership"
-      | "cancelRequest"
-      | "client"
-      | "getCommitment"
-      | "getConfig"
-      | "getProtocolFee"
-      | "getSubscriptionBatchReader"
-      | "initialize"
-      | "nodeResponded"
-      | "prepareNextInterval"
-      | "redundancyCount"
-      | "reportComputeResult"
-      | "reportVerificationResult"
-      | "requestCommitments"
-      | "setSubscriptionBatchReader"
-      | "startRequest"
-      | "transferOwnership"
-      | "typeAndVersion"
-      | "updateConfig"
+      | 'acceptOwnership'
+      | 'cancelRequest'
+      | 'client'
+      | 'getCommitment'
+      | 'getConfig'
+      | 'getProtocolFee'
+      | 'getSubscriptionBatchReader'
+      | 'initialize'
+      | 'nodeResponded'
+      | 'prepareNextInterval'
+      | 'redundancyCount'
+      | 'reportComputeResult'
+      | 'reportVerificationResult'
+      | 'requestCommitments'
+      | 'setSubscriptionBatchReader'
+      | 'startRequest'
+      | 'transferOwnership'
+      | 'typeAndVersion'
+      | 'updateConfig'
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
-      | "ComputeDelivered"
-      | "OwnershipTransferRequested"
-      | "OwnershipTransferred"
-      | "ProofVerified"
-      | "RequestCancelled"
-      | "RequestStarted"
+      | 'ComputeDelivered'
+      | 'OwnershipTransferRequested'
+      | 'OwnershipTransferred'
+      | 'ProofVerified'
+      | 'RequestCancelled'
+      | 'RequestStarted'
   ): EventFragment;
 
+  encodeFunctionData(functionFragment: 'acceptOwnership', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'cancelRequest', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'client', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "acceptOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "cancelRequest",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "client", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "getCommitment",
+    functionFragment: 'getCommitment',
     values: [BigNumberish, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "getConfig", values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getConfig', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getProtocolFee', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'getSubscriptionBatchReader', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'initialize', values: [BillingConfigStruct]): string;
+  encodeFunctionData(functionFragment: 'nodeResponded', values: [BytesLike]): string;
   encodeFunctionData(
-    functionFragment: "getProtocolFee",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getSubscriptionBatchReader",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [BillingConfigStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "nodeResponded",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "prepareNextInterval",
+    functionFragment: 'prepareNextInterval',
     values: [BigNumberish, BigNumberish, AddressLike]
   ): string;
+  encodeFunctionData(functionFragment: 'redundancyCount', values: [BytesLike]): string;
   encodeFunctionData(
-    functionFragment: "redundancyCount",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "reportComputeResult",
+    functionFragment: 'reportComputeResult',
     values: [
       BigNumberish,
       PayloadDataStruct,
       PayloadDataStruct,
       PayloadDataStruct,
       BytesLike,
-      AddressLike
+      AddressLike,
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "reportVerificationResult",
+    functionFragment: 'reportVerificationResult',
     values: [ProofVerificationRequestStruct, boolean]
   ): string;
+  encodeFunctionData(functionFragment: 'requestCommitments', values: [BytesLike]): string;
+  encodeFunctionData(functionFragment: 'setSubscriptionBatchReader', values: [AddressLike]): string;
   encodeFunctionData(
-    functionFragment: "requestCommitments",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setSubscriptionBatchReader",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "startRequest",
+    functionFragment: 'startRequest',
     values: [
       BytesLike,
       BigNumberish,
@@ -230,89 +203,32 @@ export interface CoordinatorAbiInterface extends Interface {
       AddressLike,
       BigNumberish,
       AddressLike,
-      AddressLike
+      AddressLike,
     ]
   ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "typeAndVersion",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "updateConfig",
-    values: [BillingConfigStruct]
-  ): string;
+  encodeFunctionData(functionFragment: 'transferOwnership', values: [AddressLike]): string;
+  encodeFunctionData(functionFragment: 'typeAndVersion', values?: undefined): string;
+  encodeFunctionData(functionFragment: 'updateConfig', values: [BillingConfigStruct]): string;
 
-  decodeFunctionResult(
-    functionFragment: "acceptOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "cancelRequest",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "client", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getCommitment",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getConfig", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getProtocolFee",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getSubscriptionBatchReader",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "nodeResponded",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "prepareNextInterval",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "redundancyCount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "reportComputeResult",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "reportVerificationResult",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "requestCommitments",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setSubscriptionBatchReader",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "startRequest",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "typeAndVersion",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateConfig",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: 'acceptOwnership', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'cancelRequest', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'client', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getCommitment', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getConfig', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getProtocolFee', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getSubscriptionBatchReader', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'initialize', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'nodeResponded', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'prepareNextInterval', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'redundancyCount', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'reportComputeResult', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'reportVerificationResult', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'requestCommitments', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'setSubscriptionBatchReader', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'startRequest', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'transferOwnership', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'typeAndVersion', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'updateConfig', data: BytesLike): Result;
 }
 
 export namespace ComputeDeliveredEvent {
@@ -322,7 +238,7 @@ export namespace ComputeDeliveredEvent {
     numRedundantDeliveries: BigNumberish,
     input: PayloadDataStruct,
     output: PayloadDataStruct,
-    proof: PayloadDataStruct
+    proof: PayloadDataStruct,
   ];
   export type OutputTuple = [
     requestId: string,
@@ -330,7 +246,7 @@ export namespace ComputeDeliveredEvent {
     numRedundantDeliveries: bigint,
     input: PayloadDataStructOutput,
     output: PayloadDataStructOutput,
-    proof: PayloadDataStructOutput
+    proof: PayloadDataStructOutput,
   ];
   export interface OutputObject {
     requestId: string;
@@ -378,14 +294,14 @@ export namespace ProofVerifiedEvent {
     interval: BigNumberish,
     node: AddressLike,
     valid: boolean,
-    verifier: AddressLike
+    verifier: AddressLike,
   ];
   export type OutputTuple = [
     subscriptionId: bigint,
     interval: bigint,
     node: string,
     valid: boolean,
-    verifier: string
+    verifier: string,
   ];
   export interface OutputObject {
     subscriptionId: bigint;
@@ -417,13 +333,13 @@ export namespace RequestStartedEvent {
     requestId: BytesLike,
     subscriptionId: BigNumberish,
     containerId: BytesLike,
-    commitment: CommitmentStruct
+    commitment: CommitmentStruct,
   ];
   export type OutputTuple = [
     requestId: string,
     subscriptionId: bigint,
     containerId: string,
-    commitment: CommitmentStructOutput
+    commitment: CommitmentStructOutput,
   ];
   export interface OutputObject {
     requestId: string;
@@ -476,51 +392,37 @@ export interface CoordinatorAbi extends BaseContract {
     event: TCEvent
   ): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(
-    event?: TCEvent
-  ): Promise<this>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(event?: TCEvent): Promise<this>;
 
-  acceptOwnership: TypedContractMethod<[], [void], "nonpayable">;
+  acceptOwnership: TypedContractMethod<[], [void], 'nonpayable'>;
 
-  cancelRequest: TypedContractMethod<
-    [requestId: BytesLike],
-    [void],
-    "nonpayable"
-  >;
+  cancelRequest: TypedContractMethod<[requestId: BytesLike], [void], 'nonpayable'>;
 
-  client: TypedContractMethod<[], [string], "view">;
+  client: TypedContractMethod<[], [string], 'view'>;
 
   getCommitment: TypedContractMethod<
     [subscriptionId: BigNumberish, interval: BigNumberish],
     [CommitmentStructOutput],
-    "view"
+    'view'
   >;
 
-  getConfig: TypedContractMethod<[], [BillingConfigStructOutput], "view">;
+  getConfig: TypedContractMethod<[], [BillingConfigStructOutput], 'view'>;
 
-  getProtocolFee: TypedContractMethod<[], [bigint], "view">;
+  getProtocolFee: TypedContractMethod<[], [bigint], 'view'>;
 
-  getSubscriptionBatchReader: TypedContractMethod<[], [string], "view">;
+  getSubscriptionBatchReader: TypedContractMethod<[], [string], 'view'>;
 
-  initialize: TypedContractMethod<
-    [_config: BillingConfigStruct],
-    [void],
-    "nonpayable"
-  >;
+  initialize: TypedContractMethod<[_config: BillingConfigStruct], [void], 'nonpayable'>;
 
-  nodeResponded: TypedContractMethod<[arg0: BytesLike], [boolean], "view">;
+  nodeResponded: TypedContractMethod<[arg0: BytesLike], [boolean], 'view'>;
 
   prepareNextInterval: TypedContractMethod<
-    [
-      subscriptionId: BigNumberish,
-      nextInterval: BigNumberish,
-      nodeWallet: AddressLike
-    ],
+    [subscriptionId: BigNumberish, nextInterval: BigNumberish, nodeWallet: AddressLike],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
-  redundancyCount: TypedContractMethod<[arg0: BytesLike], [bigint], "view">;
+  redundancyCount: TypedContractMethod<[arg0: BytesLike], [bigint], 'view'>;
 
   reportComputeResult: TypedContractMethod<
     [
@@ -529,29 +431,21 @@ export interface CoordinatorAbi extends BaseContract {
       output: PayloadDataStruct,
       proof: PayloadDataStruct,
       commitmentData: BytesLike,
-      nodeWallet: AddressLike
+      nodeWallet: AddressLike,
     ],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
   reportVerificationResult: TypedContractMethod<
     [request: ProofVerificationRequestStruct, valid: boolean],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
 
-  requestCommitments: TypedContractMethod<
-    [requestId: BytesLike],
-    [string],
-    "view"
-  >;
+  requestCommitments: TypedContractMethod<[requestId: BytesLike], [string], 'view'>;
 
-  setSubscriptionBatchReader: TypedContractMethod<
-    [_reader: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  setSubscriptionBatchReader: TypedContractMethod<[_reader: AddressLike], [void], 'nonpayable'>;
 
   startRequest: TypedContractMethod<
     [
@@ -564,77 +458,57 @@ export interface CoordinatorAbi extends BaseContract {
       feeToken: AddressLike,
       feeAmount: BigNumberish,
       wallet: AddressLike,
-      verifier: AddressLike
+      verifier: AddressLike,
     ],
     [CommitmentStructOutput],
-    "nonpayable"
+    'nonpayable'
   >;
 
-  transferOwnership: TypedContractMethod<
-    [to: AddressLike],
-    [void],
-    "nonpayable"
-  >;
+  transferOwnership: TypedContractMethod<[to: AddressLike], [void], 'nonpayable'>;
 
-  typeAndVersion: TypedContractMethod<[], [string], "view">;
+  typeAndVersion: TypedContractMethod<[], [string], 'view'>;
 
-  updateConfig: TypedContractMethod<
-    [config: BillingConfigStruct],
-    [void],
-    "nonpayable"
-  >;
+  updateConfig: TypedContractMethod<[config: BillingConfigStruct], [void], 'nonpayable'>;
 
-  getFunction<T extends ContractMethod = ContractMethod>(
-    key: string | FunctionFragment
-  ): T;
+  getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
 
+  getFunction(nameOrSignature: 'acceptOwnership'): TypedContractMethod<[], [void], 'nonpayable'>;
   getFunction(
-    nameOrSignature: "acceptOwnership"
-  ): TypedContractMethod<[], [void], "nonpayable">;
+    nameOrSignature: 'cancelRequest'
+  ): TypedContractMethod<[requestId: BytesLike], [void], 'nonpayable'>;
+  getFunction(nameOrSignature: 'client'): TypedContractMethod<[], [string], 'view'>;
   getFunction(
-    nameOrSignature: "cancelRequest"
-  ): TypedContractMethod<[requestId: BytesLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "client"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getCommitment"
+    nameOrSignature: 'getCommitment'
   ): TypedContractMethod<
     [subscriptionId: BigNumberish, interval: BigNumberish],
     [CommitmentStructOutput],
-    "view"
+    'view'
   >;
   getFunction(
-    nameOrSignature: "getConfig"
-  ): TypedContractMethod<[], [BillingConfigStructOutput], "view">;
+    nameOrSignature: 'getConfig'
+  ): TypedContractMethod<[], [BillingConfigStructOutput], 'view'>;
+  getFunction(nameOrSignature: 'getProtocolFee'): TypedContractMethod<[], [bigint], 'view'>;
   getFunction(
-    nameOrSignature: "getProtocolFee"
-  ): TypedContractMethod<[], [bigint], "view">;
+    nameOrSignature: 'getSubscriptionBatchReader'
+  ): TypedContractMethod<[], [string], 'view'>;
   getFunction(
-    nameOrSignature: "getSubscriptionBatchReader"
-  ): TypedContractMethod<[], [string], "view">;
+    nameOrSignature: 'initialize'
+  ): TypedContractMethod<[_config: BillingConfigStruct], [void], 'nonpayable'>;
   getFunction(
-    nameOrSignature: "initialize"
-  ): TypedContractMethod<[_config: BillingConfigStruct], [void], "nonpayable">;
+    nameOrSignature: 'nodeResponded'
+  ): TypedContractMethod<[arg0: BytesLike], [boolean], 'view'>;
   getFunction(
-    nameOrSignature: "nodeResponded"
-  ): TypedContractMethod<[arg0: BytesLike], [boolean], "view">;
-  getFunction(
-    nameOrSignature: "prepareNextInterval"
+    nameOrSignature: 'prepareNextInterval'
   ): TypedContractMethod<
-    [
-      subscriptionId: BigNumberish,
-      nextInterval: BigNumberish,
-      nodeWallet: AddressLike
-    ],
+    [subscriptionId: BigNumberish, nextInterval: BigNumberish, nodeWallet: AddressLike],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "redundancyCount"
-  ): TypedContractMethod<[arg0: BytesLike], [bigint], "view">;
+    nameOrSignature: 'redundancyCount'
+  ): TypedContractMethod<[arg0: BytesLike], [bigint], 'view'>;
   getFunction(
-    nameOrSignature: "reportComputeResult"
+    nameOrSignature: 'reportComputeResult'
   ): TypedContractMethod<
     [
       deliveryInterval: BigNumberish,
@@ -642,26 +516,26 @@ export interface CoordinatorAbi extends BaseContract {
       output: PayloadDataStruct,
       proof: PayloadDataStruct,
       commitmentData: BytesLike,
-      nodeWallet: AddressLike
+      nodeWallet: AddressLike,
     ],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "reportVerificationResult"
+    nameOrSignature: 'reportVerificationResult'
   ): TypedContractMethod<
     [request: ProofVerificationRequestStruct, valid: boolean],
     [void],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "requestCommitments"
-  ): TypedContractMethod<[requestId: BytesLike], [string], "view">;
+    nameOrSignature: 'requestCommitments'
+  ): TypedContractMethod<[requestId: BytesLike], [string], 'view'>;
   getFunction(
-    nameOrSignature: "setSubscriptionBatchReader"
-  ): TypedContractMethod<[_reader: AddressLike], [void], "nonpayable">;
+    nameOrSignature: 'setSubscriptionBatchReader'
+  ): TypedContractMethod<[_reader: AddressLike], [void], 'nonpayable'>;
   getFunction(
-    nameOrSignature: "startRequest"
+    nameOrSignature: 'startRequest'
   ): TypedContractMethod<
     [
       requestId: BytesLike,
@@ -673,58 +547,56 @@ export interface CoordinatorAbi extends BaseContract {
       feeToken: AddressLike,
       feeAmount: BigNumberish,
       wallet: AddressLike,
-      verifier: AddressLike
+      verifier: AddressLike,
     ],
     [CommitmentStructOutput],
-    "nonpayable"
+    'nonpayable'
   >;
   getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[to: AddressLike], [void], "nonpayable">;
+    nameOrSignature: 'transferOwnership'
+  ): TypedContractMethod<[to: AddressLike], [void], 'nonpayable'>;
+  getFunction(nameOrSignature: 'typeAndVersion'): TypedContractMethod<[], [string], 'view'>;
   getFunction(
-    nameOrSignature: "typeAndVersion"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "updateConfig"
-  ): TypedContractMethod<[config: BillingConfigStruct], [void], "nonpayable">;
+    nameOrSignature: 'updateConfig'
+  ): TypedContractMethod<[config: BillingConfigStruct], [void], 'nonpayable'>;
 
   getEvent(
-    key: "ComputeDelivered"
+    key: 'ComputeDelivered'
   ): TypedContractEvent<
     ComputeDeliveredEvent.InputTuple,
     ComputeDeliveredEvent.OutputTuple,
     ComputeDeliveredEvent.OutputObject
   >;
   getEvent(
-    key: "OwnershipTransferRequested"
+    key: 'OwnershipTransferRequested'
   ): TypedContractEvent<
     OwnershipTransferRequestedEvent.InputTuple,
     OwnershipTransferRequestedEvent.OutputTuple,
     OwnershipTransferRequestedEvent.OutputObject
   >;
   getEvent(
-    key: "OwnershipTransferred"
+    key: 'OwnershipTransferred'
   ): TypedContractEvent<
     OwnershipTransferredEvent.InputTuple,
     OwnershipTransferredEvent.OutputTuple,
     OwnershipTransferredEvent.OutputObject
   >;
   getEvent(
-    key: "ProofVerified"
+    key: 'ProofVerified'
   ): TypedContractEvent<
     ProofVerifiedEvent.InputTuple,
     ProofVerifiedEvent.OutputTuple,
     ProofVerifiedEvent.OutputObject
   >;
   getEvent(
-    key: "RequestCancelled"
+    key: 'RequestCancelled'
   ): TypedContractEvent<
     RequestCancelledEvent.InputTuple,
     RequestCancelledEvent.OutputTuple,
     RequestCancelledEvent.OutputObject
   >;
   getEvent(
-    key: "RequestStarted"
+    key: 'RequestStarted'
   ): TypedContractEvent<
     RequestStartedEvent.InputTuple,
     RequestStartedEvent.OutputTuple,
@@ -732,7 +604,7 @@ export interface CoordinatorAbi extends BaseContract {
   >;
 
   filters: {
-    "ComputeDelivered(bytes32,address,uint16,tuple,tuple,tuple)": TypedContractEvent<
+    'ComputeDelivered(bytes32,address,uint16,tuple,tuple,tuple)': TypedContractEvent<
       ComputeDeliveredEvent.InputTuple,
       ComputeDeliveredEvent.OutputTuple,
       ComputeDeliveredEvent.OutputObject
@@ -743,7 +615,7 @@ export interface CoordinatorAbi extends BaseContract {
       ComputeDeliveredEvent.OutputObject
     >;
 
-    "OwnershipTransferRequested(address,address)": TypedContractEvent<
+    'OwnershipTransferRequested(address,address)': TypedContractEvent<
       OwnershipTransferRequestedEvent.InputTuple,
       OwnershipTransferRequestedEvent.OutputTuple,
       OwnershipTransferRequestedEvent.OutputObject
@@ -754,7 +626,7 @@ export interface CoordinatorAbi extends BaseContract {
       OwnershipTransferRequestedEvent.OutputObject
     >;
 
-    "OwnershipTransferred(address,address)": TypedContractEvent<
+    'OwnershipTransferred(address,address)': TypedContractEvent<
       OwnershipTransferredEvent.InputTuple,
       OwnershipTransferredEvent.OutputTuple,
       OwnershipTransferredEvent.OutputObject
@@ -765,7 +637,7 @@ export interface CoordinatorAbi extends BaseContract {
       OwnershipTransferredEvent.OutputObject
     >;
 
-    "ProofVerified(uint64,uint32,address,bool,address)": TypedContractEvent<
+    'ProofVerified(uint64,uint32,address,bool,address)': TypedContractEvent<
       ProofVerifiedEvent.InputTuple,
       ProofVerifiedEvent.OutputTuple,
       ProofVerifiedEvent.OutputObject
@@ -776,7 +648,7 @@ export interface CoordinatorAbi extends BaseContract {
       ProofVerifiedEvent.OutputObject
     >;
 
-    "RequestCancelled(bytes32)": TypedContractEvent<
+    'RequestCancelled(bytes32)': TypedContractEvent<
       RequestCancelledEvent.InputTuple,
       RequestCancelledEvent.OutputTuple,
       RequestCancelledEvent.OutputObject
@@ -787,7 +659,7 @@ export interface CoordinatorAbi extends BaseContract {
       RequestCancelledEvent.OutputObject
     >;
 
-    "RequestStarted(bytes32,uint64,bytes32,tuple)": TypedContractEvent<
+    'RequestStarted(bytes32,uint64,bytes32,tuple)': TypedContractEvent<
       RequestStartedEvent.InputTuple,
       RequestStartedEvent.OutputTuple,
       RequestStartedEvent.OutputObject
