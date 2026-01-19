@@ -24,25 +24,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Install dependencies
-        run: |
-          npm cache clean --force
-          for i in 1 2 3; do
-            echo "Attempt $i..."
-            if npm ci; then
-              echo "npm ci succeeded"
-              break
-            fi
-            echo "Attempt $i failed, retrying in 10s..."
-            rm -rf node_modules
-            sleep 10
-          done
-          # Fallback to npm install if npm ci failed
-          if [ ! -d node_modules/.bin ]; then
-            echo "npm ci failed, trying npm install..."
-            npm install
-          fi
-          # Final verification
-          test -f node_modules/.bin/tsup && echo "Installation verified" || exit 1
+        run: yarn install --frozen-lockfile || yarn install
 
       - name: Build
         run: npm run build
