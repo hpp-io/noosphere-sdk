@@ -22,8 +22,8 @@
     "src/abis"
   ],
   "scripts": {
-    "typechain": "typechain --target ethers-v6 --out-dir src/typechain 'src/abis/*.json'",
-    "build": "npm run typechain && tsup",
+    "typechain": "npx typechain --target ethers-v6 --out-dir src/typechain 'src/abis/*.json'",
+    "build": "npm run typechain && npx tsup",
     "clean": "rm -rf dist src/typechain",
     "test": "vitest run",
     "test:watch": "vitest",

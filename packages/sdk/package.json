@@ -21,7 +21,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "npx tsup",
     "test": "vitest run",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build"

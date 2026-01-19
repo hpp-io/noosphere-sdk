@@ -21,7 +21,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "npx tsup",
     "test": "vitest run --exclude='**/integration/**'",
     "test:watch": "vitest --exclude='**/integration/**'",
     "test:integration": "vitest run test/integration",

@@ -21,7 +21,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "npx tsup",
     "test": "vitest run",
     "test:watch": "vitest",
     "clean": "rm -rf dist",
