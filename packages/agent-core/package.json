@@ -1,6 +1,6 @@
 {
   "name": "@noosphere/agent-core",
-  "version": "0.2.0-alpha.3",
+  "version": "0.2.0-alpha.4",
   "description": "Core modules for Noosphere agent (EventMonitor, ContainerManager, NoosphereAgent)",
   "main": "dist/index.cjs",
   "module": "dist/index.js",

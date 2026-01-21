@@ -533,7 +533,7 @@ export class NoosphereAgent {
     }
 
     console.log(
-      `🔄 Retrying request ${event.requestId.slice(0, 10)}... (attempt ${event.retryCount + 1}/${this.maxRetries}, ${retryableEvents.length} remaining)`
+      `🔄 Retrying request ${event.requestId} (attempt ${event.retryCount + 1}/${this.maxRetries}, ${retryableEvents.length} remaining)`
     );
 
     // Reset event to pending
@@ -543,7 +543,7 @@ export class NoosphereAgent {
     const container = this.getContainerMetadata(event.containerId);
     if (!container) {
       console.log(
-        `  ⚠️ Container ${event.containerId.slice(0, 10)}... no longer supported, skipping retry`
+        `  ⚠️ Container ${event.containerId} no longer supported, skipping retry`
       );
       return;
     }
@@ -569,7 +569,7 @@ export class NoosphereAgent {
       await this.handleRequest(retryEvent);
     } catch (error) {
       console.log(
-        `  ❌ Retry failed for ${event.requestId.slice(0, 10)}...: ${(error as Error).message}`
+        `  ❌ Retry failed for ${event.requestId}: ${(error as Error).message}`
       );
     }
   }
@@ -625,8 +625,6 @@ export class NoosphereAgent {
   }
 
   private async handleRequest(event: RequestStartedEvent): Promise<void> {
-    const requestIdShort = event.requestId.slice(0, 10);
-
     // Container filter: Only process events for containers we support
     // This must be checked FIRST, before any DB save or RPC calls
     const container = this.getContainerMetadata(event.containerId);
@@ -637,22 +635,22 @@ export class NoosphereAgent {
 
     // Deduplication: Check if this request is already being processed
     if (this.processingRequests.has(event.requestId)) {
-      console.log(`  ⏭️  Request ${requestIdShort}... already being processed, skipping duplicate`);
+      console.log(`  ⏭️  Request ${event.requestId} already being processed, skipping duplicate`);
       return;
     }
 
     // Check if request has already been processed (completed/failed)
     if (this.options.isRequestProcessed && this.options.isRequestProcessed(event.requestId)) {
-      console.log(`  ⏭️  Request ${requestIdShort}... already processed, skipping`);
+      console.log(`  ⏭️  Request ${event.requestId} already processed, skipping`);
       return;
     }
 
     this.processingRequests.add(event.requestId);
 
-    console.log(`\n[${new Date().toISOString()}] RequestStarted: ${requestIdShort}...`);
+    console.log(`\n[${new Date().toISOString()}] RequestStarted: ${event.requestId}`);
     console.log(`  SubscriptionId: ${event.subscriptionId}`);
     console.log(`  Interval: ${event.interval}`);
-    console.log(`  ContainerId: ${event.containerId.slice(0, 10)}...`);
+    console.log(`  ContainerId: ${event.containerId}`);
     console.log(
       `  📦 Container: ${container.name} (${container.image}:${container.tag || 'latest'})`
     );
@@ -749,7 +747,7 @@ export class NoosphereAgent {
         return;
       }
 
-      console.log(`  📞 Fetching inputs from client: ${clientAddress.slice(0, 10)}...`);
+      console.log(`  📞 Fetching inputs from client: ${clientAddress}`);
 
       // Call client's getComputeInputs to get the input data
       // InputType enum: 0=RAW_DATA, 1=URI_STRING, 2=PAYLOAD_DATA

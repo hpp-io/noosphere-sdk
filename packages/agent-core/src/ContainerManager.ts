@@ -218,6 +218,32 @@ export class ContainerManager {
     return new Promise((resolve) => setTimeout(() => resolve(null), ms));
   }
 
+  /**
+   * Ensure container is connected to the specified Docker network.
+   * This handles the case where an existing container was created with a different network
+   * (e.g., after docker-compose recreates the network).
+   */
+  private async ensureContainerNetwork(
+    container: Docker.Container,
+    containerName: string,
+    networkName: string
+  ): Promise<void> {
+    try {
+      const inspect = await container.inspect();
+      const connectedNetworks = Object.keys(inspect.NetworkSettings.Networks || {});
+
+      if (!connectedNetworks.includes(networkName)) {
+        console.log(`  🔗 Connecting ${containerName} to network ${networkName}...`);
+        const network = this.docker.getNetwork(networkName);
+        await network.connect({ Container: container.id });
+        console.log(`  ✓ Connected ${containerName} to ${networkName}`);
+      }
+    } catch (err: any) {
+      // Log but don't fail - container might still work on default network
+      console.warn(`  ⚠️ Failed to ensure network connection for ${containerName}: ${err.message}`);
+    }
+  }
+
   private parseMemory(memory: string): number {
     const units: { [key: string]: number } = {
       b: 1,
@@ -339,10 +365,15 @@ export class ContainerManager {
 
     // Check if container already exists
     const existingContainer = this.docker.getContainer(containerName);
+    const dockerNetwork = process.env.DOCKER_NETWORK;
     try {
       const inspect = await existingContainer.inspect();
       if (inspect.State.Running) {
         console.log(`  ✓ Container ${containerName} already running`);
+        // Ensure container is connected to the correct network
+        if (dockerNetwork) {
+          await this.ensureContainerNetwork(existingContainer, containerName, dockerNetwork);
+        }
         this.persistentContainers.set(containerId, existingContainer);
         return;
       } else {
@@ -350,6 +381,10 @@ export class ContainerManager {
         try {
           await existingContainer.start();
           console.log(`  ✓ Started existing container ${containerName}`);
+          // Ensure container is connected to the correct network
+          if (dockerNetwork) {
+            await this.ensureContainerNetwork(existingContainer, containerName, dockerNetwork);
+          }
           this.persistentContainers.set(containerId, existingContainer);
           return;
         } catch (startErr) {
@@ -363,7 +398,6 @@ export class ContainerManager {
     }
 
     // Create new persistent container
-    const dockerNetwork = process.env.DOCKER_NETWORK;
     const createOptions: Docker.ContainerCreateOptions = {
       name: containerName,
       Image: imageTag,
