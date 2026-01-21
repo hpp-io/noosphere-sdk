@@ -2,6 +2,37 @@ import { EventEmitter } from 'events';
 import { ethers } from 'ethers';
 import type { AgentConfig, RequestStartedEvent } from './types';
 
+/**
+ * Connection state for EventMonitor
+ */
+export type ConnectionState =
+  | 'INIT'
+  | 'WS_CONNECTING'
+  | 'WS_ACTIVE'
+  | 'WS_RECONNECTING'
+  | 'HTTP_FALLBACK';
+
+/**
+ * Connection configuration
+ */
+export interface ConnectionConfig {
+  /** WS connection timeout in ms (default: 10000) */
+  wsConnectTimeoutMs: number;
+  /** Max WS connection retries before HTTP fallback (default: 3) */
+  wsMaxConnectRetries: number;
+  /** Delay between WS connection retries in ms (default: 5000) */
+  wsConnectRetryDelayMs: number;
+  /** Interval for WS recovery attempts when in HTTP fallback (default: 60000) */
+  wsRecoveryIntervalMs: number;
+}
+
+const DEFAULT_CONNECTION_CONFIG: ConnectionConfig = {
+  wsConnectTimeoutMs: 10000,
+  wsMaxConnectRetries: 3,
+  wsConnectRetryDelayMs: 5000,
+  wsRecoveryIntervalMs: 60000,
+};
+
 export interface CheckpointData {
   blockNumber: number;
   blockHash?: string;
@@ -11,6 +42,7 @@ export interface CheckpointData {
 export interface EventMonitorOptions {
   loadCheckpoint?: () => CheckpointData | undefined;
   saveCheckpoint?: (checkpoint: CheckpointData) => void;
+  connectionConfig?: Partial<ConnectionConfig>;
 }
 
 export class EventMonitor extends EventEmitter {
@@ -26,6 +58,12 @@ export class EventMonitor extends EventEmitter {
   private lastEventTime = Date.now();
   private checkpointCallbacks?: EventMonitorOptions;
 
+  // Connection state management
+  private connectionState: ConnectionState = 'INIT';
+  private connectionConfig: ConnectionConfig;
+  private wsRecoveryInterval: NodeJS.Timeout | null = null;
+  private pollingInterval: NodeJS.Timeout | null = null;
+
   constructor(
     private config: AgentConfig,
     private routerAbi: any[],
@@ -36,35 +74,220 @@ export class EventMonitor extends EventEmitter {
     this.lastProcessedBlock = config.deploymentBlock || 0;
     this.useWebSocket = false;
     this.checkpointCallbacks = options;
+    this.connectionConfig = {
+      ...DEFAULT_CONNECTION_CONFIG,
+      ...options?.connectionConfig,
+    };
+  }
+
+  /**
+   * Get current connection state
+   */
+  getConnectionState(): ConnectionState {
+    return this.connectionState;
+  }
+
+  /**
+   * Get connection mode string for health API
+   */
+  getConnectionMode(): 'websocket' | 'http_polling' | 'connecting' {
+    switch (this.connectionState) {
+      case 'WS_ACTIVE':
+        return 'websocket';
+      case 'HTTP_FALLBACK':
+        return 'http_polling';
+      default:
+        return 'connecting';
+    }
   }
 
   async connect(): Promise<void> {
-    try {
-      // Try WebSocket first for push-based events
-      if (this.config.wsRpcUrl) {
-        this.provider = new ethers.WebSocketProvider(this.config.wsRpcUrl);
-        // Note: Do NOT call _start() - it causes race condition with auto-initialization
-        // The provider will initialize automatically on first request
-        this.useWebSocket = true;
-        console.log('✓ Connected via WebSocket (push-based events)');
-      } else {
-        throw new Error('WebSocket URL not provided');
+    const { wsMaxConnectRetries, wsConnectRetryDelayMs } = this.connectionConfig;
+
+    // Try WebSocket connection with retries
+    if (this.config.wsRpcUrl) {
+      this.connectionState = 'WS_CONNECTING';
+
+      for (let attempt = 1; attempt <= wsMaxConnectRetries; attempt++) {
+        try {
+          console.log(`🔌 WebSocket connection attempt ${attempt}/${wsMaxConnectRetries}...`);
+          await this.connectWebSocketWithTimeout();
+          this.connectionState = 'WS_ACTIVE';
+          this.useWebSocket = true;
+          console.log('✓ Connected via WebSocket (push-based events)');
+          this.initializeContracts();
+          return;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.warn(`⚠️ WebSocket attempt ${attempt}/${wsMaxConnectRetries} failed: ${errorMessage}`);
+
+          if (attempt < wsMaxConnectRetries) {
+            console.log(`   Retrying in ${wsConnectRetryDelayMs / 1000}s...`);
+            await this.sleep(wsConnectRetryDelayMs);
+          }
+        }
       }
-    } catch (error) {
-      // Fallback to HTTP with polling
-      console.warn('WebSocket unavailable, falling back to HTTP polling');
-      this.provider = new ethers.JsonRpcProvider(this.config.rpcUrl);
-      this.useWebSocket = false;
+
+      console.warn(`⚠️ All ${wsMaxConnectRetries} WebSocket attempts failed, falling back to HTTP polling`);
+    } else {
+      console.log('ℹ️ No WebSocket URL provided, using HTTP polling');
     }
 
-    // Initialize contract instances
-    this.router = new ethers.Contract(this.config.routerAddress, this.routerAbi, this.provider);
+    // Fallback to HTTP polling
+    await this.connectHttp();
+  }
 
+  /**
+   * Connect via WebSocket with timeout
+   */
+  private async connectWebSocketWithTimeout(): Promise<void> {
+    const { wsConnectTimeoutMs } = this.connectionConfig;
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error(`WebSocket connection timeout after ${wsConnectTimeoutMs}ms`));
+      }, wsConnectTimeoutMs);
+
+      try {
+        const wsProvider = new ethers.WebSocketProvider(this.config.wsRpcUrl!);
+
+        // Test connection by getting block number
+        wsProvider.getBlockNumber()
+          .then(() => {
+            clearTimeout(timeout);
+            this.provider = wsProvider;
+            resolve();
+          })
+          .catch((error) => {
+            clearTimeout(timeout);
+            // Clean up the provider on failure
+            wsProvider.destroy().catch(() => {});
+            reject(error);
+          });
+      } catch (error) {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    });
+  }
+
+  /**
+   * Connect via HTTP (fallback mode)
+   */
+  private async connectHttp(): Promise<void> {
+    this.connectionState = 'HTTP_FALLBACK';
+    this.useWebSocket = false;
+    this.provider = new ethers.JsonRpcProvider(this.config.rpcUrl);
+
+    // Verify HTTP connection
+    try {
+      await this.provider.getBlockNumber();
+      console.log('✓ Connected via HTTP polling (fallback mode)');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      throw new Error(`HTTP connection failed: ${errorMessage}`);
+    }
+
+    this.initializeContracts();
+
+    // Start WS recovery loop if WS URL is configured
+    if (this.config.wsRpcUrl) {
+      this.startWsRecoveryLoop();
+    }
+  }
+
+  /**
+   * Initialize contract instances
+   */
+  private initializeContracts(): void {
+    this.router = new ethers.Contract(this.config.routerAddress, this.routerAbi, this.provider);
     this.coordinator = new ethers.Contract(
       this.config.coordinatorAddress,
       this.coordinatorAbi,
       this.provider
     );
+  }
+
+  /**
+   * Start WS recovery loop when in HTTP fallback mode
+   */
+  private startWsRecoveryLoop(): void {
+    if (this.wsRecoveryInterval) {
+      clearInterval(this.wsRecoveryInterval);
+    }
+
+    const { wsRecoveryIntervalMs } = this.connectionConfig;
+    console.log(`🔄 Starting WS recovery loop (every ${wsRecoveryIntervalMs / 1000}s)`);
+
+    this.wsRecoveryInterval = setInterval(async () => {
+      if (this.connectionState !== 'HTTP_FALLBACK') {
+        // Already recovered or in different state
+        this.stopWsRecoveryLoop();
+        return;
+      }
+
+      console.log('🔌 Attempting WebSocket recovery...');
+
+      try {
+        await this.connectWebSocketWithTimeout();
+
+        // Success! Switch back to WebSocket
+        console.log('✓ WebSocket connection recovered!');
+
+        // Stop HTTP polling
+        this.stopPolling();
+
+        // Update state
+        this.connectionState = 'WS_ACTIVE';
+        this.useWebSocket = true;
+
+        // Reinitialize contracts with new provider
+        this.initializeContracts();
+
+        // Replay any missed events
+        await this.replayMissedEvents();
+
+        // Start WebSocket listening
+        await this.startWebSocketListening();
+
+        // Stop recovery loop
+        this.stopWsRecoveryLoop();
+
+        // Emit recovery event
+        this.emit('connectionRecovered', { mode: 'websocket' });
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.log(`   WS recovery failed: ${errorMessage}, will retry in ${wsRecoveryIntervalMs / 1000}s`);
+      }
+    }, wsRecoveryIntervalMs);
+  }
+
+  /**
+   * Stop WS recovery loop
+   */
+  private stopWsRecoveryLoop(): void {
+    if (this.wsRecoveryInterval) {
+      clearInterval(this.wsRecoveryInterval);
+      this.wsRecoveryInterval = null;
+      console.log('🔄 WS recovery loop stopped');
+    }
+  }
+
+  /**
+   * Stop HTTP polling
+   */
+  private stopPolling(): void {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+  }
+
+  /**
+   * Sleep helper
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   async start(): Promise<void> {
@@ -201,6 +424,7 @@ export class EventMonitor extends EventEmitter {
   private handleDisconnect(): void {
     if (this.isReconnecting) return;
     this.isReconnecting = true;
+    this.connectionState = 'WS_RECONNECTING';
 
     // Clear heartbeat during reconnection
     if (this.heartbeatInterval) {
@@ -217,10 +441,13 @@ export class EventMonitor extends EventEmitter {
   private async startPolling(): Promise<void> {
     console.log('Starting HTTP polling (fallback mode)...');
 
-    const pollingInterval = this.config.pollingInterval || 12000; // 12 seconds default
+    // Stop existing polling if any
+    this.stopPolling();
+
+    const pollingIntervalMs = this.config.pollingInterval || 12000; // 12 seconds default
     let lastBlock = await this.provider.getBlockNumber();
 
-    setInterval(async () => {
+    this.pollingInterval = setInterval(async () => {
       try {
         const currentBlock = await this.provider.getBlockNumber();
         if (currentBlock > lastBlock) {
@@ -243,7 +470,7 @@ export class EventMonitor extends EventEmitter {
       } catch (error) {
         console.error('Polling error:', error);
       }
-    }, pollingInterval);
+    }, pollingIntervalMs);
   }
 
   private async processEvent(event: any): Promise<void> {
@@ -274,9 +501,20 @@ export class EventMonitor extends EventEmitter {
   private async reconnect(): Promise<void> {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error('Max reconnection attempts reached. Falling back to HTTP polling.');
-      this.useWebSocket = false;
-      await this.connect();
+
+      // Clean up old provider
+      if (this.provider instanceof ethers.WebSocketProvider) {
+        try {
+          await this.provider.destroy();
+        } catch {
+          // Ignore destroy errors
+        }
+      }
+
+      // Switch to HTTP with WS recovery loop
+      await this.connectHttp();
       await this.startPolling();
+      this.reconnectAttempts = 0;
       return;
     }
 
@@ -285,7 +523,7 @@ export class EventMonitor extends EventEmitter {
       `🔄 Reconnecting in ${backoff}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})`
     );
 
-    await new Promise((resolve) => setTimeout(resolve, backoff));
+    await this.sleep(backoff);
 
     try {
       // Clean up old listeners before reconnecting
@@ -300,7 +538,11 @@ export class EventMonitor extends EventEmitter {
         }
       }
 
-      await this.connect();
+      // Try WebSocket reconnection with timeout
+      await this.connectWebSocketWithTimeout();
+      this.connectionState = 'WS_ACTIVE';
+      this.useWebSocket = true;
+      this.initializeContracts();
 
       // Replay any missed events since last checkpoint
       await this.replayMissedEvents();
@@ -309,8 +551,12 @@ export class EventMonitor extends EventEmitter {
       console.log('✓ Reconnected successfully');
       this.reconnectAttempts = 0;
       this.lastEventTime = Date.now();
+
+      // Emit reconnection event
+      this.emit('connectionRecovered', { mode: 'websocket' });
     } catch (error) {
-      console.error('Reconnection failed:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`Reconnection failed: ${errorMessage}`);
       this.reconnectAttempts++;
       await this.reconnect();
     }
@@ -335,6 +581,12 @@ export class EventMonitor extends EventEmitter {
       this.heartbeatInterval = null;
     }
 
+    // Stop WS recovery loop
+    this.stopWsRecoveryLoop();
+
+    // Stop HTTP polling
+    this.stopPolling();
+
     if (this.router) {
       this.router.removeAllListeners();
     }
@@ -344,5 +596,7 @@ export class EventMonitor extends EventEmitter {
     if (this.provider instanceof ethers.WebSocketProvider) {
       await this.provider.destroy();
     }
+
+    this.connectionState = 'INIT';
   }
 }

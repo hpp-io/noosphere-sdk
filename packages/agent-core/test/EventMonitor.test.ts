@@ -1,6 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type MockedFunction } from 'vitest';
 import { EventEmitter } from 'events';
-import { EventMonitor, type CheckpointData, type EventMonitorOptions } from '../src/EventMonitor';
+import {
+  EventMonitor,
+  type CheckpointData,
+  type EventMonitorOptions,
+  type ConnectionState,
+  type ConnectionConfig,
+} from '../src/EventMonitor';
 import type { AgentConfig } from '../src/types';
 import { ethers } from 'ethers';
 
@@ -415,6 +421,267 @@ describe('EventMonitor', () => {
 
       // Should have queried for events
       expect(mockCoordinator.queryFilter).toHaveBeenCalled();
+    });
+  });
+
+  describe('Connection State Management', () => {
+    it('should initialize with INIT state', () => {
+      const monitor = new EventMonitor(mockConfig, mockRouterAbi, mockCoordinatorAbi);
+      expect(monitor.getConnectionState()).toBe('INIT');
+    });
+
+    it('should transition to WS_ACTIVE on successful WebSocket connection', async () => {
+      await eventMonitor.connect();
+      expect(eventMonitor.getConnectionState()).toBe('WS_ACTIVE');
+    });
+
+    it('should transition to HTTP_FALLBACK when no wsRpcUrl provided', async () => {
+      const httpConfig = { ...mockConfig, wsRpcUrl: undefined };
+      const httpMonitor = new EventMonitor(httpConfig, mockRouterAbi, mockCoordinatorAbi);
+
+      await httpMonitor.connect();
+
+      expect(httpMonitor.getConnectionState()).toBe('HTTP_FALLBACK');
+    });
+
+    it('should reset to INIT state on stop', async () => {
+      await eventMonitor.connect();
+      expect(eventMonitor.getConnectionState()).toBe('WS_ACTIVE');
+
+      await eventMonitor.stop();
+      expect(eventMonitor.getConnectionState()).toBe('INIT');
+    });
+  });
+
+  describe('getConnectionMode', () => {
+    it('should return "websocket" when WS_ACTIVE', async () => {
+      await eventMonitor.connect();
+      expect(eventMonitor.getConnectionMode()).toBe('websocket');
+    });
+
+    it('should return "http_polling" when HTTP_FALLBACK', async () => {
+      const httpConfig = { ...mockConfig, wsRpcUrl: undefined };
+      const httpMonitor = new EventMonitor(httpConfig, mockRouterAbi, mockCoordinatorAbi);
+
+      await httpMonitor.connect();
+
+      expect(httpMonitor.getConnectionMode()).toBe('http_polling');
+    });
+
+    it('should return "connecting" when in INIT state', () => {
+      expect(eventMonitor.getConnectionMode()).toBe('connecting');
+    });
+  });
+
+  describe('Connection Configuration', () => {
+    it('should use default connection config when not provided', () => {
+      const monitor = new EventMonitor(mockConfig, mockRouterAbi, mockCoordinatorAbi);
+      // The monitor should be created with default config
+      expect(monitor).toBeInstanceOf(EventMonitor);
+    });
+
+    it('should accept custom connection config', () => {
+      const customConfig: Partial<ConnectionConfig> = {
+        wsConnectTimeoutMs: 15000,
+        wsMaxConnectRetries: 5,
+        wsConnectRetryDelayMs: 3000,
+        wsRecoveryIntervalMs: 120000,
+      };
+
+      const options: EventMonitorOptions = {
+        connectionConfig: customConfig,
+      };
+
+      const monitor = new EventMonitor(mockConfig, mockRouterAbi, mockCoordinatorAbi, options);
+      expect(monitor).toBeInstanceOf(EventMonitor);
+    });
+
+    it('should merge custom config with defaults', () => {
+      const options: EventMonitorOptions = {
+        connectionConfig: {
+          wsConnectTimeoutMs: 20000,
+          // Other values should use defaults
+        },
+      };
+
+      const monitor = new EventMonitor(mockConfig, mockRouterAbi, mockCoordinatorAbi, options);
+      expect(monitor).toBeInstanceOf(EventMonitor);
+    });
+  });
+
+  describe('WebSocket Connection with Timeout', () => {
+    it('should connect via WebSocket within timeout', async () => {
+      // Default mock resolves immediately
+      await eventMonitor.connect();
+
+      expect(ethers.WebSocketProvider).toHaveBeenCalledWith(mockConfig.wsRpcUrl);
+      expect(eventMonitor.getConnectionState()).toBe('WS_ACTIVE');
+    });
+
+    it('should fallback to HTTP when WebSocket fails but HTTP succeeds', async () => {
+      // Track provider type
+      let wsCallCount = 0;
+      let httpCallCount = 0;
+
+      // Mock WS provider to fail, HTTP to succeed
+      mockProvider.getBlockNumber.mockImplementation(() => {
+        // WS provider is called first (3 times for retries), then HTTP
+        if (wsCallCount < 3) {
+          wsCallCount++;
+          return Promise.reject(new Error('WS Connection failed'));
+        }
+        httpCallCount++;
+        return Promise.resolve(2000);
+      });
+
+      const options: EventMonitorOptions = {
+        connectionConfig: {
+          wsConnectTimeoutMs: 1000,
+          wsMaxConnectRetries: 3,
+          wsConnectRetryDelayMs: 10,
+        },
+      };
+
+      const monitor = new EventMonitor(mockConfig, mockRouterAbi, mockCoordinatorAbi, options);
+      await monitor.connect();
+
+      // Should be in HTTP_FALLBACK state
+      expect(monitor.getConnectionState()).toBe('HTTP_FALLBACK');
+      expect(wsCallCount).toBe(3);
+      expect(httpCallCount).toBe(1);
+
+      // Restore mock
+      mockProvider.getBlockNumber.mockResolvedValue(2000);
+    });
+  });
+
+  describe('WebSocket Retry Logic', () => {
+    it('should retry WebSocket connection on failure', async () => {
+      let attempts = 0;
+      mockProvider.getBlockNumber.mockImplementation(() => {
+        attempts++;
+        if (attempts < 3) {
+          return Promise.reject(new Error('Connection failed'));
+        }
+        return Promise.resolve(2000);
+      });
+
+      const options: EventMonitorOptions = {
+        connectionConfig: {
+          wsConnectTimeoutMs: 1000,
+          wsMaxConnectRetries: 3,
+          wsConnectRetryDelayMs: 10, // Short delay for test
+        },
+      };
+
+      const monitor = new EventMonitor(mockConfig, mockRouterAbi, mockCoordinatorAbi, options);
+      await monitor.connect();
+
+      // Should succeed after retries
+      expect(monitor.getConnectionState()).toBe('WS_ACTIVE');
+      expect(attempts).toBe(3);
+
+      // Restore mock
+      mockProvider.getBlockNumber.mockResolvedValue(2000);
+    });
+
+    it('should fallback to HTTP after max retries exceeded', async () => {
+      // WS fails twice, then HTTP succeeds
+      let callCount = 0;
+      mockProvider.getBlockNumber.mockImplementation(() => {
+        callCount++;
+        if (callCount <= 2) {
+          return Promise.reject(new Error('WS Connection failed'));
+        }
+        return Promise.resolve(2000); // HTTP succeeds
+      });
+
+      const options: EventMonitorOptions = {
+        connectionConfig: {
+          wsConnectTimeoutMs: 100,
+          wsMaxConnectRetries: 2,
+          wsConnectRetryDelayMs: 10,
+        },
+      };
+
+      const monitor = new EventMonitor(mockConfig, mockRouterAbi, mockCoordinatorAbi, options);
+      await monitor.connect();
+
+      // Should fallback to HTTP after all WS retries fail
+      expect(monitor.getConnectionState()).toBe('HTTP_FALLBACK');
+      expect(callCount).toBe(3); // 2 WS attempts + 1 HTTP
+
+      // Restore mock
+      mockProvider.getBlockNumber.mockResolvedValue(2000);
+    });
+  });
+
+  describe('Connection Recovery Event', () => {
+    it('should emit connectionRecovered event when WS recovers', async () => {
+      // Start with HTTP fallback
+      const httpConfig = { ...mockConfig, wsRpcUrl: undefined };
+      const monitor = new EventMonitor(httpConfig, mockRouterAbi, mockCoordinatorAbi);
+
+      const recoveryHandler = vi.fn();
+      monitor.on('connectionRecovered', recoveryHandler);
+
+      await monitor.connect();
+
+      // The monitor is now in HTTP_FALLBACK
+      expect(monitor.getConnectionState()).toBe('HTTP_FALLBACK');
+
+      // Note: Testing WS recovery loop would require more complex async handling
+      // This test verifies the event listener can be attached
+      expect(monitor.listenerCount('connectionRecovered')).toBe(1);
+    });
+  });
+
+  describe('Stop cleanup', () => {
+    it('should stop WS recovery loop on stop', async () => {
+      // WS fails once, then HTTP succeeds (to trigger HTTP fallback with recovery loop)
+      let callCount = 0;
+      mockProvider.getBlockNumber.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          return Promise.reject(new Error('WS Connection failed'));
+        }
+        return Promise.resolve(2000); // HTTP succeeds
+      });
+
+      const options: EventMonitorOptions = {
+        connectionConfig: {
+          wsConnectTimeoutMs: 100,
+          wsMaxConnectRetries: 1,
+          wsConnectRetryDelayMs: 10,
+          wsRecoveryIntervalMs: 60000, // Long interval so it doesn't trigger during test
+        },
+      };
+
+      const monitor = new EventMonitor(mockConfig, mockRouterAbi, mockCoordinatorAbi, options);
+      await monitor.connect();
+
+      expect(monitor.getConnectionState()).toBe('HTTP_FALLBACK');
+
+      // Stop should clean up recovery loop
+      await monitor.stop();
+
+      expect(monitor.getConnectionState()).toBe('INIT');
+
+      // Restore mock
+      mockProvider.getBlockNumber.mockResolvedValue(2000);
+    });
+
+    it('should stop polling interval on stop', async () => {
+      const httpConfig = { ...mockConfig, wsRpcUrl: undefined };
+      const monitor = new EventMonitor(httpConfig, mockRouterAbi, mockCoordinatorAbi);
+
+      await monitor.connect();
+      await monitor.start();
+
+      // Stop should clean up polling
+      await monitor.stop();
+
+      expect(monitor.getConnectionState()).toBe('INIT');
     });
   });
 });

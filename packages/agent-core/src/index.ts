@@ -1,5 +1,10 @@
 export { EventMonitor } from './EventMonitor';
-export type { CheckpointData } from './EventMonitor';
+export type {
+  CheckpointData,
+  ConnectionState,
+  ConnectionConfig,
+  EventMonitorOptions,
+} from './EventMonitor';
 export { ContainerManager } from './ContainerManager';
 export { NoosphereAgent } from './NoosphereAgent';
 export type {

@@ -1036,4 +1036,20 @@ export class NoosphereAgent {
   getScheduler(): SchedulerService {
     return this.scheduler;
   }
+
+  /**
+   * Get current connection state
+   * @returns Connection state: 'INIT' | 'WS_CONNECTING' | 'WS_ACTIVE' | 'WS_RECONNECTING' | 'HTTP_FALLBACK'
+   */
+  getConnectionState(): string {
+    return this.eventMonitor.getConnectionState();
+  }
+
+  /**
+   * Get current connection mode
+   * @returns Connection mode: 'websocket' | 'http_polling' | 'connecting'
+   */
+  getConnectionMode(): 'websocket' | 'http_polling' | 'connecting' {
+    return this.eventMonitor.getConnectionMode();
+  }
 }
