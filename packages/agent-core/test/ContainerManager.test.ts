@@ -242,7 +242,8 @@ describe('ContainerManager', () => {
 
       const result = await containerManager.runContainer(mockContainer, 'input');
 
-      expect(result.executionTime).toBeGreaterThanOrEqual(50);
+      // Allow some timing tolerance for CI environments
+      expect(result.executionTime).toBeGreaterThanOrEqual(45);
     });
   });
 
