@@ -37,11 +37,6 @@
         "internalType": "struct SubscriptionBatchReader.IntervalStatus[]",
         "components": [
           {
-            "name": "redundancyCount",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
             "name": "commitmentExists",
             "type": "bool",
             "internalType": "bool"
@@ -121,11 +116,6 @@
             "name": "verifier",
             "type": "address",
             "internalType": "address payable"
-          },
-          {
-            "name": "redundancy",
-            "type": "uint16",
-            "internalType": "uint16"
           },
           {
             "name": "useDeliveryInbox",

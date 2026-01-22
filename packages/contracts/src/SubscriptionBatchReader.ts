@@ -51,7 +51,6 @@ export class SubscriptionBatchReaderContract {
     const statuses = await this.contract.getIntervalStatuses(ids, intervals);
 
     return statuses.map((status: any) => ({
-      redundancyCount: Number(status.redundancyCount),
       commitmentExists: status.commitmentExists,
     }));
   }
@@ -90,7 +89,6 @@ export class SubscriptionBatchReaderContract {
       wallet: sub.wallet,
       feeToken: sub.feeToken,
       verifier: sub.verifier,
-      redundancy: Number(sub.redundancy),
       useDeliveryInbox: sub.useDeliveryInbox,
     };
   }

@@ -45,6 +45,38 @@
   },
   {
     "type": "function",
+    "name": "areValidWallets",
+    "inputs": [
+      {
+        "name": "walletAddrs",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "callbackGasLimit",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "cancelComputeSubscription",
     "inputs": [
       {
@@ -87,11 +119,6 @@
         "name": "intervalSeconds",
         "type": "uint32",
         "internalType": "uint32"
-      },
-      {
-        "name": "redundancy",
-        "type": "uint16",
-        "internalType": "uint16"
       },
       {
         "name": "useDeliveryInbox",
@@ -203,11 +230,6 @@
             "internalType": "address payable"
           },
           {
-            "name": "redundancy",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
             "name": "useDeliveryInbox",
             "type": "bool",
             "internalType": "bool"
@@ -287,11 +309,6 @@
             "name": "verifier",
             "type": "address",
             "internalType": "address payable"
-          },
-          {
-            "name": "redundancy",
-            "type": "uint16",
-            "internalType": "uint16"
           },
           {
             "name": "useDeliveryInbox",
@@ -428,11 +445,6 @@
         ]
       },
       {
-        "name": "numRedundantDeliveries",
-        "type": "uint16",
-        "internalType": "uint16"
-      },
-      {
         "name": "nodeWallet",
         "type": "address",
         "internalType": "address"
@@ -490,11 +502,6 @@
             "internalType": "bool"
           },
           {
-            "name": "redundancy",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
             "name": "walletAddress",
             "type": "address",
             "internalType": "address"
@@ -518,6 +525,11 @@
             "name": "coordinator",
             "type": "address",
             "internalType": "address"
+          },
+          {
+            "name": "verifierFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       }
@@ -598,11 +610,6 @@
             "internalType": "address payable"
           },
           {
-            "name": "redundancy",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
             "name": "useDeliveryInbox",
             "type": "bool",
             "internalType": "bool"
@@ -646,6 +653,35 @@
         "name": "",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getIntervalAndValidateWallets",
+    "inputs": [
+      {
+        "name": "subscriptionId",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "walletAddrs",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "interval",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "allWalletsValid",
+        "type": "bool",
+        "internalType": "bool"
       }
     ],
     "stateMutability": "view"
@@ -1030,11 +1066,6 @@
             "internalType": "bool"
           },
           {
-            "name": "redundancy",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
             "name": "walletAddress",
             "type": "address",
             "internalType": "address"
@@ -1058,10 +1089,28 @@
             "name": "coordinator",
             "type": "address",
             "internalType": "address"
+          },
+          {
+            "name": "verifierFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       }
     ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setCallbackGasLimit",
+    "inputs": [
+      {
+        "name": "_callbackGasLimit",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [],
     "stateMutability": "nonpayable"
   },
   {
@@ -1164,6 +1213,93 @@
   },
   {
     "type": "function",
+    "name": "unlockAndPayForVerification",
+    "inputs": [
+      {
+        "name": "proofRequest",
+        "type": "tuple",
+        "internalType": "struct ProofVerificationRequest",
+        "components": [
+          {
+            "name": "subscriptionId",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "interval",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "submitterAddress",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "submitterWallet",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "escrowedAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "escrowToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "slashAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "expiry",
+            "type": "uint32",
+            "internalType": "uint32"
+          }
+        ]
+      },
+      {
+        "name": "spenderWallet",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "spenderAddress",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "payments",
+        "type": "tuple[]",
+        "internalType": "struct Payment[]",
+        "components": [
+          {
+            "name": "recipient",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "feeToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "feeAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "unlockForVerification",
     "inputs": [
       {
@@ -1230,6 +1366,44 @@
     "inputs": [],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "CallbackFailed",
+    "inputs": [
+      {
+        "name": "subscriptionId",
+        "type": "uint64",
+        "indexed": true,
+        "internalType": "uint64"
+      },
+      {
+        "name": "interval",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "client",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "CallbackGasLimitSet",
+    "inputs": [
+      {
+        "name": "newCallbackGasLimit",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -1503,12 +1677,6 @@
         "internalType": "uint32"
       },
       {
-        "name": "redundancy",
-        "type": "uint16",
-        "indexed": false,
-        "internalType": "uint16"
-      },
-      {
         "name": "useDeliveryInbox",
         "type": "bool",
         "indexed": false,
@@ -1673,6 +1841,11 @@
   },
   {
     "type": "error",
+    "name": "CoordinatorNotFound",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "DuplicateRequestId",
     "inputs": [
       {
@@ -1753,6 +1926,11 @@
   {
     "type": "error",
     "name": "InvalidWallet",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidWalletFactoryAddress",
     "inputs": []
   },
   {
@@ -1861,6 +2039,11 @@
   {
     "type": "error",
     "name": "TokenMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "WalletFactoryAlreadySet",
     "inputs": []
   }
 ]

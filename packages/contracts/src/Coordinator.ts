@@ -1,6 +1,18 @@
-import { Contract, Provider, Signer, EventLog, ContractTransactionResponse, ethers } from 'ethers';
+import { Contract, Provider, Signer, EventLog, ContractTransactionResponse, ethers, AccessList } from 'ethers';
 import CoordinatorABI from './abis/Coordinator.abi.json';
 import type { Commitment, ProofVerificationRequest, PayloadData } from './types';
+
+/**
+ * Transaction options for reportComputeResult
+ */
+export interface ReportComputeResultOptions {
+  /** Pre-computed access list for gas optimization */
+  accessList?: AccessList;
+  /** Auto-generate access list using eth_createAccessList (default: false) */
+  autoAccessList?: boolean;
+  /** Gas limit override */
+  gasLimit?: bigint;
+}
 
 /**
  * CoordinatorContract
@@ -26,7 +38,6 @@ export class CoordinatorContract {
     subscriptionId: bigint,
     containerId: string,
     interval: number,
-    redundancy: number,
     useDeliveryInbox: boolean,
     feeToken: string,
     feeAmount: bigint,
@@ -38,7 +49,6 @@ export class CoordinatorContract {
       subscriptionId,
       containerId,
       interval,
-      redundancy,
       useDeliveryInbox,
       feeToken,
       feeAmount,
@@ -67,23 +77,113 @@ export class CoordinatorContract {
    * @param proof - PayloadData containing contentHash and uri for proof
    * @param commitmentData - ABI-encoded commitment data
    * @param nodeWallet - Address of the node's payment wallet
+   * @param options - Optional transaction options (accessList, autoAccessList, gasLimit)
    */
   async reportComputeResult(
     deliveryInterval: number,
     input: PayloadData,
     output: PayloadData,
     proof: PayloadData,
-    commitmentData: Uint8Array,
-    nodeWallet: string
+    commitmentData: Uint8Array | string,
+    nodeWallet: string,
+    options?: ReportComputeResultOptions
   ): Promise<ContractTransactionResponse> {
-    return this.contract.reportComputeResult(
+    const args = [
       deliveryInterval,
       this.encodePayloadData(input),
       this.encodePayloadData(output),
       this.encodePayloadData(proof),
       commitmentData,
       nodeWallet
-    );
+    ];
+
+    // Build transaction overrides
+    const overrides: any = {};
+
+    if (options?.gasLimit) {
+      overrides.gasLimit = options.gasLimit;
+    }
+
+    // Handle access list
+    if (options?.accessList) {
+      // Use provided access list
+      overrides.accessList = options.accessList;
+      console.log('  📋 Using provided access list');
+    } else if (options?.autoAccessList) {
+      // Auto-generate access list
+      console.log('  📋 Auto-generating access list...');
+      const accessList = await this.createAccessList(
+        deliveryInterval,
+        input,
+        output,
+        proof,
+        commitmentData,
+        nodeWallet
+      );
+      if (accessList) {
+        overrides.accessList = accessList;
+      }
+    }
+
+    // Call with or without overrides
+    if (Object.keys(overrides).length > 0) {
+      return this.contract.reportComputeResult(...args, overrides);
+    }
+    return this.contract.reportComputeResult(...args);
+  }
+
+  /**
+   * Create access list for reportComputeResult transaction
+   * Uses eth_createAccessList RPC to determine optimal access list
+   * @returns AccessList or null if creation fails
+   */
+  async createAccessList(
+    deliveryInterval: number,
+    input: PayloadData,
+    output: PayloadData,
+    proof: PayloadData,
+    commitmentData: Uint8Array | string,
+    nodeWallet: string
+  ): Promise<AccessList | null> {
+    try {
+      const provider = this.contract.runner?.provider as ethers.JsonRpcProvider | undefined;
+      console.log(`  📋 createAccessList: provider=${!!provider}, send=${typeof provider?.send}`);
+      if (!provider || typeof provider.send !== 'function') {
+        console.warn('  ⚠️ No JsonRpcProvider available for access list creation');
+        return null;
+      }
+
+      // Encode the function call
+      const calldata = this.contract.interface.encodeFunctionData('reportComputeResult', [
+        deliveryInterval,
+        this.encodePayloadData(input),
+        this.encodePayloadData(output),
+        this.encodePayloadData(proof),
+        commitmentData,
+        nodeWallet
+      ]);
+
+      // Get signer address
+      const signer = this.contract.runner as Signer;
+      const from = await signer.getAddress();
+
+      // Call eth_createAccessList
+      const result = await provider.send('eth_createAccessList', [{
+        from,
+        to: this.contract.target,
+        data: calldata,
+      }]);
+
+      if (result?.accessList) {
+        console.log(`  📋 Access list created with ${result.accessList.length} entries`);
+        return result.accessList;
+      }
+
+      return null;
+    } catch (error) {
+      console.warn('Failed to create access list:', error);
+      return null;
+    }
   }
 
   /**
@@ -92,7 +192,12 @@ export class CoordinatorContract {
    * @returns Tuple format expected by contract
    */
   private encodePayloadData(payload: PayloadData): [string, Uint8Array] {
-    return [payload.contentHash, ethers.toUtf8Bytes(payload.uri)];
+    // If URI is already hex-encoded (starts with 0x), convert directly to bytes
+    // Otherwise, encode as UTF-8 bytes
+    const uriBytes = payload.uri.startsWith('0x')
+      ? ethers.getBytes(payload.uri)
+      : ethers.toUtf8Bytes(payload.uri);
+    return [payload.contentHash, uriBytes];
   }
 
   /**
@@ -149,14 +254,6 @@ export class CoordinatorContract {
    */
   async requestCommitments(requestId: string): Promise<string> {
     return this.contract.requestCommitments(requestId);
-  }
-
-  /**
-   * Get redundancy count for a request
-   */
-  async redundancyCount(requestId: string): Promise<number> {
-    const count = await this.contract.redundancyCount(requestId);
-    return Number(count);
   }
 
   /*//////////////////////////////////////////////////////////////////////////
@@ -226,15 +323,15 @@ export class CoordinatorContract {
     return {
       requestId: commitment.requestId,
       subscriptionId: BigInt(commitment.subscriptionId),
-      interval: Number(commitment.interval),
-      redundancy: Number(commitment.redundancy),
       containerId: commitment.containerId,
-      client: commitment.client,
-      wallet: commitment.wallet,
-      feeToken: commitment.feeToken,
-      feeAmount: BigInt(commitment.feeAmount),
-      verifier: commitment.verifier,
+      interval: Number(commitment.interval),
       useDeliveryInbox: commitment.useDeliveryInbox,
+      walletAddress: commitment.walletAddress,
+      feeAmount: BigInt(commitment.feeAmount),
+      feeToken: commitment.feeToken,
+      verifier: commitment.verifier,
+      coordinator: commitment.coordinator,
+      verifierFee: BigInt(commitment.verifierFee),
     };
   }
 }

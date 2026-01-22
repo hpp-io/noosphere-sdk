@@ -134,10 +134,10 @@ async function runAgent(): Promise<void> {
 
   // ABIs (in production, load from @noosphere/contracts)
   const routerAbi = [
-    'event RequestStarted(bytes32 indexed requestId, uint256 indexed subscriptionId, bytes32 containerId, uint256 interval, uint8 redundancy, bool useDeliveryInbox, uint256 feeAmount, address feeToken, address verifier, address coordinator)',
+    'event RequestStarted(bytes32 indexed requestId, uint256 indexed subscriptionId, bytes32 containerId, uint256 interval, bool useDeliveryInbox, uint256 feeAmount, address feeToken, address verifier, address coordinator)',
   ];
   const coordinatorAbi = [
-    'function redundancyCount(bytes32 requestId) view returns (uint8)',
+    'function requestCommitments(bytes32 requestId) view returns (bytes32)',
     'function fulfill(bytes32 requestId, bytes memory result, bytes memory proof) external returns (uint8)',
   ];
 

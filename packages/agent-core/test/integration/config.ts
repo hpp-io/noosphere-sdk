@@ -53,8 +53,6 @@ export const testConfig = {
     defaultFee: '1000000000000000',
     // 인터벌 (초)
     intervalSeconds: 60,
-    // redundancy
-    redundancy: 1,
   },
 
   // 타임아웃 설정

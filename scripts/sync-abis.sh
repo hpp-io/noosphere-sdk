@@ -29,6 +29,18 @@ if [ -f "$EVM_PATH/SubscriptionBatchReader.sol/SubscriptionBatchReader.abi.json"
   echo "✓ SubscriptionBatchReader.abi.json"
 fi
 
+# Copy IRouter ABI
+if [ -f "$EVM_PATH/IRouter.sol/IRouter.abi.json" ]; then
+  cp "$EVM_PATH/IRouter.sol/IRouter.abi.json" "$CONTRACTS_ABI_PATH/IRouter.abi.json"
+  echo "✓ IRouter.abi.json"
+fi
+
+# Copy Wallet ABI
+if [ -f "$EVM_PATH/Wallet.sol/Wallet.abi.json" ]; then
+  cp "$EVM_PATH/Wallet.sol/Wallet.abi.json" "$CONTRACTS_ABI_PATH/Wallet.abi.json"
+  echo "✓ Wallet.abi.json"
+fi
+
 echo ""
 echo "✅ ABI sync completed!"
 

@@ -34,9 +34,10 @@ const coordinator = new CoordinatorContract(
 const subscription = await router.getComputeSubscription(1n);
 console.log('Subscription:', subscription);
 
-// Check redundancy
-const redundancy = await coordinator.redundancyCount('0x123...');
-console.log('Redundancy count:', redundancy);
+// Check if request has commitment
+const commitmentHash = await coordinator.requestCommitments('0x123...');
+const hasCommitment = commitmentHash !== '0x' + '0'.repeat(64);
+console.log('Has commitment:', hasCommitment);
 ```
 
 ### SubscriptionBatchReader
@@ -137,8 +138,7 @@ console.log('Transaction confirmed:', tx.hash);
 
 **Read Methods:**
 - `getCommitment(subscriptionId, interval)` - Get commitment
-- `redundancyCount(requestId)` - Get redundancy count
-- `requestCommitments(requestId)` - Get request ID
+- `requestCommitments(requestId)` - Get commitment hash for request
 
 **Write Methods:**
 - `startRequest(...)` - Start new request

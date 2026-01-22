@@ -19,7 +19,6 @@ export interface SubscriptionState {
   activeAt: bigint;
   intervalSeconds: bigint;
   maxExecutions: bigint;
-  redundancy: number;
   verifier?: string;
   currentInterval: bigint;
   lastProcessedAt: number;
@@ -406,10 +405,11 @@ export class SchedulerService extends EventEmitter {
    */
   private async hasRequestCommitments(subscriptionId: bigint, interval: bigint): Promise<boolean> {
     try {
-      const redundancy = await this.coordinator.redundancyCount(
+      const commitmentHash = await this.coordinator.requestCommitments(
         this.getRequestId(subscriptionId, interval)
       );
-      return redundancy > 0;
+      // If commitment hash is non-zero, commitment exists
+      return commitmentHash !== '0x0000000000000000000000000000000000000000000000000000000000000000';
     } catch (error) {
       console.error('Error checking commitments:', error);
       return false;
@@ -758,7 +758,6 @@ export class SchedulerService extends EventEmitter {
       activeAt: BigInt(sub.activeAt),
       intervalSeconds: BigInt(sub.intervalSeconds),
       maxExecutions: Number.isFinite(sub.maxExecutions) ? BigInt(sub.maxExecutions) : 0n,
-      redundancy: sub.redundancy,
       verifier: sub.verifier || undefined,
       currentInterval: BigInt(currentInterval),
       lastProcessedAt: Date.now(),
@@ -847,13 +846,13 @@ export class SchedulerService extends EventEmitter {
               subscriptionId: parsed.args.subscriptionId,
               containerId: parsed.args.containerId,
               interval: Number(commitment.interval),
-              redundancy: Number(commitment.redundancy),
               useDeliveryInbox: commitment.useDeliveryInbox,
+              walletAddress: commitment.walletAddress,
               feeAmount: commitment.feeAmount,
               feeToken: commitment.feeToken,
               verifier: commitment.verifier,
               coordinator: commitment.coordinator,
-              walletAddress: commitment.walletAddress,
+              verifierFee: commitment.verifierFee,
               blockNumber: receipt.blockNumber,
             };
           }

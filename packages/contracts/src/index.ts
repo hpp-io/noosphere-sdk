@@ -8,7 +8,7 @@ export * from './typechain';
 
 // Custom contract wrappers (convenience methods and data transformation)
 export { RouterContract } from './Router';
-export { CoordinatorContract } from './Coordinator';
+export { CoordinatorContract, ReportComputeResultOptions } from './Coordinator';
 export { SubscriptionBatchReaderContract } from './SubscriptionBatchReader';
 
 // Custom types

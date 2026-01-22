@@ -484,13 +484,13 @@ export class EventMonitor extends EventEmitter {
       subscriptionId: event.args.subscriptionId,
       containerId: event.args.containerId,
       interval: commitment.interval,
-      redundancy: commitment.redundancy,
       useDeliveryInbox: commitment.useDeliveryInbox,
+      walletAddress: commitment.walletAddress,
       feeAmount: commitment.feeAmount,
       feeToken: commitment.feeToken,
       verifier: commitment.verifier,
       coordinator: commitment.coordinator,
-      walletAddress: commitment.walletAddress,
+      verifierFee: commitment.verifierFee,
       blockNumber: event.blockNumber,
     };
 

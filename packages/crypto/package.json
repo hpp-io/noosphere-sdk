@@ -1,6 +1,6 @@
 {
   "name": "@noosphere/crypto",
-  "version": "0.2.0-alpha.1",
+  "version": "0.2.1-alpha.1",
   "description": "Cryptographic utilities and wallet management for Noosphere SDK",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -51,7 +51,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@noosphere/contracts": "0.2.0-alpha.1",
+    "@noosphere/contracts": "0.2.1-alpha.1",
     "ethers": "^6.13.0"
   },
   "devDependencies": {

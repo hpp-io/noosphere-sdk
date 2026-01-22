@@ -12,56 +12,20 @@ import type {
   ContractRunner,
   ContractMethod,
   Listener,
-} from 'ethers';
+} from "ethers";
 import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
   TypedEventLog,
   TypedListener,
   TypedContractMethod,
-} from './common';
+} from "./common";
 
-export type ComputeSubscriptionStruct = {
-  routeId: BytesLike;
-  containerId: BytesLike;
-  feeAmount: BigNumberish;
-  client: AddressLike;
-  activeAt: BigNumberish;
-  intervalSeconds: BigNumberish;
-  maxExecutions: BigNumberish;
-  wallet: AddressLike;
-  feeToken: AddressLike;
-  verifier: AddressLike;
-  redundancy: BigNumberish;
-  useDeliveryInbox: boolean;
-};
+export type PayloadDataStruct = { contentHash: BytesLike; uri: BytesLike };
 
-export type ComputeSubscriptionStructOutput = [
-  routeId: string,
-  containerId: string,
-  feeAmount: bigint,
-  client: string,
-  activeAt: bigint,
-  intervalSeconds: bigint,
-  maxExecutions: bigint,
-  wallet: string,
-  feeToken: string,
-  verifier: string,
-  redundancy: bigint,
-  useDeliveryInbox: boolean,
-] & {
-  routeId: string;
-  containerId: string;
-  feeAmount: bigint;
-  client: string;
-  activeAt: bigint;
-  intervalSeconds: bigint;
-  maxExecutions: bigint;
-  wallet: string;
-  feeToken: string;
-  verifier: string;
-  redundancy: bigint;
-  useDeliveryInbox: boolean;
+export type PayloadDataStructOutput = [contentHash: string, uri: string] & {
+  contentHash: string;
+  uri: string;
 };
 
 export type PaymentStruct = {
@@ -70,11 +34,11 @@ export type PaymentStruct = {
   feeAmount: BigNumberish;
 };
 
-export type PaymentStructOutput = [recipient: string, feeToken: string, feeAmount: bigint] & {
-  recipient: string;
-  feeToken: string;
-  feeAmount: bigint;
-};
+export type PaymentStructOutput = [
+  recipient: string,
+  feeToken: string,
+  feeAmount: bigint
+] & { recipient: string; feeToken: string; feeAmount: bigint };
 
 export type CommitmentStruct = {
   requestId: BytesLike;
@@ -82,12 +46,12 @@ export type CommitmentStruct = {
   containerId: BytesLike;
   interval: BigNumberish;
   useDeliveryInbox: boolean;
-  redundancy: BigNumberish;
   walletAddress: AddressLike;
   feeAmount: BigNumberish;
   feeToken: AddressLike;
   verifier: AddressLike;
   coordinator: AddressLike;
+  verifierFee: BigNumberish;
 };
 
 export type CommitmentStructOutput = [
@@ -96,24 +60,24 @@ export type CommitmentStructOutput = [
   containerId: string,
   interval: bigint,
   useDeliveryInbox: boolean,
-  redundancy: bigint,
   walletAddress: string,
   feeAmount: bigint,
   feeToken: string,
   verifier: string,
   coordinator: string,
+  verifierFee: bigint
 ] & {
   requestId: string;
   subscriptionId: bigint;
   containerId: string;
   interval: bigint;
   useDeliveryInbox: boolean;
-  redundancy: bigint;
   walletAddress: string;
   feeAmount: bigint;
   feeToken: string;
   verifier: string;
   coordinator: string;
+  verifierFee: bigint;
 };
 
 export type ProofVerificationRequestStruct = {
@@ -135,7 +99,7 @@ export type ProofVerificationRequestStructOutput = [
   escrowedAmount: bigint,
   escrowToken: string,
   slashAmount: bigint,
-  expiry: bigint,
+  expiry: bigint
 ] & {
   subscriptionId: bigint;
   interval: bigint;
@@ -150,98 +114,186 @@ export type ProofVerificationRequestStructOutput = [
 export interface IRouterAbiInterface extends Interface {
   getFunction(
     nameOrSignature:
-      | 'createSubscriptionDelegatee'
-      | 'fulfill'
-      | 'getContractById'
-      | 'getLastSubscriptionId'
-      | 'getProposedContractById'
-      | 'getWalletFactory'
-      | 'hasSubscriptionNextInterval'
-      | 'isValidWallet'
-      | 'lockForVerification'
-      | 'pause'
-      | 'payFromCoordinator'
-      | 'prepareNodeVerification'
-      | 'proposeContractsUpdate'
-      | 'sendRequest'
-      | 'timeoutRequest'
-      | 'unlockForVerification'
-      | 'unpause'
-      | 'updateContracts'
+      | "areValidWallets"
+      | "fulfill"
+      | "getContractById"
+      | "getIntervalAndValidateWallets"
+      | "getLastSubscriptionId"
+      | "getProposedContractById"
+      | "getWalletFactory"
+      | "hasSubscriptionNextInterval"
+      | "isValidWallet"
+      | "lockForVerification"
+      | "pause"
+      | "payFromCoordinator"
+      | "prepareNodeVerification"
+      | "proposeContractsUpdate"
+      | "sendRequest"
+      | "timeoutRequest"
+      | "unlockAndPayForVerification"
+      | "unlockForVerification"
+      | "unpause"
+      | "updateContracts"
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: 'createSubscriptionDelegatee',
-    values: [BigNumberish, BigNumberish, ComputeSubscriptionStruct, BytesLike]
+    functionFragment: "areValidWallets",
+    values: [AddressLike[]]
   ): string;
   encodeFunctionData(
-    functionFragment: 'fulfill',
+    functionFragment: "fulfill",
     values: [
-      BytesLike,
-      BytesLike,
-      BytesLike,
-      BigNumberish,
+      PayloadDataStruct,
+      PayloadDataStruct,
+      PayloadDataStruct,
       AddressLike,
       PaymentStruct[],
-      CommitmentStruct,
+      CommitmentStruct
     ]
   ): string;
-  encodeFunctionData(functionFragment: 'getContractById', values: [BytesLike]): string;
-  encodeFunctionData(functionFragment: 'getLastSubscriptionId', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'getProposedContractById', values: [BytesLike]): string;
-  encodeFunctionData(functionFragment: 'getWalletFactory', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: 'hasSubscriptionNextInterval',
+    functionFragment: "getContractById",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getIntervalAndValidateWallets",
+    values: [BigNumberish, AddressLike[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getLastSubscriptionId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getProposedContractById",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getWalletFactory",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasSubscriptionNextInterval",
     values: [BigNumberish, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: 'isValidWallet', values: [AddressLike]): string;
   encodeFunctionData(
-    functionFragment: 'lockForVerification',
+    functionFragment: "isValidWallet",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "lockForVerification",
     values: [ProofVerificationRequestStruct, BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: 'pause', values?: undefined): string;
+  encodeFunctionData(functionFragment: "pause", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: 'payFromCoordinator',
+    functionFragment: "payFromCoordinator",
     values: [BigNumberish, AddressLike, AddressLike, PaymentStruct[]]
   ): string;
   encodeFunctionData(
-    functionFragment: 'prepareNodeVerification',
+    functionFragment: "prepareNodeVerification",
     values: [BigNumberish, BigNumberish, AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: 'proposeContractsUpdate',
+    functionFragment: "proposeContractsUpdate",
     values: [BytesLike[], AddressLike[]]
   ): string;
-  encodeFunctionData(functionFragment: 'sendRequest', values: [BigNumberish, BigNumberish]): string;
   encodeFunctionData(
-    functionFragment: 'timeoutRequest',
+    functionFragment: "sendRequest",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "timeoutRequest",
     values: [BytesLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: 'unlockForVerification',
+    functionFragment: "unlockAndPayForVerification",
+    values: [
+      ProofVerificationRequestStruct,
+      AddressLike,
+      AddressLike,
+      PaymentStruct[]
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "unlockForVerification",
     values: [ProofVerificationRequestStruct]
   ): string;
-  encodeFunctionData(functionFragment: 'unpause', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'updateContracts', values?: undefined): string;
+  encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "updateContracts",
+    values?: undefined
+  ): string;
 
-  decodeFunctionResult(functionFragment: 'createSubscriptionDelegatee', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'fulfill', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getContractById', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getLastSubscriptionId', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getProposedContractById', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getWalletFactory', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'hasSubscriptionNextInterval', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'isValidWallet', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'lockForVerification', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'pause', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'payFromCoordinator', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'prepareNodeVerification', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'proposeContractsUpdate', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'sendRequest', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'timeoutRequest', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'unlockForVerification', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'unpause', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'updateContracts', data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "areValidWallets",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "fulfill", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getContractById",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getIntervalAndValidateWallets",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getLastSubscriptionId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getProposedContractById",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getWalletFactory",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "hasSubscriptionNextInterval",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isValidWallet",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "lockForVerification",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "payFromCoordinator",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "prepareNodeVerification",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "proposeContractsUpdate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "sendRequest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "timeoutRequest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "unlockAndPayForVerification",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "unlockForVerification",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "updateContracts",
+    data: BytesLike
+  ): Result;
 }
 
 export interface IRouterAbi extends BaseContract {
@@ -283,66 +335,76 @@ export interface IRouterAbi extends BaseContract {
     event: TCEvent
   ): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(event?: TCEvent): Promise<this>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-  createSubscriptionDelegatee: TypedContractMethod<
-    [
-      nonce: BigNumberish,
-      expiry: BigNumberish,
-      sub: ComputeSubscriptionStruct,
-      signature: BytesLike,
-    ],
-    [bigint],
-    'nonpayable'
+  areValidWallets: TypedContractMethod<
+    [walletAddrs: AddressLike[]],
+    [boolean],
+    "view"
   >;
 
   fulfill: TypedContractMethod<
     [
-      input: BytesLike,
-      output: BytesLike,
-      proof: BytesLike,
-      numRedundantDeliveries: BigNumberish,
+      input: PayloadDataStruct,
+      output: PayloadDataStruct,
+      proof: PayloadDataStruct,
       nodeWallet: AddressLike,
       payments: PaymentStruct[],
-      commitment: CommitmentStruct,
+      commitment: CommitmentStruct
     ],
     [bigint],
-    'nonpayable'
+    "nonpayable"
   >;
 
-  getContractById: TypedContractMethod<[id: BytesLike], [string], 'view'>;
+  getContractById: TypedContractMethod<[id: BytesLike], [string], "view">;
 
-  getLastSubscriptionId: TypedContractMethod<[], [bigint], 'view'>;
+  getIntervalAndValidateWallets: TypedContractMethod<
+    [subscriptionId: BigNumberish, walletAddrs: AddressLike[]],
+    [[bigint, boolean] & { interval: bigint; allWalletsValid: boolean }],
+    "view"
+  >;
 
-  getProposedContractById: TypedContractMethod<[id: BytesLike], [string], 'view'>;
+  getLastSubscriptionId: TypedContractMethod<[], [bigint], "view">;
 
-  getWalletFactory: TypedContractMethod<[], [string], 'view'>;
+  getProposedContractById: TypedContractMethod<
+    [id: BytesLike],
+    [string],
+    "view"
+  >;
+
+  getWalletFactory: TypedContractMethod<[], [string], "view">;
 
   hasSubscriptionNextInterval: TypedContractMethod<
     [subscriptionId: BigNumberish, currentInterval: BigNumberish],
     [boolean],
-    'view'
+    "view"
   >;
 
-  isValidWallet: TypedContractMethod<[walletAddr: AddressLike], [boolean], 'view'>;
+  isValidWallet: TypedContractMethod<
+    [walletAddr: AddressLike],
+    [boolean],
+    "view"
+  >;
 
   lockForVerification: TypedContractMethod<
     [proofRequest: ProofVerificationRequestStruct, commitmentHash: BytesLike],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
-  pause: TypedContractMethod<[], [void], 'nonpayable'>;
+  pause: TypedContractMethod<[], [void], "nonpayable">;
 
   payFromCoordinator: TypedContractMethod<
     [
       subscriptionId: BigNumberish,
       spenderWallet: AddressLike,
       spenderAddress: AddressLike,
-      payments: PaymentStruct[],
+      payments: PaymentStruct[]
     ],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
   prepareNodeVerification: TypedContractMethod<
@@ -351,16 +413,16 @@ export interface IRouterAbi extends BaseContract {
       nextInterval: BigNumberish,
       nodeWallet: AddressLike,
       token: AddressLike,
-      amount: BigNumberish,
+      amount: BigNumberish
     ],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
   proposeContractsUpdate: TypedContractMethod<
     [proposalSetIds: BytesLike[], proposalSetAddresses: AddressLike[]],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
   sendRequest: TypedContractMethod<
@@ -369,136 +431,182 @@ export interface IRouterAbi extends BaseContract {
       [string, CommitmentStructOutput] & {
         requestKey: string;
         commitment: CommitmentStructOutput;
-      },
+      }
     ],
-    'nonpayable'
+    "nonpayable"
   >;
 
   timeoutRequest: TypedContractMethod<
-    [requestId: BytesLike, subscriptionId: BigNumberish, interval: BigNumberish],
+    [
+      requestId: BytesLike,
+      subscriptionId: BigNumberish,
+      interval: BigNumberish
+    ],
     [void],
-    'nonpayable'
+    "nonpayable"
+  >;
+
+  unlockAndPayForVerification: TypedContractMethod<
+    [
+      proofRequest: ProofVerificationRequestStruct,
+      spenderWallet: AddressLike,
+      spenderAddress: AddressLike,
+      payments: PaymentStruct[]
+    ],
+    [void],
+    "nonpayable"
   >;
 
   unlockForVerification: TypedContractMethod<
     [proofRequest: ProofVerificationRequestStruct],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
-  unpause: TypedContractMethod<[], [void], 'nonpayable'>;
+  unpause: TypedContractMethod<[], [void], "nonpayable">;
 
-  updateContracts: TypedContractMethod<[], [void], 'nonpayable'>;
+  updateContracts: TypedContractMethod<[], [void], "nonpayable">;
 
-  getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
   getFunction(
-    nameOrSignature: 'createSubscriptionDelegatee'
-  ): TypedContractMethod<
-    [
-      nonce: BigNumberish,
-      expiry: BigNumberish,
-      sub: ComputeSubscriptionStruct,
-      signature: BytesLike,
-    ],
-    [bigint],
-    'nonpayable'
-  >;
+    nameOrSignature: "areValidWallets"
+  ): TypedContractMethod<[walletAddrs: AddressLike[]], [boolean], "view">;
   getFunction(
-    nameOrSignature: 'fulfill'
+    nameOrSignature: "fulfill"
   ): TypedContractMethod<
     [
-      input: BytesLike,
-      output: BytesLike,
-      proof: BytesLike,
-      numRedundantDeliveries: BigNumberish,
+      input: PayloadDataStruct,
+      output: PayloadDataStruct,
+      proof: PayloadDataStruct,
       nodeWallet: AddressLike,
       payments: PaymentStruct[],
-      commitment: CommitmentStruct,
+      commitment: CommitmentStruct
     ],
     [bigint],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'getContractById'
-  ): TypedContractMethod<[id: BytesLike], [string], 'view'>;
-  getFunction(nameOrSignature: 'getLastSubscriptionId'): TypedContractMethod<[], [bigint], 'view'>;
+    nameOrSignature: "getContractById"
+  ): TypedContractMethod<[id: BytesLike], [string], "view">;
   getFunction(
-    nameOrSignature: 'getProposedContractById'
-  ): TypedContractMethod<[id: BytesLike], [string], 'view'>;
-  getFunction(nameOrSignature: 'getWalletFactory'): TypedContractMethod<[], [string], 'view'>;
+    nameOrSignature: "getIntervalAndValidateWallets"
+  ): TypedContractMethod<
+    [subscriptionId: BigNumberish, walletAddrs: AddressLike[]],
+    [[bigint, boolean] & { interval: bigint; allWalletsValid: boolean }],
+    "view"
+  >;
   getFunction(
-    nameOrSignature: 'hasSubscriptionNextInterval'
+    nameOrSignature: "getLastSubscriptionId"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getProposedContractById"
+  ): TypedContractMethod<[id: BytesLike], [string], "view">;
+  getFunction(
+    nameOrSignature: "getWalletFactory"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "hasSubscriptionNextInterval"
   ): TypedContractMethod<
     [subscriptionId: BigNumberish, currentInterval: BigNumberish],
     [boolean],
-    'view'
+    "view"
   >;
   getFunction(
-    nameOrSignature: 'isValidWallet'
-  ): TypedContractMethod<[walletAddr: AddressLike], [boolean], 'view'>;
+    nameOrSignature: "isValidWallet"
+  ): TypedContractMethod<[walletAddr: AddressLike], [boolean], "view">;
   getFunction(
-    nameOrSignature: 'lockForVerification'
+    nameOrSignature: "lockForVerification"
   ): TypedContractMethod<
     [proofRequest: ProofVerificationRequestStruct, commitmentHash: BytesLike],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
-  getFunction(nameOrSignature: 'pause'): TypedContractMethod<[], [void], 'nonpayable'>;
   getFunction(
-    nameOrSignature: 'payFromCoordinator'
+    nameOrSignature: "pause"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "payFromCoordinator"
   ): TypedContractMethod<
     [
       subscriptionId: BigNumberish,
       spenderWallet: AddressLike,
       spenderAddress: AddressLike,
-      payments: PaymentStruct[],
+      payments: PaymentStruct[]
     ],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'prepareNodeVerification'
+    nameOrSignature: "prepareNodeVerification"
   ): TypedContractMethod<
     [
       subscriptionId: BigNumberish,
       nextInterval: BigNumberish,
       nodeWallet: AddressLike,
       token: AddressLike,
-      amount: BigNumberish,
+      amount: BigNumberish
     ],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'proposeContractsUpdate'
+    nameOrSignature: "proposeContractsUpdate"
   ): TypedContractMethod<
     [proposalSetIds: BytesLike[], proposalSetAddresses: AddressLike[]],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
-  getFunction(nameOrSignature: 'sendRequest'): TypedContractMethod<
+  getFunction(
+    nameOrSignature: "sendRequest"
+  ): TypedContractMethod<
     [subscriptionId: BigNumberish, interval: BigNumberish],
     [
       [string, CommitmentStructOutput] & {
         requestKey: string;
         commitment: CommitmentStructOutput;
-      },
+      }
     ],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'timeoutRequest'
+    nameOrSignature: "timeoutRequest"
   ): TypedContractMethod<
-    [requestId: BytesLike, subscriptionId: BigNumberish, interval: BigNumberish],
+    [
+      requestId: BytesLike,
+      subscriptionId: BigNumberish,
+      interval: BigNumberish
+    ],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'unlockForVerification'
-  ): TypedContractMethod<[proofRequest: ProofVerificationRequestStruct], [void], 'nonpayable'>;
-  getFunction(nameOrSignature: 'unpause'): TypedContractMethod<[], [void], 'nonpayable'>;
-  getFunction(nameOrSignature: 'updateContracts'): TypedContractMethod<[], [void], 'nonpayable'>;
+    nameOrSignature: "unlockAndPayForVerification"
+  ): TypedContractMethod<
+    [
+      proofRequest: ProofVerificationRequestStruct,
+      spenderWallet: AddressLike,
+      spenderAddress: AddressLike,
+      payments: PaymentStruct[]
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "unlockForVerification"
+  ): TypedContractMethod<
+    [proofRequest: ProofVerificationRequestStruct],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "unpause"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "updateContracts"
+  ): TypedContractMethod<[], [void], "nonpayable">;
 
   filters: {};
 }
