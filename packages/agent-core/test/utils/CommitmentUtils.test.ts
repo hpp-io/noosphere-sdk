@@ -7,13 +7,13 @@ describe('CommitmentUtils', () => {
     subscriptionId: 1n,
     containerId: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
     interval: 0,
-    redundancy: 1,
     useDeliveryInbox: false,
     feeToken: '0x0000000000000000000000000000000000000000',
     feeAmount: 1000000000000000n, // 0.001 ETH
     walletAddress: '0x1111111111111111111111111111111111111111',
     verifier: '0x0000000000000000000000000000000000000000',
     coordinator: '0x2222222222222222222222222222222222222222',
+    verifierFee: 0n,
   };
 
   describe('hash', () => {
@@ -43,9 +43,9 @@ describe('CommitmentUtils', () => {
       expect(hash1).not.toBe(hash2);
     });
 
-    it('should handle different redundancy values', () => {
-      const commitment1: Commitment = { ...mockCommitment, redundancy: 1 };
-      const commitment2: Commitment = { ...mockCommitment, redundancy: 3 };
+    it('should handle different useDeliveryInbox values', () => {
+      const commitment1: Commitment = { ...mockCommitment, useDeliveryInbox: false };
+      const commitment2: Commitment = { ...mockCommitment, useDeliveryInbox: true };
 
       const hash1 = CommitmentUtils.hash(commitment1);
       const hash2 = CommitmentUtils.hash(commitment2);

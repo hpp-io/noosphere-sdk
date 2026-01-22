@@ -77,7 +77,6 @@ describe('Contract Wrappers with Mocked Calls', () => {
         wallet: '0xWallet',
         feeToken: '0xToken',
         verifier: '0xVerifier',
-        redundancy: 3,
         useDeliveryInbox: true,
       };
 
@@ -98,13 +97,14 @@ describe('Contract Wrappers with Mocked Calls', () => {
           requestId: '0xrequest123',
           subscriptionId: BigInt(1),
           interval: 100,
-          redundancy: 3,
           containerId: '0xcontainer',
           client: '0xClient',
           wallet: '0xWallet',
           feeToken: '0xToken',
           feeAmount: BigInt(500),
           verifier: '0xVerifier',
+          coordinator: '0xCoordinator',
+          verifierFee: BigInt(0),
           useDeliveryInbox: true,
         },
       };
@@ -146,7 +146,6 @@ describe('Contract Wrappers with Mocked Calls', () => {
       const input: PayloadData = { contentHash: '0xinput', uri: 'ipfs://input' };
       const output: PayloadData = { contentHash: '0xoutput', uri: 'ipfs://output' };
       const proof: PayloadData = { contentHash: '0xproof', uri: 'ipfs://proof' };
-      const numRedundantDeliveries = 3;
       const nodeWallet = '0xNodeWallet';
       const payments: Payment[] = [
         { recipient: '0xRecipient', amount: BigInt(1000) },
@@ -155,13 +154,14 @@ describe('Contract Wrappers with Mocked Calls', () => {
         requestId: '0xrequest',
         subscriptionId: BigInt(1),
         interval: 100,
-        redundancy: 3,
         containerId: '0xcontainer',
         client: '0xClient',
         wallet: '0xWallet',
         feeToken: '0xToken',
         feeAmount: BigInt(500),
         verifier: '0xVerifier',
+        coordinator: '0xCoordinator',
+        verifierFee: BigInt(0),
         useDeliveryInbox: true,
       };
 
@@ -172,7 +172,6 @@ describe('Contract Wrappers with Mocked Calls', () => {
         input,
         output,
         proof,
-        numRedundantDeliveries,
         nodeWallet,
         payments,
         commitment
@@ -376,18 +375,6 @@ describe('Contract Wrappers with Mocked Calls', () => {
       coordinator = new CoordinatorContract(testAddress, mockProvider);
     });
 
-    it('should call redundancyCount and return number', async () => {
-      const requestId = '0xrequest123';
-      const expectedCount = BigInt(3);
-
-      vi.spyOn(coordinator.raw, 'redundancyCount').mockResolvedValue(expectedCount);
-
-      const result = await coordinator.redundancyCount(requestId);
-
-      expect(result).toBe(3);
-      expect(coordinator.raw.redundancyCount).toHaveBeenCalledWith(requestId);
-    });
-
     it('should call getCommitment and parse result', async () => {
       const subscriptionId = BigInt(1);
       const interval = 100;
@@ -395,13 +382,14 @@ describe('Contract Wrappers with Mocked Calls', () => {
         requestId: '0xrequest',
         subscriptionId: BigInt(1),
         interval: 100,
-        redundancy: 3,
         containerId: '0xcontainer',
         client: '0xClient',
         wallet: '0xWallet',
         feeToken: '0xToken',
         feeAmount: BigInt(500),
         verifier: '0xVerifier',
+        coordinator: '0xCoordinator',
+        verifierFee: BigInt(0),
         useDeliveryInbox: true,
       };
 
@@ -431,7 +419,6 @@ describe('Contract Wrappers with Mocked Calls', () => {
       const subscriptionId = BigInt(1);
       const containerId = '0xcontainer123';
       const interval = 100;
-      const redundancy = 3;
       const useDeliveryInbox = true;
       const feeToken = '0xToken';
       const feeAmount = BigInt(1000);
@@ -442,13 +429,14 @@ describe('Contract Wrappers with Mocked Calls', () => {
         requestId,
         subscriptionId: BigInt(1),
         interval: 100,
-        redundancy: 3,
         containerId,
         client: '0xClient',
         wallet,
         feeToken,
         feeAmount: BigInt(1000),
         verifier,
+        coordinator: '0xCoordinator',
+        verifierFee: BigInt(0),
         useDeliveryInbox: true,
       };
 
@@ -459,7 +447,6 @@ describe('Contract Wrappers with Mocked Calls', () => {
         subscriptionId,
         containerId,
         interval,
-        redundancy,
         useDeliveryInbox,
         feeToken,
         feeAmount,
@@ -474,7 +461,6 @@ describe('Contract Wrappers with Mocked Calls', () => {
         subscriptionId,
         containerId,
         interval,
-        redundancy,
         useDeliveryInbox,
         feeToken,
         feeAmount,
