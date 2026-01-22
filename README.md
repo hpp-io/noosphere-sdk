@@ -6,11 +6,16 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-%3E%3D18.0.0-green)](https://nodejs.org/)
 
-[![npm @noosphere/sdk](https://img.shields.io/npm/v/@noosphere/sdk.svg?label=@noosphere/sdk)](https://www.npmjs.com/package/@noosphere/sdk)
-[![npm @noosphere/agent-core](https://img.shields.io/npm/v/@noosphere/agent-core.svg?label=@noosphere/agent-core)](https://www.npmjs.com/package/@noosphere/agent-core)
-[![npm @noosphere/contracts](https://img.shields.io/npm/v/@noosphere/contracts.svg?label=@noosphere/contracts)](https://www.npmjs.com/package/@noosphere/contracts)
-[![npm @noosphere/crypto](https://img.shields.io/npm/v/@noosphere/crypto.svg?label=@noosphere/crypto)](https://www.npmjs.com/package/@noosphere/crypto)
-[![npm @noosphere/registry](https://img.shields.io/npm/v/@noosphere/registry.svg?label=@noosphere/registry)](https://www.npmjs.com/package/@noosphere/registry)
+## npm Packages
+
+| Package | Description |
+|---------|-------------|
+| [@noosphere/sdk](https://www.npmjs.com/package/@noosphere/sdk) | Unified meta-package (includes all packages below) |
+| [@noosphere/agent-core](https://www.npmjs.com/package/@noosphere/agent-core) | Core agent functionality for compute request processing |
+| [@noosphere/contracts](https://www.npmjs.com/package/@noosphere/contracts) | Smart contract TypeScript wrappers and ABIs |
+| [@noosphere/crypto](https://www.npmjs.com/package/@noosphere/crypto) | Cryptographic utilities and wallet management |
+| [@noosphere/payload](https://www.npmjs.com/package/@noosphere/payload) | PayloadData utilities for URI-based payload handling |
+| [@noosphere/registry](https://www.npmjs.com/package/@noosphere/registry) | Container and verifier registry |
 
 ## Overview
 
@@ -36,12 +41,26 @@ Noosphere SDK enables you to build and run compute agents that participate in th
 ### Installation
 
 ```bash
-# Install all packages at once
+# Install all packages at once (recommended)
 npm install @noosphere/sdk
 
-# Or install individual packages
-npm install @noosphere/agent-core @noosphere/crypto @noosphere/contracts @noosphere/registry @noosphere/payload
+# Or with yarn
+yarn add @noosphere/sdk
+
+# Or install individual packages as needed
+npm install @noosphere/agent-core  # Core agent functionality
+npm install @noosphere/contracts   # Contract ABIs and wrappers
+npm install @noosphere/crypto      # Wallet management
+npm install @noosphere/payload     # Payload handling (browser compatible)
+npm install @noosphere/registry    # Container discovery
 ```
+
+The `@noosphere/sdk` meta-package includes all sub-packages as dependencies:
+- `@noosphere/agent-core`
+- `@noosphere/contracts`
+- `@noosphere/crypto`
+- `@noosphere/payload`
+- `@noosphere/registry`
 
 ### Basic Example
 
