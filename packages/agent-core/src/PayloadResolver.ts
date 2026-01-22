@@ -296,7 +296,7 @@ export class PayloadResolver {
       const base64 = Buffer.from(serialized, 'utf-8').toString('base64');
       return {
         contentHash: hash,
-        uri: `data:application/json;base64,${base64}`,
+        uri: `data:;base64,${base64}`,
       };
     }
   }
