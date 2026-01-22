@@ -223,7 +223,7 @@ export class PayloadResolver {
    */
   createEmpty(): PayloadData {
     return {
-      contentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      contentHash: ethers.ZeroHash,
       uri: '',
     };
   }

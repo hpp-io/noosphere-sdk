@@ -726,7 +726,7 @@ export class NoosphereAgent {
 
       // Check if already fulfilled (commitment deleted check)
       const commitmentHash = await this.coordinator.requestCommitments(event.requestId);
-      const isAlreadyFulfilled = commitmentHash === '0x0000000000000000000000000000000000000000000000000000000000000000';
+      const isAlreadyFulfilled = commitmentHash === ethers.ZeroHash;
       if (isAlreadyFulfilled) {
         console.log(`  ⏭️  Already fulfilled, skipping`);
         if (this.options.onRequestSkipped) {

@@ -146,9 +146,9 @@ export class CoordinatorContract {
     nodeWallet: string
   ): Promise<AccessList | null> {
     try {
-      const provider = this.contract.runner?.provider as ethers.JsonRpcProvider | undefined;
-      console.log(`  📋 createAccessList: provider=${!!provider}, send=${typeof provider?.send}`);
-      if (!provider || typeof provider.send !== 'function') {
+      const provider = this.contract.runner?.provider;
+      console.log(`  📋 createAccessList: provider=${!!provider}, isJsonRpc=${provider instanceof ethers.JsonRpcProvider}`);
+      if (!(provider instanceof ethers.JsonRpcProvider)) {
         console.warn('  ⚠️ No JsonRpcProvider available for access list creation');
         return null;
       }

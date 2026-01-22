@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Contract, Provider, TransactionReceipt } from 'ethers';
+import { Contract, Provider, TransactionReceipt, ethers } from 'ethers';
 import { SubscriptionBatchReaderContract, type ComputeSubscription } from '@noosphere/contracts';
 import type { RequestStartedEvent } from './types';
 
@@ -409,7 +409,7 @@ export class SchedulerService extends EventEmitter {
         this.getRequestId(subscriptionId, interval)
       );
       // If commitment hash is non-zero, commitment exists
-      return commitmentHash !== '0x0000000000000000000000000000000000000000000000000000000000000000';
+      return commitmentHash !== ethers.ZeroHash;
     } catch (error) {
       console.error('Error checking commitments:', error);
       return false;
@@ -614,7 +614,7 @@ export class SchedulerService extends EventEmitter {
 
         // Skip cancelled/deleted subscriptions (containerId = 0x0000...0)
         if (
-          sub.containerId === '0x0000000000000000000000000000000000000000000000000000000000000000'
+          sub.containerId === ethers.ZeroHash
         ) {
           skippedEmpty++;
           continue;
@@ -707,7 +707,7 @@ export class SchedulerService extends EventEmitter {
    */
   private trackSubscriptionFromConfig(sub: ComputeSubscription, subscriptionId: bigint): boolean {
     // Skip empty/deleted subscriptions (all fields are 0)
-    if (sub.containerId === '0x0000000000000000000000000000000000000000000000000000000000000000') {
+    if (sub.containerId === ethers.ZeroHash) {
       // This is an empty slot (never created or deleted)
       return false;
     }
