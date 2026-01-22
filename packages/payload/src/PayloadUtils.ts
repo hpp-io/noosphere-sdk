@@ -72,13 +72,11 @@ export function createInlinePayload(content: string): PayloadData {
 
 /**
  * Create PayloadData with data: URI (base64 encoded)
+ * Uses short format `data:;base64,` to minimize on-chain bytes
  */
-export function createDataUriPayload(
-  content: string,
-  mimeType: string = 'application/json'
-): PayloadData {
+export function createDataUriPayload(content: string): PayloadData {
   const base64Content = encodeBase64(content);
-  const uri = `data:${mimeType};base64,${base64Content}`;
+  const uri = `data:;base64,${base64Content}`;
   return {
     contentHash: computeContentHash(content),
     uri,

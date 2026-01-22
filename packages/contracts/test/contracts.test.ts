@@ -155,10 +155,6 @@ describe('Contract Wrappers', () => {
       expect(typeof coordinator.requestCommitments).toBe('function');
     });
 
-    it('should have redundancyCount method', () => {
-      expect(typeof coordinator.redundancyCount).toBe('function');
-    });
-
     it('should have event filters', () => {
       expect(coordinator.filters).toBeDefined();
       expect(typeof coordinator.filters.RequestStarted).toBe('function');

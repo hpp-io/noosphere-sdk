@@ -95,11 +95,6 @@
             "internalType": "bool"
           },
           {
-            "name": "redundancy",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
             "name": "walletAddress",
             "type": "address",
             "internalType": "address"
@@ -123,6 +118,11 @@
             "name": "coordinator",
             "type": "address",
             "internalType": "address"
+          },
+          {
+            "name": "verifierFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       }
@@ -237,25 +237,6 @@
   },
   {
     "type": "function",
-    "name": "nodeResponded",
-    "inputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "prepareNextInterval",
     "inputs": [
       {
@@ -276,25 +257,6 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "redundancyCount",
-    "inputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint16",
-        "internalType": "uint16"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -487,11 +449,6 @@
         "internalType": "uint32"
       },
       {
-        "name": "redundancy",
-        "type": "uint16",
-        "internalType": "uint16"
-      },
-      {
         "name": "useDeliveryInbox",
         "type": "bool",
         "internalType": "bool"
@@ -549,11 +506,6 @@
             "internalType": "bool"
           },
           {
-            "name": "redundancy",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
             "name": "walletAddress",
             "type": "address",
             "internalType": "address"
@@ -577,6 +529,11 @@
             "name": "coordinator",
             "type": "address",
             "internalType": "address"
+          },
+          {
+            "name": "verifierFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       }
@@ -666,64 +623,22 @@
         "internalType": "address"
       },
       {
-        "name": "numRedundantDeliveries",
-        "type": "uint16",
+        "name": "inputHash",
+        "type": "bytes32",
         "indexed": false,
-        "internalType": "uint16"
+        "internalType": "bytes32"
       },
       {
-        "name": "input",
-        "type": "tuple",
+        "name": "outputHash",
+        "type": "bytes32",
         "indexed": false,
-        "internalType": "struct PayloadData",
-        "components": [
-          {
-            "name": "contentHash",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "uri",
-            "type": "bytes",
-            "internalType": "bytes"
-          }
-        ]
+        "internalType": "bytes32"
       },
       {
-        "name": "output",
-        "type": "tuple",
+        "name": "proofHash",
+        "type": "bytes32",
         "indexed": false,
-        "internalType": "struct PayloadData",
-        "components": [
-          {
-            "name": "contentHash",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "uri",
-            "type": "bytes",
-            "internalType": "bytes"
-          }
-        ]
-      },
-      {
-        "name": "proof",
-        "type": "tuple",
-        "indexed": false,
-        "internalType": "struct PayloadData",
-        "components": [
-          {
-            "name": "contentHash",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
-          {
-            "name": "uri",
-            "type": "bytes",
-            "internalType": "bytes"
-          }
-        ]
+        "internalType": "bytes32"
       }
     ],
     "anonymous": false
@@ -870,11 +785,6 @@
             "internalType": "bool"
           },
           {
-            "name": "redundancy",
-            "type": "uint16",
-            "internalType": "uint16"
-          },
-          {
             "name": "walletAddress",
             "type": "address",
             "internalType": "address"
@@ -898,6 +808,11 @@
             "name": "coordinator",
             "type": "address",
             "internalType": "address"
+          },
+          {
+            "name": "verifierFee",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       }
@@ -907,11 +822,6 @@
   {
     "type": "error",
     "name": "InsufficientForVerifierFee",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "IntervalCompleted",
     "inputs": []
   },
   {
@@ -949,11 +859,6 @@
   {
     "type": "error",
     "name": "NoNextInterval",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NodeRespondedAlready",
     "inputs": []
   },
   {

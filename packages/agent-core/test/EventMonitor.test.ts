@@ -90,7 +90,7 @@ describe('EventMonitor', () => {
   ];
 
   const mockCoordinatorAbi = [
-    'event RequestStarted(bytes32 indexed requestId, uint64 indexed subscriptionId, bytes32 indexed containerId, tuple(uint32 interval, uint16 redundancy, bool useDeliveryInbox, uint256 feeAmount, address feeToken, address verifier, address coordinator, address walletAddress) commitment)',
+    'event RequestStarted(bytes32 indexed requestId, uint64 indexed subscriptionId, bytes32 indexed containerId, tuple(uint32 interval, bool useDeliveryInbox, uint256 feeAmount, address feeToken, address verifier, address coordinator, address walletAddress) commitment)',
   ];
 
   beforeEach(() => {
@@ -234,7 +234,6 @@ describe('EventMonitor', () => {
           containerId: '0x' + '2'.repeat(64),
           commitment: {
             interval: 1,
-            redundancy: 1,
             useDeliveryInbox: false,
             feeAmount: 1000n,
             feeToken: '0x' + '0'.repeat(40),
@@ -291,7 +290,6 @@ describe('EventMonitor', () => {
           containerId: '0x' + '2'.repeat(64),
           commitment: {
             interval: 1,
-            redundancy: 1,
             useDeliveryInbox: false,
             feeAmount: 1000n,
             feeToken: '0x' + '0'.repeat(40),
@@ -341,7 +339,6 @@ describe('EventMonitor', () => {
           containerId: '0x' + '2'.repeat(64),
           commitment: {
             interval: 5,
-            redundancy: 3,
             useDeliveryInbox: true,
             feeAmount: 5000n,
             feeToken: '0x' + '4'.repeat(40),
@@ -365,7 +362,6 @@ describe('EventMonitor', () => {
         subscriptionId: mockEvent.args.subscriptionId,
         containerId: mockEvent.args.containerId,
         interval: 5,
-        redundancy: 3,
         useDeliveryInbox: true,
         feeAmount: 5000n,
         feeToken: mockEvent.args.commitment.feeToken,

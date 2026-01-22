@@ -66,7 +66,6 @@ export class RouterContract {
    * @param input - PayloadData containing contentHash and uri for input
    * @param output - PayloadData containing contentHash and uri for output
    * @param proof - PayloadData containing contentHash and uri for proof
-   * @param numRedundantDeliveries - Number of redundant deliveries
    * @param nodeWallet - Address of the node's payment wallet
    * @param payments - Array of payment instructions
    * @param commitment - The commitment data
@@ -75,7 +74,6 @@ export class RouterContract {
     input: PayloadData,
     output: PayloadData,
     proof: PayloadData,
-    numRedundantDeliveries: number,
     nodeWallet: string,
     payments: Payment[],
     commitment: Commitment
@@ -84,7 +82,6 @@ export class RouterContract {
       this.encodePayloadData(input),
       this.encodePayloadData(output),
       this.encodePayloadData(proof),
-      numRedundantDeliveries,
       nodeWallet,
       payments,
       commitment
@@ -314,7 +311,6 @@ export class RouterContract {
       wallet: sub.wallet,
       feeToken: sub.feeToken,
       verifier: sub.verifier,
-      redundancy: Number(sub.redundancy),
       useDeliveryInbox: sub.useDeliveryInbox,
     };
   }
@@ -323,15 +319,15 @@ export class RouterContract {
     return {
       requestId: commitment.requestId,
       subscriptionId: BigInt(commitment.subscriptionId),
-      interval: Number(commitment.interval),
-      redundancy: Number(commitment.redundancy),
       containerId: commitment.containerId,
-      client: commitment.client,
-      wallet: commitment.wallet,
-      feeToken: commitment.feeToken,
-      feeAmount: BigInt(commitment.feeAmount),
-      verifier: commitment.verifier,
+      interval: Number(commitment.interval),
       useDeliveryInbox: commitment.useDeliveryInbox,
+      walletAddress: commitment.walletAddress,
+      feeAmount: BigInt(commitment.feeAmount),
+      feeToken: commitment.feeToken,
+      verifier: commitment.verifier,
+      coordinator: commitment.coordinator,
+      verifierFee: BigInt(commitment.verifierFee),
     };
   }
 }

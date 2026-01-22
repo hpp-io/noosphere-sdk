@@ -16,7 +16,7 @@ export class PayloadUtils {
     const contentHash = ethers.keccak256(contentBytes);
     // Encode as data: URI (base64) and convert to hex bytes
     const base64Content = Buffer.from(content, 'utf-8').toString('base64');
-    const dataUri = `data:application/json;base64,${base64Content}`;
+    const dataUri = `data:;base64,${base64Content}`;
     // Convert URI string to hex bytes for Solidity bytes type
     const uriBytes = ethers.hexlify(ethers.toUtf8Bytes(dataUri));
     return {
@@ -103,12 +103,12 @@ export class CommitmentUtils {
         'bytes32', // containerId
         'uint32', // interval
         'bool', // useDeliveryInbox
-        'uint16', // redundancy
         'address', // walletAddress
         'uint256', // feeAmount
         'address', // feeToken
         'address', // verifier
         'address', // coordinator
+        'uint256', // verifierFee
       ],
       [
         commitment.requestId,
@@ -116,12 +116,12 @@ export class CommitmentUtils {
         commitment.containerId,
         commitment.interval,
         commitment.useDeliveryInbox,
-        commitment.redundancy,
         commitment.walletAddress,
         commitment.feeAmount,
         commitment.feeToken,
         commitment.verifier,
         commitment.coordinator,
+        commitment.verifierFee,
       ]
     );
 
@@ -148,12 +148,12 @@ export class CommitmentUtils {
         'bytes32', // containerId
         'uint32', // interval
         'bool', // useDeliveryInbox
-        'uint16', // redundancy
         'address', // walletAddress
         'uint256', // feeAmount
         'address', // feeToken
         'address', // verifier
         'address', // coordinator
+        'uint256', // verifierFee
       ],
       [
         commitment.requestId,
@@ -161,12 +161,12 @@ export class CommitmentUtils {
         commitment.containerId,
         commitment.interval,
         commitment.useDeliveryInbox,
-        commitment.redundancy,
         commitment.walletAddress,
         commitment.feeAmount,
         commitment.feeToken,
         commitment.verifier,
         commitment.coordinator,
+        commitment.verifierFee,
       ]
     );
   }
@@ -180,13 +180,13 @@ export class CommitmentUtils {
       subscriptionId: event.subscriptionId,
       containerId: event.containerId,
       interval: event.interval,
-      redundancy: event.redundancy,
       useDeliveryInbox: event.useDeliveryInbox || false,
-      feeToken: event.feeToken,
-      feeAmount: event.feeAmount,
       walletAddress: walletAddress, // Client wallet from subscription
+      feeAmount: event.feeAmount,
+      feeToken: event.feeToken,
       verifier: event.verifier || ethers.ZeroAddress,
       coordinator: event.coordinator,
+      verifierFee: event.verifierFee || BigInt(0),
     };
   }
 }

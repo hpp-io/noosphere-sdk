@@ -32,22 +32,21 @@ export interface ComputeSubscription {
   wallet: string; // address payable
   feeToken: string; // address
   verifier: string; // address payable
-  redundancy: number; // uint16
   useDeliveryInbox: boolean; // bool
 }
 
 export interface Commitment {
   requestId: string; // bytes32
   subscriptionId: bigint; // uint64
-  interval: number; // uint32
-  redundancy: number; // uint16
   containerId: string; // bytes32
-  client: string; // address
-  wallet: string; // address
-  feeToken: string; // address
-  feeAmount: bigint; // uint256
-  verifier: string; // address
+  interval: number; // uint32
   useDeliveryInbox: boolean; // bool
+  walletAddress: string; // address
+  feeAmount: bigint; // uint256
+  feeToken: string; // address
+  verifier: string; // address
+  coordinator: string; // address
+  verifierFee: bigint; // uint256
 }
 
 export interface Payment {
@@ -65,7 +64,6 @@ export interface ProofVerificationRequest {
 }
 
 export interface IntervalStatus {
-  redundancyCount: number; // uint16
   commitmentExists: boolean; // bool
 }
 
@@ -73,10 +71,9 @@ export enum FulfillResult {
   FULFILLED = 0,
   INVALID_REQUEST_ID = 1,
   INVALID_COMMITMENT = 2,
-  REDUNDANCY_NOT_MET = 3,
-  INSUFFICIENT_PAYMENT = 4,
-  VERIFICATION_REQUIRED = 5,
-  VERIFICATION_FAILED = 6,
+  INSUFFICIENT_PAYMENT = 3,
+  VERIFICATION_REQUIRED = 4,
+  VERIFICATION_FAILED = 5,
 }
 
 /**
@@ -97,7 +94,6 @@ export interface RequestCancelledEvent {
 export interface ComputeDeliveredEvent {
   requestId: string;
   nodeWallet: string;
-  numRedundantDeliveries: number;
   input: PayloadData;
   output: PayloadData;
   proof: PayloadData;

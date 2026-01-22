@@ -15,7 +15,8 @@ describe('DataUriStorage', () => {
       const content = '{"test": "value"}';
       const result = await storage.upload(content);
 
-      expect(result.uri).toMatch(/^data:application\/json;base64,/);
+      // Uses short format: data:;base64,... (no MIME type for gas optimization)
+      expect(result.uri).toMatch(/^data:;base64,/);
       expect(result.contentId).toBeTruthy();
     });
 
@@ -23,7 +24,7 @@ describe('DataUriStorage', () => {
       const content = new TextEncoder().encode('binary content');
       const result = await storage.upload(content);
 
-      expect(result.uri).toMatch(/^data:application\/json;base64,/);
+      expect(result.uri).toMatch(/^data:;base64,/);
     });
   });
 

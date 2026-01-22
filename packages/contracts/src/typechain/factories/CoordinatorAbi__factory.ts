@@ -2,733 +2,827 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Contract, Interface, type ContractRunner } from 'ethers';
-import type { CoordinatorAbi, CoordinatorAbiInterface } from '../CoordinatorAbi';
+import { Contract, Interface, type ContractRunner } from "ethers";
+import type {
+  CoordinatorAbi,
+  CoordinatorAbiInterface,
+} from "../CoordinatorAbi";
 
 const _abi = [
   {
-    type: 'constructor',
+    type: "constructor",
     inputs: [
       {
-        name: '_routerAddress',
-        type: 'address',
-        internalType: 'address',
+        name: "_routerAddress",
+        type: "address",
+        internalType: "address",
       },
       {
-        name: '_initialOwner',
-        type: 'address',
-        internalType: 'address',
+        name: "_initialOwner",
+        type: "address",
+        internalType: "address",
       },
     ],
-    stateMutability: 'nonpayable',
+    stateMutability: "nonpayable",
   },
   {
-    type: 'function',
-    name: 'acceptOwnership',
+    type: "function",
+    name: "acceptOwnership",
     inputs: [],
     outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: "nonpayable",
   },
   {
-    type: 'function',
-    name: 'cancelRequest',
+    type: "function",
+    name: "cancelRequest",
     inputs: [
       {
-        name: 'requestId',
-        type: 'bytes32',
-        internalType: 'bytes32',
+        name: "requestId",
+        type: "bytes32",
+        internalType: "bytes32",
       },
     ],
     outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: "nonpayable",
   },
   {
-    type: 'function',
-    name: 'client',
-    inputs: [],
-    outputs: [
-      {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'getCommitment',
-    inputs: [
-      {
-        name: 'subscriptionId',
-        type: 'uint64',
-        internalType: 'uint64',
-      },
-      {
-        name: 'interval',
-        type: 'uint32',
-        internalType: 'uint32',
-      },
-    ],
-    outputs: [
-      {
-        name: '',
-        type: 'tuple',
-        internalType: 'struct Commitment',
-        components: [
-          {
-            name: 'requestId',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'subscriptionId',
-            type: 'uint64',
-            internalType: 'uint64',
-          },
-          {
-            name: 'containerId',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'interval',
-            type: 'uint32',
-            internalType: 'uint32',
-          },
-          {
-            name: 'useDeliveryInbox',
-            type: 'bool',
-            internalType: 'bool',
-          },
-          {
-            name: 'redundancy',
-            type: 'uint16',
-            internalType: 'uint16',
-          },
-          {
-            name: 'walletAddress',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'feeAmount',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'feeToken',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'verifier',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'coordinator',
-            type: 'address',
-            internalType: 'address',
-          },
-        ],
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'getConfig',
+    type: "function",
+    name: "client",
     inputs: [],
     outputs: [
       {
-        name: '',
-        type: 'tuple',
-        internalType: 'struct BillingConfig',
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCommitment",
+    inputs: [
+      {
+        name: "subscriptionId",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "interval",
+        type: "uint32",
+        internalType: "uint32",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct Commitment",
         components: [
           {
-            name: 'verificationTimeout',
-            type: 'uint32',
-            internalType: 'uint32',
+            name: "requestId",
+            type: "bytes32",
+            internalType: "bytes32",
           },
           {
-            name: 'protocolFeeRecipient',
-            type: 'address',
-            internalType: 'address',
+            name: "subscriptionId",
+            type: "uint64",
+            internalType: "uint64",
           },
           {
-            name: 'protocolFee',
-            type: 'uint16',
-            internalType: 'uint16',
+            name: "containerId",
+            type: "bytes32",
+            internalType: "bytes32",
           },
           {
-            name: 'tickNodeFee',
-            type: 'uint256',
-            internalType: 'uint256',
+            name: "interval",
+            type: "uint32",
+            internalType: "uint32",
           },
           {
-            name: 'tickNodeFeeToken',
-            type: 'address',
-            internalType: 'address',
+            name: "useDeliveryInbox",
+            type: "bool",
+            internalType: "bool",
+          },
+          {
+            name: "walletAddress",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "feeAmount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "feeToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "verifier",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "coordinator",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "verifierFee",
+            type: "uint256",
+            internalType: "uint256",
           },
         ],
       },
     ],
-    stateMutability: 'view',
+    stateMutability: "view",
   },
   {
-    type: 'function',
-    name: 'getProtocolFee',
+    type: "function",
+    name: "getConfig",
     inputs: [],
     outputs: [
       {
-        name: '',
-        type: 'uint72',
-        internalType: 'uint72',
+        name: "",
+        type: "tuple",
+        internalType: "struct BillingConfig",
+        components: [
+          {
+            name: "verificationTimeout",
+            type: "uint32",
+            internalType: "uint32",
+          },
+          {
+            name: "protocolFeeRecipient",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "protocolFee",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "tickNodeFee",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "tickNodeFeeToken",
+            type: "address",
+            internalType: "address",
+          },
+        ],
       },
     ],
-    stateMutability: 'view',
+    stateMutability: "view",
   },
   {
-    type: 'function',
-    name: 'getSubscriptionBatchReader',
+    type: "function",
+    name: "getProtocolFee",
     inputs: [],
     outputs: [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
+        name: "",
+        type: "uint72",
+        internalType: "uint72",
       },
     ],
-    stateMutability: 'view',
+    stateMutability: "view",
   },
   {
-    type: 'function',
-    name: 'initialize',
-    inputs: [
-      {
-        name: '_config',
-        type: 'tuple',
-        internalType: 'struct BillingConfig',
-        components: [
-          {
-            name: 'verificationTimeout',
-            type: 'uint32',
-            internalType: 'uint32',
-          },
-          {
-            name: 'protocolFeeRecipient',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'protocolFee',
-            type: 'uint16',
-            internalType: 'uint16',
-          },
-          {
-            name: 'tickNodeFee',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'tickNodeFeeToken',
-            type: 'address',
-            internalType: 'address',
-          },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'nodeResponded',
-    inputs: [
-      {
-        name: '',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-    ],
-    outputs: [
-      {
-        name: '',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'prepareNextInterval',
-    inputs: [
-      {
-        name: 'subscriptionId',
-        type: 'uint64',
-        internalType: 'uint64',
-      },
-      {
-        name: 'nextInterval',
-        type: 'uint32',
-        internalType: 'uint32',
-      },
-      {
-        name: 'nodeWallet',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'redundancyCount',
-    inputs: [
-      {
-        name: '',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-    ],
-    outputs: [
-      {
-        name: '',
-        type: 'uint16',
-        internalType: 'uint16',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'reportComputeResult',
-    inputs: [
-      {
-        name: 'deliveryInterval',
-        type: 'uint32',
-        internalType: 'uint32',
-      },
-      {
-        name: 'input',
-        type: 'tuple',
-        internalType: 'struct PayloadData',
-        components: [
-          {
-            name: 'contentHash',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'uri',
-            type: 'bytes',
-            internalType: 'bytes',
-          },
-        ],
-      },
-      {
-        name: 'output',
-        type: 'tuple',
-        internalType: 'struct PayloadData',
-        components: [
-          {
-            name: 'contentHash',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'uri',
-            type: 'bytes',
-            internalType: 'bytes',
-          },
-        ],
-      },
-      {
-        name: 'proof',
-        type: 'tuple',
-        internalType: 'struct PayloadData',
-        components: [
-          {
-            name: 'contentHash',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'uri',
-            type: 'bytes',
-            internalType: 'bytes',
-          },
-        ],
-      },
-      {
-        name: 'commitmentData',
-        type: 'bytes',
-        internalType: 'bytes',
-      },
-      {
-        name: 'nodeWallet',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'reportVerificationResult',
-    inputs: [
-      {
-        name: 'request',
-        type: 'tuple',
-        internalType: 'struct ProofVerificationRequest',
-        components: [
-          {
-            name: 'subscriptionId',
-            type: 'uint64',
-            internalType: 'uint64',
-          },
-          {
-            name: 'interval',
-            type: 'uint32',
-            internalType: 'uint32',
-          },
-          {
-            name: 'submitterAddress',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'submitterWallet',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'escrowedAmount',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'escrowToken',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'slashAmount',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'expiry',
-            type: 'uint32',
-            internalType: 'uint32',
-          },
-        ],
-      },
-      {
-        name: 'valid',
-        type: 'bool',
-        internalType: 'bool',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'requestCommitments',
-    inputs: [
-      {
-        name: 'requestId',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-    ],
-    outputs: [
-      {
-        name: '',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'setSubscriptionBatchReader',
-    inputs: [
-      {
-        name: '_reader',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'startRequest',
-    inputs: [
-      {
-        name: 'requestId',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-      {
-        name: 'subscriptionId',
-        type: 'uint64',
-        internalType: 'uint64',
-      },
-      {
-        name: 'containerId',
-        type: 'bytes32',
-        internalType: 'bytes32',
-      },
-      {
-        name: 'interval',
-        type: 'uint32',
-        internalType: 'uint32',
-      },
-      {
-        name: 'redundancy',
-        type: 'uint16',
-        internalType: 'uint16',
-      },
-      {
-        name: 'useDeliveryInbox',
-        type: 'bool',
-        internalType: 'bool',
-      },
-      {
-        name: 'feeToken',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'feeAmount',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'wallet',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'verifier',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [
-      {
-        name: '',
-        type: 'tuple',
-        internalType: 'struct Commitment',
-        components: [
-          {
-            name: 'requestId',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'subscriptionId',
-            type: 'uint64',
-            internalType: 'uint64',
-          },
-          {
-            name: 'containerId',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'interval',
-            type: 'uint32',
-            internalType: 'uint32',
-          },
-          {
-            name: 'useDeliveryInbox',
-            type: 'bool',
-            internalType: 'bool',
-          },
-          {
-            name: 'redundancy',
-            type: 'uint16',
-            internalType: 'uint16',
-          },
-          {
-            name: 'walletAddress',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'feeAmount',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'feeToken',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'verifier',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'coordinator',
-            type: 'address',
-            internalType: 'address',
-          },
-        ],
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'transferOwnership',
-    inputs: [
-      {
-        name: 'to',
-        type: 'address',
-        internalType: 'address',
-      },
-    ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'typeAndVersion',
+    type: "function",
+    name: "getSubscriptionBatchReader",
     inputs: [],
     outputs: [
       {
-        name: '',
-        type: 'string',
-        internalType: 'string',
+        name: "",
+        type: "address",
+        internalType: "address",
       },
     ],
-    stateMutability: 'view',
+    stateMutability: "view",
   },
   {
-    type: 'function',
-    name: 'updateConfig',
+    type: "function",
+    name: "initialize",
     inputs: [
       {
-        name: 'config',
-        type: 'tuple',
-        internalType: 'struct BillingConfig',
+        name: "_config",
+        type: "tuple",
+        internalType: "struct BillingConfig",
         components: [
           {
-            name: 'verificationTimeout',
-            type: 'uint32',
-            internalType: 'uint32',
+            name: "verificationTimeout",
+            type: "uint32",
+            internalType: "uint32",
           },
           {
-            name: 'protocolFeeRecipient',
-            type: 'address',
-            internalType: 'address',
+            name: "protocolFeeRecipient",
+            type: "address",
+            internalType: "address",
           },
           {
-            name: 'protocolFee',
-            type: 'uint16',
-            internalType: 'uint16',
+            name: "protocolFee",
+            type: "uint16",
+            internalType: "uint16",
           },
           {
-            name: 'tickNodeFee',
-            type: 'uint256',
-            internalType: 'uint256',
+            name: "tickNodeFee",
+            type: "uint256",
+            internalType: "uint256",
           },
           {
-            name: 'tickNodeFeeToken',
-            type: 'address',
-            internalType: 'address',
+            name: "tickNodeFeeToken",
+            type: "address",
+            internalType: "address",
           },
         ],
       },
     ],
     outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: "nonpayable",
   },
   {
-    type: 'event',
-    name: 'ComputeDelivered',
+    type: "function",
+    name: "prepareNextInterval",
     inputs: [
       {
-        name: 'requestId',
-        type: 'bytes32',
+        name: "subscriptionId",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "nextInterval",
+        type: "uint32",
+        internalType: "uint32",
+      },
+      {
+        name: "nodeWallet",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "reportComputeResult",
+    inputs: [
+      {
+        name: "deliveryInterval",
+        type: "uint32",
+        internalType: "uint32",
+      },
+      {
+        name: "input",
+        type: "tuple",
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+      {
+        name: "output",
+        type: "tuple",
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+      {
+        name: "proof",
+        type: "tuple",
+        internalType: "struct PayloadData",
+        components: [
+          {
+            name: "contentHash",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "uri",
+            type: "bytes",
+            internalType: "bytes",
+          },
+        ],
+      },
+      {
+        name: "commitmentData",
+        type: "bytes",
+        internalType: "bytes",
+      },
+      {
+        name: "nodeWallet",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "reportVerificationResult",
+    inputs: [
+      {
+        name: "request",
+        type: "tuple",
+        internalType: "struct ProofVerificationRequest",
+        components: [
+          {
+            name: "subscriptionId",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "interval",
+            type: "uint32",
+            internalType: "uint32",
+          },
+          {
+            name: "submitterAddress",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "submitterWallet",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "escrowedAmount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "escrowToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "slashAmount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "expiry",
+            type: "uint32",
+            internalType: "uint32",
+          },
+        ],
+      },
+      {
+        name: "valid",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "requestCommitments",
+    inputs: [
+      {
+        name: "requestId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "setSubscriptionBatchReader",
+    inputs: [
+      {
+        name: "_reader",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "startRequest",
+    inputs: [
+      {
+        name: "requestId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "subscriptionId",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "containerId",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "interval",
+        type: "uint32",
+        internalType: "uint32",
+      },
+      {
+        name: "useDeliveryInbox",
+        type: "bool",
+        internalType: "bool",
+      },
+      {
+        name: "feeToken",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "feeAmount",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "wallet",
+        type: "address",
+        internalType: "address",
+      },
+      {
+        name: "verifier",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct Commitment",
+        components: [
+          {
+            name: "requestId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "subscriptionId",
+            type: "uint64",
+            internalType: "uint64",
+          },
+          {
+            name: "containerId",
+            type: "bytes32",
+            internalType: "bytes32",
+          },
+          {
+            name: "interval",
+            type: "uint32",
+            internalType: "uint32",
+          },
+          {
+            name: "useDeliveryInbox",
+            type: "bool",
+            internalType: "bool",
+          },
+          {
+            name: "walletAddress",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "feeAmount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "feeToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "verifier",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "coordinator",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "verifierFee",
+            type: "uint256",
+            internalType: "uint256",
+          },
+        ],
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "transferOwnership",
+    inputs: [
+      {
+        name: "to",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "typeAndVersion",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "string",
+        internalType: "string",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "updateConfig",
+    inputs: [
+      {
+        name: "config",
+        type: "tuple",
+        internalType: "struct BillingConfig",
+        components: [
+          {
+            name: "verificationTimeout",
+            type: "uint32",
+            internalType: "uint32",
+          },
+          {
+            name: "protocolFeeRecipient",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "protocolFee",
+            type: "uint16",
+            internalType: "uint16",
+          },
+          {
+            name: "tickNodeFee",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "tickNodeFeeToken",
+            type: "address",
+            internalType: "address",
+          },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "event",
+    name: "ComputeDelivered",
+    inputs: [
+      {
+        name: "requestId",
+        type: "bytes32",
         indexed: true,
-        internalType: 'bytes32',
+        internalType: "bytes32",
       },
       {
-        name: 'nodeWallet',
-        type: 'address',
+        name: "nodeWallet",
+        type: "address",
         indexed: true,
-        internalType: 'address',
+        internalType: "address",
       },
       {
-        name: 'numRedundantDeliveries',
-        type: 'uint16',
+        name: "inputHash",
+        type: "bytes32",
         indexed: false,
-        internalType: 'uint16',
+        internalType: "bytes32",
       },
       {
-        name: 'input',
-        type: 'tuple',
+        name: "outputHash",
+        type: "bytes32",
         indexed: false,
-        internalType: 'struct PayloadData',
+        internalType: "bytes32",
+      },
+      {
+        name: "proofHash",
+        type: "bytes32",
+        indexed: false,
+        internalType: "bytes32",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "OwnershipTransferRequested",
+    inputs: [
+      {
+        name: "from",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "OwnershipTransferred",
+    inputs: [
+      {
+        name: "from",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "to",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "ProofVerified",
+    inputs: [
+      {
+        name: "subscriptionId",
+        type: "uint64",
+        indexed: true,
+        internalType: "uint64",
+      },
+      {
+        name: "interval",
+        type: "uint32",
+        indexed: true,
+        internalType: "uint32",
+      },
+      {
+        name: "node",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "valid",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+      {
+        name: "verifier",
+        type: "address",
+        indexed: false,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "RequestCancelled",
+    inputs: [
+      {
+        name: "requestId",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "RequestStarted",
+    inputs: [
+      {
+        name: "requestId",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+      {
+        name: "subscriptionId",
+        type: "uint64",
+        indexed: true,
+        internalType: "uint64",
+      },
+      {
+        name: "containerId",
+        type: "bytes32",
+        indexed: true,
+        internalType: "bytes32",
+      },
+      {
+        name: "commitment",
+        type: "tuple",
+        indexed: false,
+        internalType: "struct Commitment",
         components: [
           {
-            name: 'contentHash',
-            type: 'bytes32',
-            internalType: 'bytes32',
+            name: "requestId",
+            type: "bytes32",
+            internalType: "bytes32",
           },
           {
-            name: 'uri',
-            type: 'bytes',
-            internalType: 'bytes',
-          },
-        ],
-      },
-      {
-        name: 'output',
-        type: 'tuple',
-        indexed: false,
-        internalType: 'struct PayloadData',
-        components: [
-          {
-            name: 'contentHash',
-            type: 'bytes32',
-            internalType: 'bytes32',
+            name: "subscriptionId",
+            type: "uint64",
+            internalType: "uint64",
           },
           {
-            name: 'uri',
-            type: 'bytes',
-            internalType: 'bytes',
-          },
-        ],
-      },
-      {
-        name: 'proof',
-        type: 'tuple',
-        indexed: false,
-        internalType: 'struct PayloadData',
-        components: [
-          {
-            name: 'contentHash',
-            type: 'bytes32',
-            internalType: 'bytes32',
+            name: "containerId",
+            type: "bytes32",
+            internalType: "bytes32",
           },
           {
-            name: 'uri',
-            type: 'bytes',
-            internalType: 'bytes',
+            name: "interval",
+            type: "uint32",
+            internalType: "uint32",
+          },
+          {
+            name: "useDeliveryInbox",
+            type: "bool",
+            internalType: "bool",
+          },
+          {
+            name: "walletAddress",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "feeAmount",
+            type: "uint256",
+            internalType: "uint256",
+          },
+          {
+            name: "feeToken",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "verifier",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "coordinator",
+            type: "address",
+            internalType: "address",
+          },
+          {
+            name: "verifierFee",
+            type: "uint256",
+            internalType: "uint256",
           },
         ],
       },
@@ -736,281 +830,95 @@ const _abi = [
     anonymous: false,
   },
   {
-    type: 'event',
-    name: 'OwnershipTransferRequested',
-    inputs: [
-      {
-        name: 'from',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'to',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'OwnershipTransferred',
-    inputs: [
-      {
-        name: 'from',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'to',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'ProofVerified',
-    inputs: [
-      {
-        name: 'subscriptionId',
-        type: 'uint64',
-        indexed: true,
-        internalType: 'uint64',
-      },
-      {
-        name: 'interval',
-        type: 'uint32',
-        indexed: true,
-        internalType: 'uint32',
-      },
-      {
-        name: 'node',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'valid',
-        type: 'bool',
-        indexed: false,
-        internalType: 'bool',
-      },
-      {
-        name: 'verifier',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'RequestCancelled',
-    inputs: [
-      {
-        name: 'requestId',
-        type: 'bytes32',
-        indexed: true,
-        internalType: 'bytes32',
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'event',
-    name: 'RequestStarted',
-    inputs: [
-      {
-        name: 'requestId',
-        type: 'bytes32',
-        indexed: true,
-        internalType: 'bytes32',
-      },
-      {
-        name: 'subscriptionId',
-        type: 'uint64',
-        indexed: true,
-        internalType: 'uint64',
-      },
-      {
-        name: 'containerId',
-        type: 'bytes32',
-        indexed: true,
-        internalType: 'bytes32',
-      },
-      {
-        name: 'commitment',
-        type: 'tuple',
-        indexed: false,
-        internalType: 'struct Commitment',
-        components: [
-          {
-            name: 'requestId',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'subscriptionId',
-            type: 'uint64',
-            internalType: 'uint64',
-          },
-          {
-            name: 'containerId',
-            type: 'bytes32',
-            internalType: 'bytes32',
-          },
-          {
-            name: 'interval',
-            type: 'uint32',
-            internalType: 'uint32',
-          },
-          {
-            name: 'useDeliveryInbox',
-            type: 'bool',
-            internalType: 'bool',
-          },
-          {
-            name: 'redundancy',
-            type: 'uint16',
-            internalType: 'uint16',
-          },
-          {
-            name: 'walletAddress',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'feeAmount',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'feeToken',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'verifier',
-            type: 'address',
-            internalType: 'address',
-          },
-          {
-            name: 'coordinator',
-            type: 'address',
-            internalType: 'address',
-          },
-        ],
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: 'error',
-    name: 'InsufficientForVerifierFee',
+    type: "error",
+    name: "InsufficientForVerifierFee",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'IntervalCompleted',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'IntervalMismatch',
+    type: "error",
+    name: "IntervalMismatch",
     inputs: [
       {
-        name: 'deliveryInterval',
-        type: 'uint32',
-        internalType: 'uint32',
+        name: "deliveryInterval",
+        type: "uint32",
+        internalType: "uint32",
       },
     ],
   },
   {
-    type: 'error',
-    name: 'InvalidCommitment',
+    type: "error",
+    name: "InvalidCommitment",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'InvalidRequestCommitment',
+    type: "error",
+    name: "InvalidRequestCommitment",
     inputs: [
       {
-        name: 'requestId',
-        type: 'bytes32',
-        internalType: 'bytes32',
+        name: "requestId",
+        type: "bytes32",
+        internalType: "bytes32",
       },
     ],
   },
   {
-    type: 'error',
-    name: 'InvalidWallet',
+    type: "error",
+    name: "InvalidWallet",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'NoNextInterval',
+    type: "error",
+    name: "NoNextInterval",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'NodeRespondedAlready',
+    type: "error",
+    name: "NotReadyForNextInterval",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'NotReadyForNextInterval',
+    type: "error",
+    name: "OnlyCallableByRouter",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'OnlyCallableByRouter',
+    type: "error",
+    name: "OnlyCallableByRouterOwner",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'OnlyCallableByRouterOwner',
+    type: "error",
+    name: "ProofVerificationRequestNotFound",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'ProofVerificationRequestNotFound',
+    type: "error",
+    name: "ProtocolFeeExceeds",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'ProtocolFeeExceeds',
+    type: "error",
+    name: "ReentrancyGuardReentrantCall",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'ReentrancyGuardReentrantCall',
+    type: "error",
+    name: "RouterMustBeSet",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'RouterMustBeSet',
+    type: "error",
+    name: "UnauthorizedVerifier",
     inputs: [],
   },
   {
-    type: 'error',
-    name: 'UnauthorizedVerifier',
-    inputs: [],
-  },
-  {
-    type: 'error',
-    name: 'UnsupportedVerifierToken',
+    type: "error",
+    name: "UnsupportedVerifierToken",
     inputs: [
       {
-        name: 'token',
-        type: 'address',
-        internalType: 'address',
+        name: "token",
+        type: "address",
+        internalType: "address",
       },
     ],
   },
@@ -1021,7 +929,10 @@ export class CoordinatorAbi__factory {
   static createInterface(): CoordinatorAbiInterface {
     return new Interface(_abi) as CoordinatorAbiInterface;
   }
-  static connect(address: string, runner?: ContractRunner | null): CoordinatorAbi {
+  static connect(
+    address: string,
+    runner?: ContractRunner | null
+  ): CoordinatorAbi {
     return new Contract(address, _abi, runner) as unknown as CoordinatorAbi;
   }
 }

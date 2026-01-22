@@ -4,7 +4,7 @@ import { ContainerManager } from './ContainerManager';
 import { SchedulerService, SchedulerConfig } from './SchedulerService';
 import { WalletManager, KeystoreManager } from '@noosphere/crypto';
 import { RegistryManager } from '@noosphere/registry';
-import { ABIs } from '@noosphere/contracts';
+import { ABIs, CoordinatorContract } from '@noosphere/contracts';
 import { CommitmentUtils, PayloadUtils } from './utils/CommitmentUtils';
 import { PayloadResolver } from './PayloadResolver';
 import { ConfigLoader } from './utils/ConfigLoader';
@@ -22,7 +22,6 @@ export interface ComputeDeliveredEvent {
   subscriptionId: number;
   interval: number;
   containerId: string;
-  redundancy: number;
   feeAmount: string;
   feeToken: string;
   input: string | PayloadData;
@@ -38,12 +37,12 @@ export interface RequestStartedCallbackEvent {
   subscriptionId: number;
   interval: number;
   containerId: string;
-  redundancy: number;
   feeAmount: string;
   feeToken: string;
   verifier: string;
   walletAddress: string;
   blockNumber: number;
+  verifierFee: string;
 }
 
 /**
@@ -72,13 +71,13 @@ export interface RetryableEvent {
   containerId: string;
   retryCount: number;
   // Fee and commitment fields (required for valid retry)
+  useDeliveryInbox: boolean;
+  walletAddress: string;
   feeAmount: string;
   feeToken: string;
-  walletAddress: string;
   verifier: string;
   coordinator: string;
-  redundancy: number;
-  useDeliveryInbox: boolean;
+  verifierFee: string;
 }
 
 export interface ContainerExecutionConfig {
@@ -116,6 +115,8 @@ export interface NoosphereAgentOptions {
   healthCheckIntervalMs?: number; // Interval to check registry health (default: 300000ms = 5 min)
   // Payload encoder for outputs (allows IPFS upload for large payloads)
   payloadEncoder?: (content: string) => Promise<PayloadData>;
+  // Gas optimization
+  useAccessList?: boolean; // Auto-generate access list for reportComputeResult (default: false)
 }
 
 export class NoosphereAgent {
@@ -125,7 +126,8 @@ export class NoosphereAgent {
   private walletManager: WalletManager;
   private registryManager: RegistryManager;
   private router: ethers.Contract;
-  private coordinator: ethers.Contract;
+  private coordinatorRaw: ethers.Contract;  // Raw contract for general operations
+  private coordinator: CoordinatorContract; // Wrapper for reportComputeResult with access list support
   private provider: ethers.JsonRpcProvider;
   private config: AgentConfig;
   private getContainer?: (containerId: string) => ContainerMetadata | undefined;
@@ -182,9 +184,16 @@ export class NoosphereAgent {
     // Initialize router contract
     this.router = new ethers.Contract(options.config.routerAddress, routerAbi, this.provider);
 
-    this.coordinator = new ethers.Contract(
+    // Raw contract for general operations (scheduler, events, etc.)
+    this.coordinatorRaw = new ethers.Contract(
       options.config.coordinatorAddress,
       coordinatorAbi,
+      this.walletManager.getWallet()
+    );
+
+    // CoordinatorContract wrapper for reportComputeResult with access list support
+    this.coordinator = new CoordinatorContract(
+      options.config.coordinatorAddress,
       this.walletManager.getWallet()
     );
 
@@ -196,7 +205,7 @@ export class NoosphereAgent {
     this.scheduler = new SchedulerService(
       provider,
       this.router,
-      this.coordinator,
+      this.coordinatorRaw,
       this.walletManager.getAddress(),
       undefined, // batchReaderAddress (set later)
       undefined, // config (set later)
@@ -373,7 +382,7 @@ export class NoosphereAgent {
 
     // Try to get SubscriptionBatchReader address from coordinator
     try {
-      const batchReaderAddress = await this.coordinator.getSubscriptionBatchReader();
+      const batchReaderAddress = await this.coordinatorRaw.getSubscriptionBatchReader();
       if (
         batchReaderAddress &&
         batchReaderAddress !== '0x0000000000000000000000000000000000000000'
@@ -385,7 +394,7 @@ export class NoosphereAgent {
         this.scheduler = new SchedulerService(
           this.provider,
           this.router,
-          this.coordinator,
+          this.coordinatorRaw,
           this.walletManager.getAddress(),
           batchReaderAddress,
           this.options.schedulerConfig || {
@@ -533,7 +542,7 @@ export class NoosphereAgent {
     }
 
     console.log(
-      `🔄 Retrying request ${event.requestId.slice(0, 10)}... (attempt ${event.retryCount + 1}/${this.maxRetries}, ${retryableEvents.length} remaining)`
+      `🔄 Retrying request ${event.requestId} (attempt ${event.retryCount + 1}/${this.maxRetries}, ${retryableEvents.length} remaining)`
     );
 
     // Reset event to pending
@@ -543,7 +552,7 @@ export class NoosphereAgent {
     const container = this.getContainerMetadata(event.containerId);
     if (!container) {
       console.log(
-        `  ⚠️ Container ${event.containerId.slice(0, 10)}... no longer supported, skipping retry`
+        `  ⚠️ Container ${event.containerId} no longer supported, skipping retry`
       );
       return;
     }
@@ -552,15 +561,15 @@ export class NoosphereAgent {
     const retryEvent: RequestStartedEvent = {
       requestId: event.requestId,
       subscriptionId: BigInt(event.subscriptionId),
-      interval: event.interval,
       containerId: event.containerId,
-      redundancy: event.redundancy,
+      interval: event.interval,
       useDeliveryInbox: event.useDeliveryInbox,
+      walletAddress: event.walletAddress,
       feeAmount: BigInt(event.feeAmount),
       feeToken: event.feeToken,
-      walletAddress: event.walletAddress,
       verifier: event.verifier,
       coordinator: event.coordinator,
+      verifierFee: BigInt(event.verifierFee || 0),
       blockNumber: 0,
     };
 
@@ -569,7 +578,7 @@ export class NoosphereAgent {
       await this.handleRequest(retryEvent);
     } catch (error) {
       console.log(
-        `  ❌ Retry failed for ${event.requestId.slice(0, 10)}...: ${(error as Error).message}`
+        `  ❌ Retry failed for ${event.requestId}: ${(error as Error).message}`
       );
     }
   }
@@ -625,8 +634,6 @@ export class NoosphereAgent {
   }
 
   private async handleRequest(event: RequestStartedEvent): Promise<void> {
-    const requestIdShort = event.requestId.slice(0, 10);
-
     // Container filter: Only process events for containers we support
     // This must be checked FIRST, before any DB save or RPC calls
     const container = this.getContainerMetadata(event.containerId);
@@ -637,22 +644,22 @@ export class NoosphereAgent {
 
     // Deduplication: Check if this request is already being processed
     if (this.processingRequests.has(event.requestId)) {
-      console.log(`  ⏭️  Request ${requestIdShort}... already being processed, skipping duplicate`);
+      console.log(`  ⏭️  Request ${event.requestId} already being processed, skipping duplicate`);
       return;
     }
 
     // Check if request has already been processed (completed/failed)
     if (this.options.isRequestProcessed && this.options.isRequestProcessed(event.requestId)) {
-      console.log(`  ⏭️  Request ${requestIdShort}... already processed, skipping`);
+      console.log(`  ⏭️  Request ${event.requestId} already processed, skipping`);
       return;
     }
 
     this.processingRequests.add(event.requestId);
 
-    console.log(`\n[${new Date().toISOString()}] RequestStarted: ${requestIdShort}...`);
+    console.log(`\n[${new Date().toISOString()}] RequestStarted: ${event.requestId}`);
     console.log(`  SubscriptionId: ${event.subscriptionId}`);
     console.log(`  Interval: ${event.interval}`);
-    console.log(`  ContainerId: ${event.containerId.slice(0, 10)}...`);
+    console.log(`  ContainerId: ${event.containerId}`);
     console.log(
       `  📦 Container: ${container.name} (${container.image}:${container.tag || 'latest'})`
     );
@@ -665,12 +672,12 @@ export class NoosphereAgent {
         subscriptionId: Number(event.subscriptionId),
         interval: Number(event.interval),
         containerId: event.containerId,
-        redundancy: event.redundancy,
         feeAmount: event.feeAmount.toString(),
         feeToken: event.feeToken,
         verifier: event.verifier,
         walletAddress: event.walletAddress,
         blockNumber: event.blockNumber,
+        verifierFee: event.verifierFee.toString(),
       });
     }
 
@@ -717,14 +724,15 @@ export class NoosphereAgent {
         this.options.onRequestProcessing(event.requestId);
       }
 
-      // Check if already fulfilled (redundancy check)
-      const currentCount = await this.coordinator.redundancyCount(event.requestId);
-      if (currentCount >= event.redundancy) {
-        console.log(`  ⏭️  Already fulfilled (${currentCount}/${event.redundancy}), skipping`);
+      // Check if already fulfilled (commitment deleted check)
+      const commitmentHash = await this.coordinator.requestCommitments(event.requestId);
+      const isAlreadyFulfilled = commitmentHash === ethers.ZeroHash;
+      if (isAlreadyFulfilled) {
+        console.log(`  ⏭️  Already fulfilled, skipping`);
         if (this.options.onRequestSkipped) {
           this.options.onRequestSkipped(
             event.requestId,
-            `Already fulfilled (${currentCount}/${event.redundancy})`
+            `Already fulfilled`
           );
         }
         this.processingRequests.delete(event.requestId);
@@ -749,7 +757,7 @@ export class NoosphereAgent {
         return;
       }
 
-      console.log(`  📞 Fetching inputs from client: ${clientAddress.slice(0, 10)}...`);
+      console.log(`  📞 Fetching inputs from client: ${clientAddress}`);
 
       // Call client's getComputeInputs to get the input data
       // InputType enum: 0=RAW_DATA, 1=URI_STRING, 2=PAYLOAD_DATA
@@ -780,7 +788,9 @@ export class NoosphereAgent {
       }
 
       // Convert bytes to string based on inputType
+      // Also preserve original PayloadData if input came from external storage
       let inputData: string;
+      let originalInputPayload: PayloadData | null = null;
       if (inputType === 2) {
         // PAYLOAD_DATA: ABI-encoded PayloadData struct
         console.log(`  📦 Input type: PAYLOAD_DATA - resolving from external storage...`);
@@ -794,6 +804,9 @@ export class NoosphereAgent {
 
           console.log(`  📍 Content hash: ${contentHash.slice(0, 18)}...`);
           console.log(`  📍 URI: ${uri}`);
+
+          // Preserve original PayloadData to avoid re-encoding large payloads
+          originalInputPayload = { contentHash, uri };
 
           // Resolve the payload using PayloadResolver
           // Use IPFS_GATEWAY from environment for fetching (e.g., Pinata gateway for cross-provider support)
@@ -854,7 +867,9 @@ export class NoosphereAgent {
       // Use the original input data from client (already a string)
       const input = inputData;
       const output = result.output;
-      const proof = event.verifier ? result.output : ''; // Use output as proof if verifier exists
+      // Only include proof if verifier is set (not zero address)
+      const hasVerifier = event.verifier && event.verifier !== ethers.ZeroAddress;
+      const proof = hasVerifier ? result.output : '';
 
       // Use the wallet address from the event (subscription's payment wallet)
       const subscriptionWallet = event.walletAddress;
@@ -871,9 +886,16 @@ export class NoosphereAgent {
       // Create PayloadData for input, output, and proof
       // Use custom payloadEncoder if provided (for IPFS upload), otherwise inline
       console.log(`  📦 payloadEncoder available: ${!!this.payloadEncoder}`);
-      const inputPayload = this.payloadEncoder
-        ? await this.payloadEncoder(input)
-        : PayloadUtils.fromInlineData(input);
+      // Use original input PayloadData if available (to avoid re-encoding large payloads)
+      // Otherwise encode using payloadEncoder or inline
+      const inputPayload = originalInputPayload
+        ? originalInputPayload
+        : this.payloadEncoder
+          ? await this.payloadEncoder(input)
+          : PayloadUtils.fromInlineData(input);
+      if (originalInputPayload) {
+        console.log(`  📦 Using original input PayloadData (avoiding re-upload)`);
+      }
       const outputPayload = this.payloadEncoder
         ? await this.payloadEncoder(output)
         : PayloadUtils.fromInlineData(output);
@@ -883,14 +905,15 @@ export class NoosphereAgent {
           : PayloadUtils.fromInlineData(proof)
         : PayloadUtils.empty();
 
-      // Send transaction
+      // Send transaction with optional access list for gas optimization
       const tx = await this.coordinator.reportComputeResult(
         event.interval,
         inputPayload,
         outputPayload,
         proofPayload,
         commitmentData,
-        nodeWallet
+        nodeWallet,
+        this.options.useAccessList ? { autoAccessList: true } : undefined
       );
 
       // Capture tx hash immediately for error reporting
@@ -899,6 +922,10 @@ export class NoosphereAgent {
 
       // Wait for confirmation
       const receipt = await tx.wait();
+
+      if (!receipt) {
+        throw new Error('Transaction receipt is null - transaction may have been dropped');
+      }
 
       if (receipt.status === 1) {
         console.log(`  ✓ Result delivered successfully (block ${receipt.blockNumber})`);
@@ -911,7 +938,6 @@ export class NoosphereAgent {
             subscriptionId: Number(event.subscriptionId),
             interval: Number(event.interval),
             containerId: event.containerId,
-            redundancy: event.redundancy,
             feeAmount: event.feeAmount.toString(),
             feeToken: event.feeToken,
             input: inputPayload,
@@ -955,7 +981,7 @@ export class NoosphereAgent {
    */
   private async waitForPriority(event: RequestStartedEvent): Promise<void> {
     const priority = this.calculatePriority(event.requestId);
-    const maxDelay = event.redundancy === 1 ? 1000 : 200; // 1s for single redundancy, 200ms otherwise
+    const maxDelay = 1000; // 1s for single-node response model
     const delay = Math.floor((priority / 0xffffffff) * maxDelay);
 
     if (delay > 0) {

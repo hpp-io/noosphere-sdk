@@ -28,7 +28,6 @@ describe('Custom Types', () => {
         wallet: '0xWallet',
         feeToken: '0xToken',
         verifier: '0xVerifier',
-        redundancy: 3,
         useDeliveryInbox: true,
       };
 
@@ -45,7 +44,6 @@ describe('Custom Types', () => {
         requestId: '0xRequest',
         subscriptionId: BigInt(1),
         interval: 100,
-        redundancy: 3,
         containerId: '0xContainer',
         client: '0xClient',
         wallet: '0xWallet',
@@ -92,12 +90,10 @@ describe('Custom Types', () => {
   describe('IntervalStatus', () => {
     it('should accept valid IntervalStatus object', () => {
       const status: IntervalStatus = {
-        redundancyCount: 3,
         commitmentExists: true,
       };
 
       expect(status).toBeDefined();
-      expect(status.redundancyCount).toBe(3);
       expect(status.commitmentExists).toBe(true);
     });
   });
@@ -119,20 +115,16 @@ describe('Custom Types', () => {
       expect(FulfillResult.INVALID_COMMITMENT).toBe(2);
     });
 
-    it('should have REDUNDANCY_NOT_MET value', () => {
-      expect(FulfillResult.REDUNDANCY_NOT_MET).toBe(3);
-    });
-
     it('should have INSUFFICIENT_PAYMENT value', () => {
-      expect(FulfillResult.INSUFFICIENT_PAYMENT).toBe(4);
+      expect(FulfillResult.INSUFFICIENT_PAYMENT).toBe(3);
     });
 
     it('should have VERIFICATION_REQUIRED value', () => {
-      expect(FulfillResult.VERIFICATION_REQUIRED).toBe(5);
+      expect(FulfillResult.VERIFICATION_REQUIRED).toBe(4);
     });
 
     it('should have VERIFICATION_FAILED value', () => {
-      expect(FulfillResult.VERIFICATION_FAILED).toBe(6);
+      expect(FulfillResult.VERIFICATION_FAILED).toBe(5);
     });
   });
 
@@ -146,7 +138,6 @@ describe('Custom Types', () => {
           requestId: '0xRequest',
           subscriptionId: BigInt(1),
           interval: 100,
-          redundancy: 3,
           containerId: '0xContainer',
           client: '0xClient',
           wallet: '0xWallet',
@@ -174,7 +165,6 @@ describe('Custom Types', () => {
       const event: ComputeDeliveredEvent = {
         requestId: '0xRequest',
         nodeWallet: '0xNode',
-        numRedundantDeliveries: 3,
         input: {
           contentHash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
           uri: '',
@@ -190,7 +180,6 @@ describe('Custom Types', () => {
       };
 
       expect(event).toBeDefined();
-      expect(event.numRedundantDeliveries).toBe(3);
       expect(event.input.contentHash).toMatch(/^0x[0-9a-f]{64}$/);
       expect(event.output.uri).toBe('ipfs://QmOutput');
     });

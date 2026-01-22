@@ -12,7 +12,7 @@ import type {
   ContractRunner,
   ContractMethod,
   Listener,
-} from 'ethers';
+} from "ethers";
 import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
@@ -20,27 +20,53 @@ import type {
   TypedLogDescription,
   TypedListener,
   TypedContractMethod,
-} from './common';
+} from "./common";
 
 export interface WalletFactoryAbiInterface extends Interface {
   getFunction(
-    nameOrSignature: 'createWallet' | 'isValidWallet' | 'typeAndVersion'
+    nameOrSignature: "createWallet" | "isValidWallet" | "typeAndVersion"
   ): FunctionFragment;
 
-  getEvent(nameOrSignatureOrTopic: 'WalletCreated'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "WalletCreated"): EventFragment;
 
-  encodeFunctionData(functionFragment: 'createWallet', values: [AddressLike]): string;
-  encodeFunctionData(functionFragment: 'isValidWallet', values: [AddressLike]): string;
-  encodeFunctionData(functionFragment: 'typeAndVersion', values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "createWallet",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isValidWallet",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "typeAndVersion",
+    values?: undefined
+  ): string;
 
-  decodeFunctionResult(functionFragment: 'createWallet', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'isValidWallet', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'typeAndVersion', data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "createWallet",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isValidWallet",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "typeAndVersion",
+    data: BytesLike
+  ): Result;
 }
 
 export namespace WalletCreatedEvent {
-  export type InputTuple = [operator: AddressLike, owner: AddressLike, walletAddress: AddressLike];
-  export type OutputTuple = [operator: string, owner: string, walletAddress: string];
+  export type InputTuple = [
+    operator: AddressLike,
+    owner: AddressLike,
+    walletAddress: AddressLike
+  ];
+  export type OutputTuple = [
+    operator: string,
+    owner: string,
+    walletAddress: string
+  ];
   export interface OutputObject {
     operator: string;
     owner: string;
@@ -91,26 +117,40 @@ export interface WalletFactoryAbi extends BaseContract {
     event: TCEvent
   ): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(event?: TCEvent): Promise<this>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-  createWallet: TypedContractMethod<[initialOwner: AddressLike], [string], 'nonpayable'>;
+  createWallet: TypedContractMethod<
+    [initialOwner: AddressLike],
+    [string],
+    "nonpayable"
+  >;
 
-  isValidWallet: TypedContractMethod<[walletAddr: AddressLike], [boolean], 'view'>;
+  isValidWallet: TypedContractMethod<
+    [walletAddr: AddressLike],
+    [boolean],
+    "view"
+  >;
 
-  typeAndVersion: TypedContractMethod<[], [string], 'view'>;
+  typeAndVersion: TypedContractMethod<[], [string], "view">;
 
-  getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
   getFunction(
-    nameOrSignature: 'createWallet'
-  ): TypedContractMethod<[initialOwner: AddressLike], [string], 'nonpayable'>;
+    nameOrSignature: "createWallet"
+  ): TypedContractMethod<[initialOwner: AddressLike], [string], "nonpayable">;
   getFunction(
-    nameOrSignature: 'isValidWallet'
-  ): TypedContractMethod<[walletAddr: AddressLike], [boolean], 'view'>;
-  getFunction(nameOrSignature: 'typeAndVersion'): TypedContractMethod<[], [string], 'view'>;
+    nameOrSignature: "isValidWallet"
+  ): TypedContractMethod<[walletAddr: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "typeAndVersion"
+  ): TypedContractMethod<[], [string], "view">;
 
   getEvent(
-    key: 'WalletCreated'
+    key: "WalletCreated"
   ): TypedContractEvent<
     WalletCreatedEvent.InputTuple,
     WalletCreatedEvent.OutputTuple,
@@ -118,7 +158,7 @@ export interface WalletFactoryAbi extends BaseContract {
   >;
 
   filters: {
-    'WalletCreated(address,address,address)': TypedContractEvent<
+    "WalletCreated(address,address,address)": TypedContractEvent<
       WalletCreatedEvent.InputTuple,
       WalletCreatedEvent.OutputTuple,
       WalletCreatedEvent.OutputObject

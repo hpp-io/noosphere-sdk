@@ -12,14 +12,14 @@ import type {
   ContractRunner,
   ContractMethod,
   Listener,
-} from 'ethers';
+} from "ethers";
 import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
   TypedEventLog,
   TypedListener,
   TypedContractMethod,
-} from './common';
+} from "./common";
 
 export type ComputeSubscriptionStruct = {
   routeId: BytesLike;
@@ -32,7 +32,6 @@ export type ComputeSubscriptionStruct = {
   wallet: AddressLike;
   feeToken: AddressLike;
   verifier: AddressLike;
-  redundancy: BigNumberish;
   useDeliveryInbox: boolean;
 };
 
@@ -47,8 +46,7 @@ export type ComputeSubscriptionStructOutput = [
   wallet: string,
   feeToken: string,
   verifier: string,
-  redundancy: bigint,
-  useDeliveryInbox: boolean,
+  useDeliveryInbox: boolean
 ] & {
   routeId: string;
   containerId: string;
@@ -60,36 +58,39 @@ export type ComputeSubscriptionStructOutput = [
   wallet: string;
   feeToken: string;
   verifier: string;
-  redundancy: bigint;
   useDeliveryInbox: boolean;
 };
 
 export declare namespace SubscriptionBatchReader {
-  export type IntervalStatusStruct = {
-    redundancyCount: BigNumberish;
-    commitmentExists: boolean;
-  };
+  export type IntervalStatusStruct = { commitmentExists: boolean };
 
-  export type IntervalStatusStructOutput = [redundancyCount: bigint, commitmentExists: boolean] & {
-    redundancyCount: bigint;
+  export type IntervalStatusStructOutput = [commitmentExists: boolean] & {
     commitmentExists: boolean;
   };
 }
 
 export interface SubscriptionBatchReaderAbiInterface extends Interface {
-  getFunction(nameOrSignature: 'getIntervalStatuses' | 'getSubscriptions'): FunctionFragment;
+  getFunction(
+    nameOrSignature: "getIntervalStatuses" | "getSubscriptions"
+  ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: 'getIntervalStatuses',
+    functionFragment: "getIntervalStatuses",
     values: [BigNumberish[], BigNumberish[]]
   ): string;
   encodeFunctionData(
-    functionFragment: 'getSubscriptions',
+    functionFragment: "getSubscriptions",
     values: [BigNumberish, BigNumberish]
   ): string;
 
-  decodeFunctionResult(functionFragment: 'getIntervalStatuses', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getSubscriptions', data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getIntervalStatuses",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getSubscriptions",
+    data: BytesLike
+  ): Result;
 }
 
 export interface SubscriptionBatchReaderAbi extends BaseContract {
@@ -131,35 +132,39 @@ export interface SubscriptionBatchReaderAbi extends BaseContract {
     event: TCEvent
   ): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(event?: TCEvent): Promise<this>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
   getIntervalStatuses: TypedContractMethod<
     [ids: BigNumberish[], intervals: BigNumberish[]],
     [SubscriptionBatchReader.IntervalStatusStructOutput[]],
-    'view'
+    "view"
   >;
 
   getSubscriptions: TypedContractMethod<
     [startId: BigNumberish, endId: BigNumberish],
     [ComputeSubscriptionStructOutput[]],
-    'view'
+    "view"
   >;
 
-  getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
   getFunction(
-    nameOrSignature: 'getIntervalStatuses'
+    nameOrSignature: "getIntervalStatuses"
   ): TypedContractMethod<
     [ids: BigNumberish[], intervals: BigNumberish[]],
     [SubscriptionBatchReader.IntervalStatusStructOutput[]],
-    'view'
+    "view"
   >;
   getFunction(
-    nameOrSignature: 'getSubscriptions'
+    nameOrSignature: "getSubscriptions"
   ): TypedContractMethod<
     [startId: BigNumberish, endId: BigNumberish],
     [ComputeSubscriptionStructOutput[]],
-    'view'
+    "view"
   >;
 
   filters: {};

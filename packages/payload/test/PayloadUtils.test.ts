@@ -134,15 +134,20 @@ describe('PayloadUtils', () => {
   });
 
   describe('createDataUriPayload', () => {
-    it('should create data: URI payload', () => {
+    it('should create data: URI payload with short format', () => {
       const payload = createDataUriPayload('{"test": "value"}');
-      expect(payload.uri).toMatch(/^data:application\/json;base64,/);
+      // Uses short format: data:;base64,... (no MIME type for gas optimization)
+      expect(payload.uri).toMatch(/^data:;base64,/);
       expect(payload.contentHash).toMatch(/^0x[a-f0-9]{64}$/);
     });
 
-    it('should use custom MIME type', () => {
-      const payload = createDataUriPayload('plain text', 'text/plain');
-      expect(payload.uri).toMatch(/^data:text\/plain;base64,/);
+    it('should encode content correctly', () => {
+      const payload = createDataUriPayload('plain text');
+      expect(payload.uri).toMatch(/^data:;base64,/);
+      // Verify base64 decodes back to original
+      const base64Part = payload.uri.split(',')[1];
+      const decoded = Buffer.from(base64Part, 'base64').toString('utf-8');
+      expect(decoded).toBe('plain text');
     });
   });
 

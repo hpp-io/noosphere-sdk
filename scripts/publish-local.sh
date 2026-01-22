@@ -23,7 +23,7 @@ set -e
 VERDACCIO_URL="${VERDACCIO_URL:-http://localhost:4873}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SDK_ROOT="$(dirname "$SCRIPT_DIR")"
-PACKAGES=("contracts" "crypto" "registry" "payload" "agent-core")
+PACKAGES=("contracts" "crypto" "registry" "payload" "agent-core" "sdk")
 
 # Colors for output
 RED='\033[0;31m'

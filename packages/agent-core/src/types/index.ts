@@ -6,13 +6,13 @@ export interface Commitment {
   subscriptionId: bigint;
   containerId: string;
   interval: number;
-  redundancy: number;
   useDeliveryInbox: boolean;
-  feeToken: string;
-  feeAmount: bigint;
   walletAddress: string;
+  feeAmount: bigint;
+  feeToken: string;
   verifier: string;
   coordinator: string;
+  verifierFee: bigint;
 }
 
 export interface Payment {
@@ -33,13 +33,13 @@ export interface RequestStartedEvent {
   subscriptionId: bigint;
   containerId: string;
   interval: number;
-  redundancy: number;
   useDeliveryInbox: boolean;
+  walletAddress: string;
   feeAmount: bigint;
   feeToken: string;
   verifier: string;
   coordinator: string;
-  walletAddress: string;
+  verifierFee: bigint;
   blockNumber: number;
 }
 
@@ -49,7 +49,6 @@ export interface ComputeSubscription {
   containerId: string;
   intervalSeconds: number;
   maxExecutions: number;
-  redundancy: number;
   feeToken: string;
   feeAmount: bigint;
   verifier: string;

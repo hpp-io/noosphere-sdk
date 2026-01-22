@@ -11,7 +11,7 @@ export class DataUriStorage implements IPayloadStorage {
   async upload(content: string | Uint8Array): Promise<UploadResult> {
     const data = typeof content === 'string' ? content : new TextDecoder().decode(content);
     const base64 = encodeBase64(data);
-    const uri = `data:application/json;base64,${base64}`;
+    const uri = `data:;base64,${base64}`;
 
     return {
       uri,

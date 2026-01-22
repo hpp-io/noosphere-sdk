@@ -13,7 +13,7 @@ import type {
   ContractRunner,
   ContractMethod,
   Listener,
-} from 'ethers';
+} from "ethers";
 import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
@@ -21,7 +21,7 @@ import type {
   TypedLogDescription,
   TypedListener,
   TypedContractMethod,
-} from './common';
+} from "./common";
 
 export type PaymentStruct = {
   recipient: AddressLike;
@@ -29,116 +29,183 @@ export type PaymentStruct = {
   feeAmount: BigNumberish;
 };
 
-export type PaymentStructOutput = [recipient: string, feeToken: string, feeAmount: bigint] & {
-  recipient: string;
-  feeToken: string;
-  feeAmount: bigint;
-};
+export type PaymentStructOutput = [
+  recipient: string,
+  feeToken: string,
+  feeAmount: bigint
+] & { recipient: string; feeToken: string; feeAmount: bigint };
 
 export interface WalletAbiInterface extends Interface {
   getFunction(
     nameOrSignature:
-      | 'allowance'
-      | 'approve'
-      | 'disburseForFulfillment'
-      | 'disburseForRequest'
-      | 'isLocked'
-      | 'isValidSignature'
-      | 'lockEscrow'
-      | 'lockForRequest'
-      | 'lockedOf'
-      | 'lockedOfRequest'
-      | 'owner'
-      | 'paidCountOfRequest'
-      | 'releaseEscrow'
-      | 'releaseForRequest'
-      | 'renounceOwnership'
-      | 'totalLockedFor'
-      | 'transferByRouter'
-      | 'transferOwnership'
-      | 'typeAndVersion'
-      | 'withdraw'
+      | "allowance"
+      | "approve"
+      | "disburseForFulfillment"
+      | "disburseForRequest"
+      | "getSpenderInfo"
+      | "isValidSignature"
+      | "lockEscrow"
+      | "lockForRequest"
+      | "lockedOfRequest"
+      | "owner"
+      | "releaseEscrow"
+      | "releaseForRequest"
+      | "renounceOwnership"
+      | "totalLockedFor"
+      | "transferByRouter"
+      | "transferOwnership"
+      | "typeAndVersion"
+      | "withdraw"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
-      | 'Approval'
-      | 'Deposit'
-      | 'Escrow'
-      | 'OwnershipTransferred'
-      | 'RequestDisbursed'
-      | 'RequestLocked'
-      | 'RequestReleased'
-      | 'Transfer'
-      | 'Withdraw'
+      | "Approval"
+      | "Deposit"
+      | "Escrow"
+      | "OwnershipTransferred"
+      | "RequestDisbursed"
+      | "RequestLocked"
+      | "RequestReleased"
+      | "Transfer"
+      | "Withdraw"
   ): EventFragment;
 
-  encodeFunctionData(functionFragment: 'allowance', values: [AddressLike, AddressLike]): string;
   encodeFunctionData(
-    functionFragment: 'approve',
+    functionFragment: "allowance",
+    values: [AddressLike, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approve",
     values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: 'disburseForFulfillment',
+    functionFragment: "disburseForFulfillment",
     values: [BytesLike, PaymentStruct[]]
   ): string;
   encodeFunctionData(
-    functionFragment: 'disburseForRequest',
+    functionFragment: "disburseForRequest",
     values: [BytesLike, AddressLike, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: 'isLocked', values: [AddressLike, AddressLike]): string;
-  encodeFunctionData(functionFragment: 'isValidSignature', values: [BytesLike, BytesLike]): string;
   encodeFunctionData(
-    functionFragment: 'lockEscrow',
+    functionFragment: "getSpenderInfo",
+    values: [AddressLike, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isValidSignature",
+    values: [BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "lockEscrow",
     values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: 'lockForRequest',
-    values: [AddressLike, AddressLike, BigNumberish, BytesLike, BigNumberish]
+    functionFragment: "lockForRequest",
+    values: [AddressLike, AddressLike, BigNumberish, BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: 'lockedOf', values: [AddressLike, AddressLike]): string;
-  encodeFunctionData(functionFragment: 'lockedOfRequest', values: [BytesLike]): string;
-  encodeFunctionData(functionFragment: 'owner', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'paidCountOfRequest', values: [BytesLike]): string;
   encodeFunctionData(
-    functionFragment: 'releaseEscrow',
+    functionFragment: "lockedOfRequest",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "releaseEscrow",
     values: [AddressLike, AddressLike, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: 'releaseForRequest', values: [BytesLike]): string;
-  encodeFunctionData(functionFragment: 'renounceOwnership', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'totalLockedFor', values: [AddressLike]): string;
   encodeFunctionData(
-    functionFragment: 'transferByRouter',
+    functionFragment: "releaseForRequest",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "totalLockedFor",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferByRouter",
     values: [AddressLike, PaymentStruct[]]
   ): string;
-  encodeFunctionData(functionFragment: 'transferOwnership', values: [AddressLike]): string;
-  encodeFunctionData(functionFragment: 'typeAndVersion', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'withdraw', values: [AddressLike, BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "typeAndVersion",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdraw",
+    values: [AddressLike, BigNumberish]
+  ): string;
 
-  decodeFunctionResult(functionFragment: 'allowance', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'approve', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'disburseForFulfillment', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'disburseForRequest', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'isLocked', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'isValidSignature', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'lockEscrow', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'lockForRequest', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'lockedOf', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'lockedOfRequest', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'owner', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'paidCountOfRequest', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'releaseEscrow', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'releaseForRequest', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'renounceOwnership', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'totalLockedFor', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'transferByRouter', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'transferOwnership', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'typeAndVersion', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'withdraw', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "disburseForFulfillment",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "disburseForRequest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getSpenderInfo",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isValidSignature",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "lockEscrow", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "lockForRequest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "lockedOfRequest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "releaseEscrow",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "releaseForRequest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalLockedFor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferByRouter",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "typeAndVersion",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 }
 
 export namespace ApprovalEvent {
-  export type InputTuple = [spender: AddressLike, token: AddressLike, amount: BigNumberish];
+  export type InputTuple = [
+    spender: AddressLike,
+    token: AddressLike,
+    amount: BigNumberish
+  ];
   export type OutputTuple = [spender: string, token: string, amount: bigint];
   export interface OutputObject {
     spender: string;
@@ -169,9 +236,14 @@ export namespace EscrowEvent {
     spender: AddressLike,
     token: AddressLike,
     amount: BigNumberish,
-    locked: boolean,
+    locked: boolean
   ];
-  export type OutputTuple = [spender: string, token: string, amount: bigint, locked: boolean];
+  export type OutputTuple = [
+    spender: string,
+    token: string,
+    amount: bigint,
+    locked: boolean
+  ];
   export interface OutputObject {
     spender: string;
     token: string;
@@ -202,22 +274,19 @@ export namespace RequestDisbursedEvent {
     requestId: BytesLike,
     to: AddressLike,
     token: AddressLike,
-    amount: BigNumberish,
-    paidCount: BigNumberish,
+    amount: BigNumberish
   ];
   export type OutputTuple = [
     requestId: string,
     to: string,
     token: string,
-    amount: bigint,
-    paidCount: bigint,
+    amount: bigint
   ];
   export interface OutputObject {
     requestId: string;
     to: string;
     token: string;
     amount: bigint;
-    paidCount: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -230,22 +299,19 @@ export namespace RequestLockedEvent {
     requestId: BytesLike,
     spender: AddressLike,
     token: AddressLike,
-    totalAmount: BigNumberish,
-    redundancy: BigNumberish,
+    amount: BigNumberish
   ];
   export type OutputTuple = [
     requestId: string,
     spender: string,
     token: string,
-    totalAmount: bigint,
-    redundancy: bigint,
+    amount: bigint
   ];
   export interface OutputObject {
     requestId: string;
     spender: string;
     token: string;
-    totalAmount: bigint;
-    redundancy: bigint;
+    amount: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -258,13 +324,13 @@ export namespace RequestReleasedEvent {
     requestId: BytesLike,
     spender: AddressLike,
     token: AddressLike,
-    amountRefunded: BigNumberish,
+    amountRefunded: BigNumberish
   ];
   export type OutputTuple = [
     requestId: string,
     spender: string,
     token: string,
-    amountRefunded: bigint,
+    amountRefunded: bigint
   ];
   export interface OutputObject {
     requestId: string;
@@ -283,9 +349,14 @@ export namespace TransferEvent {
     spender: AddressLike,
     token: AddressLike,
     to: AddressLike,
-    amount: BigNumberish,
+    amount: BigNumberish
   ];
-  export type OutputTuple = [spender: string, token: string, to: string, amount: bigint];
+  export type OutputTuple = [
+    spender: string,
+    token: string,
+    to: string,
+    amount: bigint
+  ];
   export interface OutputObject {
     spender: string;
     token: string;
@@ -350,223 +421,273 @@ export interface WalletAbi extends BaseContract {
     event: TCEvent
   ): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(event?: TCEvent): Promise<this>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-  allowance: TypedContractMethod<[arg0: AddressLike, arg1: AddressLike], [bigint], 'view'>;
+  allowance: TypedContractMethod<
+    [arg0: AddressLike, arg1: AddressLike],
+    [bigint],
+    "view"
+  >;
 
   approve: TypedContractMethod<
     [spender: AddressLike, token: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
   disburseForFulfillment: TypedContractMethod<
     [requestId: BytesLike, payments: PaymentStruct[]],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
   disburseForRequest: TypedContractMethod<
     [requestId: BytesLike, to: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
-  isLocked: TypedContractMethod<[spender: AddressLike, token: AddressLike], [boolean], 'view'>;
+  getSpenderInfo: TypedContractMethod<
+    [spender: AddressLike, token: AddressLike],
+    [[bigint, bigint] & { spenderAllowance: bigint; availableBalance: bigint }],
+    "view"
+  >;
 
   isValidSignature: TypedContractMethod<
     [hash_: BytesLike, signature_: BytesLike],
     [string],
-    'view'
+    "view"
   >;
 
   lockEscrow: TypedContractMethod<
     [spender: AddressLike, token: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
   lockForRequest: TypedContractMethod<
     [
       spender: AddressLike,
       token: AddressLike,
-      totalAmount: BigNumberish,
-      requestId: BytesLike,
-      redundancy: BigNumberish,
+      amount: BigNumberish,
+      requestId: BytesLike
     ],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
-  lockedOf: TypedContractMethod<[spender: AddressLike, token: AddressLike], [bigint], 'view'>;
+  lockedOfRequest: TypedContractMethod<
+    [requestId: BytesLike],
+    [bigint],
+    "view"
+  >;
 
-  lockedOfRequest: TypedContractMethod<[requestId: BytesLike], [bigint], 'view'>;
-
-  owner: TypedContractMethod<[], [string], 'view'>;
-
-  paidCountOfRequest: TypedContractMethod<[requestId: BytesLike], [bigint], 'view'>;
+  owner: TypedContractMethod<[], [string], "view">;
 
   releaseEscrow: TypedContractMethod<
     [spender: AddressLike, token: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
-  releaseForRequest: TypedContractMethod<[requestId: BytesLike], [void], 'nonpayable'>;
+  releaseForRequest: TypedContractMethod<
+    [requestId: BytesLike],
+    [void],
+    "nonpayable"
+  >;
 
-  renounceOwnership: TypedContractMethod<[], [void], 'nonpayable'>;
+  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
-  totalLockedFor: TypedContractMethod<[token: AddressLike], [bigint], 'view'>;
+  totalLockedFor: TypedContractMethod<[token: AddressLike], [bigint], "view">;
 
   transferByRouter: TypedContractMethod<
     [spender: AddressLike, payments: PaymentStruct[]],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
-  transferOwnership: TypedContractMethod<[newOwner: AddressLike], [void], 'nonpayable'>;
+  transferOwnership: TypedContractMethod<
+    [newOwner: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
-  typeAndVersion: TypedContractMethod<[], [string], 'view'>;
+  typeAndVersion: TypedContractMethod<[], [string], "view">;
 
-  withdraw: TypedContractMethod<[token: AddressLike, amount: BigNumberish], [void], 'nonpayable'>;
+  withdraw: TypedContractMethod<
+    [token: AddressLike, amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-  getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
   getFunction(
-    nameOrSignature: 'allowance'
-  ): TypedContractMethod<[arg0: AddressLike, arg1: AddressLike], [bigint], 'view'>;
+    nameOrSignature: "allowance"
+  ): TypedContractMethod<
+    [arg0: AddressLike, arg1: AddressLike],
+    [bigint],
+    "view"
+  >;
   getFunction(
-    nameOrSignature: 'approve'
+    nameOrSignature: "approve"
   ): TypedContractMethod<
     [spender: AddressLike, token: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'disburseForFulfillment'
-  ): TypedContractMethod<[requestId: BytesLike, payments: PaymentStruct[]], [void], 'nonpayable'>;
+    nameOrSignature: "disburseForFulfillment"
+  ): TypedContractMethod<
+    [requestId: BytesLike, payments: PaymentStruct[]],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
-    nameOrSignature: 'disburseForRequest'
+    nameOrSignature: "disburseForRequest"
   ): TypedContractMethod<
     [requestId: BytesLike, to: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'isLocked'
-  ): TypedContractMethod<[spender: AddressLike, token: AddressLike], [boolean], 'view'>;
+    nameOrSignature: "getSpenderInfo"
+  ): TypedContractMethod<
+    [spender: AddressLike, token: AddressLike],
+    [[bigint, bigint] & { spenderAllowance: bigint; availableBalance: bigint }],
+    "view"
+  >;
   getFunction(
-    nameOrSignature: 'isValidSignature'
-  ): TypedContractMethod<[hash_: BytesLike, signature_: BytesLike], [string], 'view'>;
+    nameOrSignature: "isValidSignature"
+  ): TypedContractMethod<
+    [hash_: BytesLike, signature_: BytesLike],
+    [string],
+    "view"
+  >;
   getFunction(
-    nameOrSignature: 'lockEscrow'
+    nameOrSignature: "lockEscrow"
   ): TypedContractMethod<
     [spender: AddressLike, token: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'lockForRequest'
+    nameOrSignature: "lockForRequest"
   ): TypedContractMethod<
     [
       spender: AddressLike,
       token: AddressLike,
-      totalAmount: BigNumberish,
-      requestId: BytesLike,
-      redundancy: BigNumberish,
+      amount: BigNumberish,
+      requestId: BytesLike
     ],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'lockedOf'
-  ): TypedContractMethod<[spender: AddressLike, token: AddressLike], [bigint], 'view'>;
+    nameOrSignature: "lockedOfRequest"
+  ): TypedContractMethod<[requestId: BytesLike], [bigint], "view">;
   getFunction(
-    nameOrSignature: 'lockedOfRequest'
-  ): TypedContractMethod<[requestId: BytesLike], [bigint], 'view'>;
-  getFunction(nameOrSignature: 'owner'): TypedContractMethod<[], [string], 'view'>;
+    nameOrSignature: "owner"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: 'paidCountOfRequest'
-  ): TypedContractMethod<[requestId: BytesLike], [bigint], 'view'>;
-  getFunction(
-    nameOrSignature: 'releaseEscrow'
+    nameOrSignature: "releaseEscrow"
   ): TypedContractMethod<
     [spender: AddressLike, token: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'releaseForRequest'
-  ): TypedContractMethod<[requestId: BytesLike], [void], 'nonpayable'>;
-  getFunction(nameOrSignature: 'renounceOwnership'): TypedContractMethod<[], [void], 'nonpayable'>;
+    nameOrSignature: "releaseForRequest"
+  ): TypedContractMethod<[requestId: BytesLike], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: 'totalLockedFor'
-  ): TypedContractMethod<[token: AddressLike], [bigint], 'view'>;
+    nameOrSignature: "renounceOwnership"
+  ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: 'transferByRouter'
-  ): TypedContractMethod<[spender: AddressLike, payments: PaymentStruct[]], [void], 'nonpayable'>;
+    nameOrSignature: "totalLockedFor"
+  ): TypedContractMethod<[token: AddressLike], [bigint], "view">;
   getFunction(
-    nameOrSignature: 'transferOwnership'
-  ): TypedContractMethod<[newOwner: AddressLike], [void], 'nonpayable'>;
-  getFunction(nameOrSignature: 'typeAndVersion'): TypedContractMethod<[], [string], 'view'>;
+    nameOrSignature: "transferByRouter"
+  ): TypedContractMethod<
+    [spender: AddressLike, payments: PaymentStruct[]],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
-    nameOrSignature: 'withdraw'
-  ): TypedContractMethod<[token: AddressLike, amount: BigNumberish], [void], 'nonpayable'>;
+    nameOrSignature: "transferOwnership"
+  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "typeAndVersion"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "withdraw"
+  ): TypedContractMethod<
+    [token: AddressLike, amount: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
   getEvent(
-    key: 'Approval'
+    key: "Approval"
   ): TypedContractEvent<
     ApprovalEvent.InputTuple,
     ApprovalEvent.OutputTuple,
     ApprovalEvent.OutputObject
   >;
   getEvent(
-    key: 'Deposit'
+    key: "Deposit"
   ): TypedContractEvent<
     DepositEvent.InputTuple,
     DepositEvent.OutputTuple,
     DepositEvent.OutputObject
   >;
   getEvent(
-    key: 'Escrow'
-  ): TypedContractEvent<EscrowEvent.InputTuple, EscrowEvent.OutputTuple, EscrowEvent.OutputObject>;
+    key: "Escrow"
+  ): TypedContractEvent<
+    EscrowEvent.InputTuple,
+    EscrowEvent.OutputTuple,
+    EscrowEvent.OutputObject
+  >;
   getEvent(
-    key: 'OwnershipTransferred'
+    key: "OwnershipTransferred"
   ): TypedContractEvent<
     OwnershipTransferredEvent.InputTuple,
     OwnershipTransferredEvent.OutputTuple,
     OwnershipTransferredEvent.OutputObject
   >;
   getEvent(
-    key: 'RequestDisbursed'
+    key: "RequestDisbursed"
   ): TypedContractEvent<
     RequestDisbursedEvent.InputTuple,
     RequestDisbursedEvent.OutputTuple,
     RequestDisbursedEvent.OutputObject
   >;
   getEvent(
-    key: 'RequestLocked'
+    key: "RequestLocked"
   ): TypedContractEvent<
     RequestLockedEvent.InputTuple,
     RequestLockedEvent.OutputTuple,
     RequestLockedEvent.OutputObject
   >;
   getEvent(
-    key: 'RequestReleased'
+    key: "RequestReleased"
   ): TypedContractEvent<
     RequestReleasedEvent.InputTuple,
     RequestReleasedEvent.OutputTuple,
     RequestReleasedEvent.OutputObject
   >;
   getEvent(
-    key: 'Transfer'
+    key: "Transfer"
   ): TypedContractEvent<
     TransferEvent.InputTuple,
     TransferEvent.OutputTuple,
     TransferEvent.OutputObject
   >;
   getEvent(
-    key: 'Withdraw'
+    key: "Withdraw"
   ): TypedContractEvent<
     WithdrawEvent.InputTuple,
     WithdrawEvent.OutputTuple,
@@ -574,7 +695,7 @@ export interface WalletAbi extends BaseContract {
   >;
 
   filters: {
-    'Approval(address,address,uint256)': TypedContractEvent<
+    "Approval(address,address,uint256)": TypedContractEvent<
       ApprovalEvent.InputTuple,
       ApprovalEvent.OutputTuple,
       ApprovalEvent.OutputObject
@@ -585,7 +706,7 @@ export interface WalletAbi extends BaseContract {
       ApprovalEvent.OutputObject
     >;
 
-    'Deposit(address,uint256)': TypedContractEvent<
+    "Deposit(address,uint256)": TypedContractEvent<
       DepositEvent.InputTuple,
       DepositEvent.OutputTuple,
       DepositEvent.OutputObject
@@ -596,7 +717,7 @@ export interface WalletAbi extends BaseContract {
       DepositEvent.OutputObject
     >;
 
-    'Escrow(address,address,uint256,bool)': TypedContractEvent<
+    "Escrow(address,address,uint256,bool)": TypedContractEvent<
       EscrowEvent.InputTuple,
       EscrowEvent.OutputTuple,
       EscrowEvent.OutputObject
@@ -607,7 +728,7 @@ export interface WalletAbi extends BaseContract {
       EscrowEvent.OutputObject
     >;
 
-    'OwnershipTransferred(address,address)': TypedContractEvent<
+    "OwnershipTransferred(address,address)": TypedContractEvent<
       OwnershipTransferredEvent.InputTuple,
       OwnershipTransferredEvent.OutputTuple,
       OwnershipTransferredEvent.OutputObject
@@ -618,7 +739,7 @@ export interface WalletAbi extends BaseContract {
       OwnershipTransferredEvent.OutputObject
     >;
 
-    'RequestDisbursed(bytes32,address,address,uint256,uint16)': TypedContractEvent<
+    "RequestDisbursed(bytes32,address,address,uint256)": TypedContractEvent<
       RequestDisbursedEvent.InputTuple,
       RequestDisbursedEvent.OutputTuple,
       RequestDisbursedEvent.OutputObject
@@ -629,7 +750,7 @@ export interface WalletAbi extends BaseContract {
       RequestDisbursedEvent.OutputObject
     >;
 
-    'RequestLocked(bytes32,address,address,uint256,uint16)': TypedContractEvent<
+    "RequestLocked(bytes32,address,address,uint256)": TypedContractEvent<
       RequestLockedEvent.InputTuple,
       RequestLockedEvent.OutputTuple,
       RequestLockedEvent.OutputObject
@@ -640,7 +761,7 @@ export interface WalletAbi extends BaseContract {
       RequestLockedEvent.OutputObject
     >;
 
-    'RequestReleased(bytes32,address,address,uint256)': TypedContractEvent<
+    "RequestReleased(bytes32,address,address,uint256)": TypedContractEvent<
       RequestReleasedEvent.InputTuple,
       RequestReleasedEvent.OutputTuple,
       RequestReleasedEvent.OutputObject
@@ -651,7 +772,7 @@ export interface WalletAbi extends BaseContract {
       RequestReleasedEvent.OutputObject
     >;
 
-    'Transfer(address,address,address,uint256)': TypedContractEvent<
+    "Transfer(address,address,address,uint256)": TypedContractEvent<
       TransferEvent.InputTuple,
       TransferEvent.OutputTuple,
       TransferEvent.OutputObject
@@ -662,7 +783,7 @@ export interface WalletAbi extends BaseContract {
       TransferEvent.OutputObject
     >;
 
-    'Withdraw(address,uint256)': TypedContractEvent<
+    "Withdraw(address,uint256)": TypedContractEvent<
       WithdrawEvent.InputTuple,
       WithdrawEvent.OutputTuple,
       WithdrawEvent.OutputObject

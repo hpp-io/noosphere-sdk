@@ -94,7 +94,7 @@ vi.mock('ethers', async () => {
     getSubscriptionBatchReader = vi
       .fn()
       .mockResolvedValue('0x0000000000000000000000000000000000000000');
-    redundancyCount = vi.fn().mockResolvedValue(0);
+    requestCommitments = vi.fn().mockResolvedValue('0x0000000000000000000000000000000000000000000000000000000000000000');
     getComputeSubscriptionInterval = vi.fn().mockResolvedValue(1n);
     getComputeSubscription = vi.fn().mockResolvedValue({
       client: '0x1234567890123456789012345678901234567890',

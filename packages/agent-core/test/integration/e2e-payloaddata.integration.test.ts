@@ -41,7 +41,7 @@ describe('E2E PayloadData Integration', () => {
     // Minimal Coordinator ABI for testing
     const coordinatorAbi = [
       'function reportComputeResult(uint32 deliveryInterval, tuple(bytes32 contentHash, bytes uri) input, tuple(bytes32 contentHash, bytes uri) output, tuple(bytes32 contentHash, bytes uri) proof, bytes commitmentData, address nodeWallet) external',
-      'event ComputeDelivered(bytes32 indexed requestId, address indexed nodeWallet, uint16 numRedundantDeliveries, tuple(bytes32 contentHash, bytes uri) input, tuple(bytes32 contentHash, bytes uri) output, tuple(bytes32 contentHash, bytes uri) proof)',
+      'event ComputeDelivered(bytes32 indexed requestId, address indexed nodeWallet, tuple(bytes32 contentHash, bytes uri) input, tuple(bytes32 contentHash, bytes uri) output, tuple(bytes32 contentHash, bytes uri) proof)',
     ];
 
     coordinator = new ethers.Contract(
@@ -329,12 +329,11 @@ describe('E2E PayloadData Integration', () => {
 
       // Mock commitment data (would normally come from RequestStarted event)
       const mockCommitment = ethers.AbiCoder.defaultAbiCoder().encode(
-        ['bytes32', 'uint64', 'uint32', 'uint8', 'bytes32', 'address', 'address', 'address', 'uint256', 'address', 'address', 'bool'],
+        ['bytes32', 'uint64', 'uint32', 'bytes32', 'address', 'address', 'address', 'uint256', 'address', 'address', 'bool'],
         [
           ethers.id('mock-request-id'),
           1n, // subscriptionId
           1, // interval
-          1, // redundancy
           ethers.id('mock-container-id'),
           testConfig.accounts.client.address,
           testConfig.accounts.client.address, // wallet
