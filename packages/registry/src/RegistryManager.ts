@@ -1,11 +1,12 @@
 import fs from 'fs/promises';
 import path from 'path';
 import fetch from 'node-fetch';
-import type { ContainerMetadata, VerifierMetadata, RegistryConfig, RegistryIndex } from './types';
+import type { ContainerMetadata, DeploymentMetadata, VerifierMetadata, RegistryConfig, RegistryIndex } from './types';
 
 export class RegistryManager {
   private containers = new Map<string, ContainerMetadata>();
   private verifiers = new Map<string, VerifierMetadata>();
+  private deployments = new Map<string, DeploymentMetadata>();
   private config: Required<RegistryConfig>;
   private lastSync: number = 0;
 
@@ -63,7 +64,7 @@ export class RegistryManager {
       }
     }
 
-    console.log(`✓ Loaded ${this.containers.size} containers and ${this.verifiers.size} verifiers`);
+    console.log(`✓ Loaded ${this.containers.size} containers, ${this.verifiers.size} verifiers, ${this.deployments.size} deployments`);
   }
 
   /**
@@ -82,6 +83,11 @@ export class RegistryManager {
       // Load verifiers
       Object.entries(registry.verifiers || {}).forEach(([id, metadata]) => {
         this.verifiers.set(id, metadata);
+      });
+
+      // Load deployments
+      Object.entries(registry.deployments || {}).forEach(([chainId, metadata]) => {
+        this.deployments.set(chainId, metadata);
       });
 
       console.log(`✓ Loaded local registry from ${this.config.localPath}`);
@@ -126,6 +132,7 @@ export class RegistryManager {
     console.log('Reloading registry...');
     this.containers.clear();
     this.verifiers.clear();
+    this.deployments.clear();
     this.lastSync = 0;
     await this.load();
   }
@@ -156,6 +163,11 @@ export class RegistryManager {
         if (!this.verifiers.has(id)) {
           this.verifiers.set(id, metadata);
         }
+      });
+
+      // Deployments: remote always wins (contract addresses are authoritative)
+      Object.entries(registry.deployments || {}).forEach(([chainId, metadata]) => {
+        this.deployments.set(chainId, metadata);
       });
 
       this.lastSync = Date.now();
@@ -218,6 +230,20 @@ export class RegistryManager {
   }
 
   /**
+   * Get deployment by chain ID
+   */
+  getDeployment(chainId: string): DeploymentMetadata | undefined {
+    return this.deployments.get(chainId);
+  }
+
+  /**
+   * Get all active deployments
+   */
+  listDeployments(): DeploymentMetadata[] {
+    return Array.from(this.deployments.values()).filter((d) => d.statusCode === 'ACTIVE');
+  }
+
+  /**
    * Add custom container to local registry
    */
   async addContainer(container: ContainerMetadata): Promise<void> {
@@ -262,6 +288,7 @@ export class RegistryManager {
     const registry: RegistryIndex = {
       containers: Object.fromEntries(this.containers),
       verifiers: Object.fromEntries(this.verifiers),
+      deployments: Object.fromEntries(this.deployments),
       version: '1.0.0',
       updatedAt: new Date().toISOString(),
     };
@@ -288,6 +315,8 @@ export class RegistryManager {
     activeContainers: number;
     totalVerifiers: number;
     activeVerifiers: number;
+    totalDeployments: number;
+    activeDeployments: number;
     lastSync: string;
   } {
     return {
@@ -295,6 +324,8 @@ export class RegistryManager {
       activeContainers: this.listContainers().length,
       totalVerifiers: this.verifiers.size,
       activeVerifiers: this.listVerifiers().length,
+      totalDeployments: this.deployments.size,
+      activeDeployments: this.listDeployments().length,
       lastSync: this.lastSync ? new Date(this.lastSync).toISOString() : 'Never',
     };
   }

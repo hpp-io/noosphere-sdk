@@ -63,6 +63,18 @@ export interface VerifierMetadata {
   description?: string;
 }
 
+export interface DeploymentMetadata {
+  chainId: number;
+  name: string;
+  rpcUrl: string;
+  wsRpcUrl?: string;
+  blockExplorerUrl?: string;
+  contracts: Record<string, string>;
+  statusCode: 'ACTIVE' | 'INACTIVE' | 'DEPRECATED';
+  description?: string;
+  updatedAt?: string;
+}
+
 export interface RegistryConfig {
   localPath?: string;
   remotePath?: string;
@@ -73,6 +85,7 @@ export interface RegistryConfig {
 export interface RegistryIndex {
   containers: Record<string, ContainerMetadata>;
   verifiers: Record<string, VerifierMetadata>;
+  deployments?: Record<string, DeploymentMetadata>;
   version: string;
   updatedAt: string;
 }
