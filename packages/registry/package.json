@@ -1,6 +1,6 @@
 {
   "name": "@noosphere/registry",
-  "version": "0.2.2-alpha.1",
+  "version": "0.2.3-alpha.1",
   "description": "Container and Verifier registry for Noosphere SDK",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
