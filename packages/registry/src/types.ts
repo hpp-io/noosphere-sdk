@@ -22,6 +22,17 @@ export interface ContainerMetadata {
   updatedAt?: string;
   description?: string;
   tags?: string[];
+  inputSchema?: {
+    type: string;
+    required?: string[];
+    properties?: Record<string, {
+      type: string;
+      description?: string;
+      default?: string;
+      examples?: string[];
+      properties?: Record<string, { type: string; description?: string }>;
+    }>;
+  } | null;
 }
 
 export interface ProofServiceConfig {
