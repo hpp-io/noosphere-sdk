@@ -20,6 +20,7 @@ import CoordinatorABI from './abis/Coordinator.abi.json';
 import SubscriptionBatchReaderABI from './abis/SubscriptionBatchReader.abi.json';
 import WalletFactoryABI from './abis/WalletFactory.abi.json';
 import WalletABI from './abis/Wallet.abi.json';
+import NoosphereVRFABI from './abis/NoosphereVRF.abi.json';
 
 export const ABIs = {
   Router: RouterABI,
@@ -27,4 +28,5 @@ export const ABIs = {
   SubscriptionBatchReader: SubscriptionBatchReaderABI,
   WalletFactory: WalletFactoryABI,
   Wallet: WalletABI,
+  NoosphereVRF: NoosphereVRFABI,
 };
