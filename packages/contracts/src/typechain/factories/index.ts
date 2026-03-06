@@ -3,6 +3,7 @@
 /* eslint-disable */
 export { CoordinatorAbi__factory } from "./CoordinatorAbi__factory";
 export { IRouterAbi__factory } from "./IRouterAbi__factory";
+export { ImmediateFinalizeVerifierAbi__factory } from "./ImmediateFinalizeVerifierAbi__factory";
 export { NoosphereVRFAbi__factory } from "./NoosphereVRFAbi__factory";
 export { RouterAbi__factory } from "./RouterAbi__factory";
 export { SubscriptionBatchReaderAbi__factory } from "./SubscriptionBatchReaderAbi__factory";

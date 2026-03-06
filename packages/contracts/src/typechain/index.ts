@@ -3,6 +3,7 @@
 /* eslint-disable */
 export type { CoordinatorAbi } from "./CoordinatorAbi";
 export type { IRouterAbi } from "./IRouterAbi";
+export type { ImmediateFinalizeVerifierAbi } from "./ImmediateFinalizeVerifierAbi";
 export type { NoosphereVRFAbi } from "./NoosphereVRFAbi";
 export type { RouterAbi } from "./RouterAbi";
 export type { SubscriptionBatchReaderAbi } from "./SubscriptionBatchReaderAbi";
@@ -10,6 +11,7 @@ export type { WalletAbi } from "./WalletAbi";
 export type { WalletFactoryAbi } from "./WalletFactoryAbi";
 export * as factories from "./factories";
 export { CoordinatorAbi__factory } from "./factories/CoordinatorAbi__factory";
+export { ImmediateFinalizeVerifierAbi__factory } from "./factories/ImmediateFinalizeVerifierAbi__factory";
 export { IRouterAbi__factory } from "./factories/IRouterAbi__factory";
 export { NoosphereVRFAbi__factory } from "./factories/NoosphereVRFAbi__factory";
 export { RouterAbi__factory } from "./factories/RouterAbi__factory";

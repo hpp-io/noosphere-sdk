@@ -10,6 +10,30 @@ import type {
 
 const _abi = [
   {
+    type: "constructor",
+    inputs: [
+      {
+        name: "_owner",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "BLOCKHASH_TIMEOUT",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
     type: "function",
     name: "EPOCH_SIZE",
     inputs: [],
@@ -24,7 +48,43 @@ const _abi = [
   },
   {
     type: "function",
-    name: "addConsumer",
+    name: "MAX_RESERVES_PER_BLOCK",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "bindRequest",
+    inputs: [
+      {
+        name: "subscriptionId",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "interval",
+        type: "uint32",
+        internalType: "uint32",
+      },
+      {
+        name: "requestId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "blockConsumer",
     inputs: [
       {
         name: "consumer",
@@ -33,6 +93,88 @@ const _abi = [
       },
     ],
     outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "blockedConsumers",
+    inputs: [
+      {
+        name: "",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "epochRoots",
+    inputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "fulfillRandomValue",
+    inputs: [
+      {
+        name: "subscriptionId",
+        type: "uint64",
+        internalType: "uint64",
+      },
+      {
+        name: "interval",
+        type: "uint32",
+        internalType: "uint32",
+      },
+      {
+        name: "outputUri",
+        type: "bytes",
+        internalType: "bytes",
+      },
+    ],
+    outputs: [
+      {
+        name: "requestId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+      {
+        name: "randomValue",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "blockHash",
+        type: "bytes32",
+        internalType: "bytes32",
+      },
+      {
+        name: "expired",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
     stateMutability: "nonpayable",
   },
   {
@@ -82,12 +224,50 @@ const _abi = [
   },
   {
     type: "function",
-    name: "isAuthorizedConsumer",
+    name: "getRequestBlock",
+    inputs: [
+      {
+        name: "requestId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isBlocked",
     inputs: [
       {
         name: "consumer",
         type: "address",
         internalType: "address",
+      },
+    ],
+    outputs: [
+      {
+        name: "",
+        type: "bool",
+        internalType: "bool",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isRequestExpired",
+    inputs: [
+      {
+        name: "requestId",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
     outputs: [
@@ -145,15 +325,34 @@ const _abi = [
   },
   {
     type: "function",
-    name: "removeConsumer",
+    name: "requestBlocks",
     inputs: [
       {
-        name: "consumer",
-        type: "address",
-        internalType: "address",
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
       },
     ],
-    outputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "reserveRequestId",
+    inputs: [],
+    outputs: [
+      {
+        name: "requestId",
+        type: "uint256",
+        internalType: "uint256",
+      },
+    ],
     stateMutability: "nonpayable",
   },
   {
@@ -168,6 +367,58 @@ const _abi = [
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "typeAndVersion",
+    inputs: [],
+    outputs: [
+      {
+        name: "",
+        type: "string",
+        internalType: "string",
+      },
+    ],
+    stateMutability: "pure",
+  },
+  {
+    type: "function",
+    name: "unblockConsumer",
+    inputs: [
+      {
+        name: "consumer",
+        type: "address",
+        internalType: "address",
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "event",
+    name: "ConsumerBlocked",
+    inputs: [
+      {
+        name: "consumer",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "ConsumerUnblocked",
+    inputs: [
+      {
+        name: "consumer",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+    ],
+    anonymous: false,
   },
   {
     type: "event",
@@ -214,8 +465,51 @@ const _abi = [
     anonymous: false,
   },
   {
+    type: "event",
+    name: "RandomValueExpired",
+    inputs: [
+      {
+        name: "requestId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "RandomValueVerified",
+    inputs: [
+      {
+        name: "requestId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "randomValue",
+        type: "bytes32",
+        indexed: false,
+        internalType: "bytes32",
+      },
+      {
+        name: "blockHash",
+        type: "bytes32",
+        indexed: false,
+        internalType: "bytes32",
+      },
+    ],
+    anonymous: false,
+  },
+  {
     type: "error",
     name: "AlreadyFulfilledOrInvalid",
+    inputs: [],
+  },
+  {
+    type: "error",
+    name: "Blocked",
     inputs: [],
   },
   {
@@ -245,12 +539,12 @@ const _abi = [
   },
   {
     type: "error",
-    name: "NotAuthorizedConsumer",
+    name: "NotOwner",
     inputs: [],
   },
   {
     type: "error",
-    name: "NotOwner",
+    name: "RateLimitExceeded",
     inputs: [],
   },
 ] as const;

@@ -26,30 +26,71 @@ import type {
 export interface NoosphereVRFAbiInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "BLOCKHASH_TIMEOUT"
       | "EPOCH_SIZE"
-      | "addConsumer"
+      | "MAX_RESERVES_PER_BLOCK"
+      | "bindRequest"
+      | "blockConsumer"
+      | "blockedConsumers"
+      | "epochRoots"
+      | "fulfillRandomValue"
       | "getCurrentEpoch"
       | "getEpochRemaining"
       | "getEpochRoot"
-      | "isAuthorizedConsumer"
+      | "getRequestBlock"
+      | "isBlocked"
+      | "isRequestExpired"
       | "nextRequestId"
       | "owner"
       | "registerEpoch"
-      | "removeConsumer"
+      | "requestBlocks"
+      | "reserveRequestId"
       | "transferOwnership"
+      | "typeAndVersion"
+      | "unblockConsumer"
   ): FunctionFragment;
 
   getEvent(
-    nameOrSignatureOrTopic: "EpochRegistered" | "EpochRunningLow"
+    nameOrSignatureOrTopic:
+      | "ConsumerBlocked"
+      | "ConsumerUnblocked"
+      | "EpochRegistered"
+      | "EpochRunningLow"
+      | "RandomValueExpired"
+      | "RandomValueVerified"
   ): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "BLOCKHASH_TIMEOUT",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "EPOCH_SIZE",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "addConsumer",
+    functionFragment: "MAX_RESERVES_PER_BLOCK",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "bindRequest",
+    values: [BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "blockConsumer",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "blockedConsumers",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "epochRoots",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "fulfillRandomValue",
+    values: [BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getCurrentEpoch",
@@ -64,8 +105,16 @@ export interface NoosphereVRFAbiInterface extends Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "isAuthorizedConsumer",
+    functionFragment: "getRequestBlock",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isBlocked",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isRequestExpired",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "nextRequestId",
@@ -77,17 +126,50 @@ export interface NoosphereVRFAbiInterface extends Interface {
     values: [BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "removeConsumer",
-    values: [AddressLike]
+    functionFragment: "requestBlocks",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "reserveRequestId",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [AddressLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "typeAndVersion",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "unblockConsumer",
+    values: [AddressLike]
+  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "BLOCKHASH_TIMEOUT",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "EPOCH_SIZE", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "addConsumer",
+    functionFragment: "MAX_RESERVES_PER_BLOCK",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "bindRequest",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "blockConsumer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "blockedConsumers",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "epochRoots", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "fulfillRandomValue",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -103,7 +185,12 @@ export interface NoosphereVRFAbiInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isAuthorizedConsumer",
+    functionFragment: "getRequestBlock",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "isBlocked", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isRequestExpired",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -116,13 +203,49 @@ export interface NoosphereVRFAbiInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "removeConsumer",
+    functionFragment: "requestBlocks",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "reserveRequestId",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "typeAndVersion",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "unblockConsumer",
+    data: BytesLike
+  ): Result;
+}
+
+export namespace ConsumerBlockedEvent {
+  export type InputTuple = [consumer: AddressLike];
+  export type OutputTuple = [consumer: string];
+  export interface OutputObject {
+    consumer: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace ConsumerUnblockedEvent {
+  export type InputTuple = [consumer: AddressLike];
+  export type OutputTuple = [consumer: string];
+  export interface OutputObject {
+    consumer: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace EpochRegisteredEvent {
@@ -149,6 +272,40 @@ export namespace EpochRunningLowEvent {
   export interface OutputObject {
     epoch: bigint;
     remaining: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace RandomValueExpiredEvent {
+  export type InputTuple = [requestId: BigNumberish];
+  export type OutputTuple = [requestId: bigint];
+  export interface OutputObject {
+    requestId: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace RandomValueVerifiedEvent {
+  export type InputTuple = [
+    requestId: BigNumberish,
+    randomValue: BytesLike,
+    blockHash: BytesLike
+  ];
+  export type OutputTuple = [
+    requestId: bigint,
+    randomValue: string,
+    blockHash: string
+  ];
+  export interface OutputObject {
+    requestId: bigint;
+    randomValue: string;
+    blockHash: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -199,11 +356,46 @@ export interface NoosphereVRFAbi extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  BLOCKHASH_TIMEOUT: TypedContractMethod<[], [bigint], "view">;
+
   EPOCH_SIZE: TypedContractMethod<[], [bigint], "view">;
 
-  addConsumer: TypedContractMethod<
+  MAX_RESERVES_PER_BLOCK: TypedContractMethod<[], [bigint], "view">;
+
+  bindRequest: TypedContractMethod<
+    [
+      subscriptionId: BigNumberish,
+      interval: BigNumberish,
+      requestId: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+
+  blockConsumer: TypedContractMethod<
     [consumer: AddressLike],
     [void],
+    "nonpayable"
+  >;
+
+  blockedConsumers: TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
+
+  epochRoots: TypedContractMethod<[arg0: BigNumberish], [string], "view">;
+
+  fulfillRandomValue: TypedContractMethod<
+    [
+      subscriptionId: BigNumberish,
+      interval: BigNumberish,
+      outputUri: BytesLike
+    ],
+    [
+      [bigint, string, string, boolean] & {
+        requestId: bigint;
+        randomValue: string;
+        blockHash: string;
+        expired: boolean;
+      }
+    ],
     "nonpayable"
   >;
 
@@ -213,8 +405,16 @@ export interface NoosphereVRFAbi extends BaseContract {
 
   getEpochRoot: TypedContractMethod<[epoch: BigNumberish], [string], "view">;
 
-  isAuthorizedConsumer: TypedContractMethod<
-    [consumer: AddressLike],
+  getRequestBlock: TypedContractMethod<
+    [requestId: BigNumberish],
+    [bigint],
+    "view"
+  >;
+
+  isBlocked: TypedContractMethod<[consumer: AddressLike], [boolean], "view">;
+
+  isRequestExpired: TypedContractMethod<
+    [requestId: BigNumberish],
     [boolean],
     "view"
   >;
@@ -229,14 +429,20 @@ export interface NoosphereVRFAbi extends BaseContract {
     "nonpayable"
   >;
 
-  removeConsumer: TypedContractMethod<
-    [consumer: AddressLike],
+  requestBlocks: TypedContractMethod<[arg0: BigNumberish], [bigint], "view">;
+
+  reserveRequestId: TypedContractMethod<[], [bigint], "nonpayable">;
+
+  transferOwnership: TypedContractMethod<
+    [newOwner: AddressLike],
     [void],
     "nonpayable"
   >;
 
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
+  typeAndVersion: TypedContractMethod<[], [string], "view">;
+
+  unblockConsumer: TypedContractMethod<
+    [consumer: AddressLike],
     [void],
     "nonpayable"
   >;
@@ -246,11 +452,52 @@ export interface NoosphereVRFAbi extends BaseContract {
   ): T;
 
   getFunction(
+    nameOrSignature: "BLOCKHASH_TIMEOUT"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "EPOCH_SIZE"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "addConsumer"
+    nameOrSignature: "MAX_RESERVES_PER_BLOCK"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "bindRequest"
+  ): TypedContractMethod<
+    [
+      subscriptionId: BigNumberish,
+      interval: BigNumberish,
+      requestId: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "blockConsumer"
   ): TypedContractMethod<[consumer: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "blockedConsumers"
+  ): TypedContractMethod<[arg0: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "epochRoots"
+  ): TypedContractMethod<[arg0: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "fulfillRandomValue"
+  ): TypedContractMethod<
+    [
+      subscriptionId: BigNumberish,
+      interval: BigNumberish,
+      outputUri: BytesLike
+    ],
+    [
+      [bigint, string, string, boolean] & {
+        requestId: bigint;
+        randomValue: string;
+        blockHash: string;
+        expired: boolean;
+      }
+    ],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "getCurrentEpoch"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -261,8 +508,14 @@ export interface NoosphereVRFAbi extends BaseContract {
     nameOrSignature: "getEpochRoot"
   ): TypedContractMethod<[epoch: BigNumberish], [string], "view">;
   getFunction(
-    nameOrSignature: "isAuthorizedConsumer"
+    nameOrSignature: "getRequestBlock"
+  ): TypedContractMethod<[requestId: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "isBlocked"
   ): TypedContractMethod<[consumer: AddressLike], [boolean], "view">;
+  getFunction(
+    nameOrSignature: "isRequestExpired"
+  ): TypedContractMethod<[requestId: BigNumberish], [boolean], "view">;
   getFunction(
     nameOrSignature: "nextRequestId"
   ): TypedContractMethod<[], [bigint], "view">;
@@ -277,12 +530,35 @@ export interface NoosphereVRFAbi extends BaseContract {
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "removeConsumer"
-  ): TypedContractMethod<[consumer: AddressLike], [void], "nonpayable">;
+    nameOrSignature: "requestBlocks"
+  ): TypedContractMethod<[arg0: BigNumberish], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "reserveRequestId"
+  ): TypedContractMethod<[], [bigint], "nonpayable">;
   getFunction(
     nameOrSignature: "transferOwnership"
   ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "typeAndVersion"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "unblockConsumer"
+  ): TypedContractMethod<[consumer: AddressLike], [void], "nonpayable">;
 
+  getEvent(
+    key: "ConsumerBlocked"
+  ): TypedContractEvent<
+    ConsumerBlockedEvent.InputTuple,
+    ConsumerBlockedEvent.OutputTuple,
+    ConsumerBlockedEvent.OutputObject
+  >;
+  getEvent(
+    key: "ConsumerUnblocked"
+  ): TypedContractEvent<
+    ConsumerUnblockedEvent.InputTuple,
+    ConsumerUnblockedEvent.OutputTuple,
+    ConsumerUnblockedEvent.OutputObject
+  >;
   getEvent(
     key: "EpochRegistered"
   ): TypedContractEvent<
@@ -297,8 +573,44 @@ export interface NoosphereVRFAbi extends BaseContract {
     EpochRunningLowEvent.OutputTuple,
     EpochRunningLowEvent.OutputObject
   >;
+  getEvent(
+    key: "RandomValueExpired"
+  ): TypedContractEvent<
+    RandomValueExpiredEvent.InputTuple,
+    RandomValueExpiredEvent.OutputTuple,
+    RandomValueExpiredEvent.OutputObject
+  >;
+  getEvent(
+    key: "RandomValueVerified"
+  ): TypedContractEvent<
+    RandomValueVerifiedEvent.InputTuple,
+    RandomValueVerifiedEvent.OutputTuple,
+    RandomValueVerifiedEvent.OutputObject
+  >;
 
   filters: {
+    "ConsumerBlocked(address)": TypedContractEvent<
+      ConsumerBlockedEvent.InputTuple,
+      ConsumerBlockedEvent.OutputTuple,
+      ConsumerBlockedEvent.OutputObject
+    >;
+    ConsumerBlocked: TypedContractEvent<
+      ConsumerBlockedEvent.InputTuple,
+      ConsumerBlockedEvent.OutputTuple,
+      ConsumerBlockedEvent.OutputObject
+    >;
+
+    "ConsumerUnblocked(address)": TypedContractEvent<
+      ConsumerUnblockedEvent.InputTuple,
+      ConsumerUnblockedEvent.OutputTuple,
+      ConsumerUnblockedEvent.OutputObject
+    >;
+    ConsumerUnblocked: TypedContractEvent<
+      ConsumerUnblockedEvent.InputTuple,
+      ConsumerUnblockedEvent.OutputTuple,
+      ConsumerUnblockedEvent.OutputObject
+    >;
+
     "EpochRegistered(uint256,bytes32,uint256)": TypedContractEvent<
       EpochRegisteredEvent.InputTuple,
       EpochRegisteredEvent.OutputTuple,
@@ -319,6 +631,28 @@ export interface NoosphereVRFAbi extends BaseContract {
       EpochRunningLowEvent.InputTuple,
       EpochRunningLowEvent.OutputTuple,
       EpochRunningLowEvent.OutputObject
+    >;
+
+    "RandomValueExpired(uint256)": TypedContractEvent<
+      RandomValueExpiredEvent.InputTuple,
+      RandomValueExpiredEvent.OutputTuple,
+      RandomValueExpiredEvent.OutputObject
+    >;
+    RandomValueExpired: TypedContractEvent<
+      RandomValueExpiredEvent.InputTuple,
+      RandomValueExpiredEvent.OutputTuple,
+      RandomValueExpiredEvent.OutputObject
+    >;
+
+    "RandomValueVerified(uint256,bytes32,bytes32)": TypedContractEvent<
+      RandomValueVerifiedEvent.InputTuple,
+      RandomValueVerifiedEvent.OutputTuple,
+      RandomValueVerifiedEvent.OutputObject
+    >;
+    RandomValueVerified: TypedContractEvent<
+      RandomValueVerifiedEvent.InputTuple,
+      RandomValueVerifiedEvent.OutputTuple,
+      RandomValueVerifiedEvent.OutputObject
     >;
   };
 }
